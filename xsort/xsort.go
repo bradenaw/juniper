@@ -49,9 +49,13 @@ func Merge[T any](less Less[T], out []T, in ...[]T) []T {
 			in[j] = in[j][1:]
 		}
 	}
-	h := heap.New(func(a, b valueAndSource[T]) bool {
-		return less(a.value, b.value)
-	}, initial)
+	h := heap.New(
+		func(a, b valueAndSource[T]) bool {
+			return less(a.value, b.value)
+		},
+		func(a valueAndSource[T], i int) {},
+		initial,
+	)
 	out = slices.Grow(out[:0], n)
 	for {
 		item, ok := h.Pop()

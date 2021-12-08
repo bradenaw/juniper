@@ -6,8 +6,8 @@ import (
 )
 
 type KVPair[K any, V any] struct {
-	k K
-	v V
+	K K
+	V V
 }
 
 type Map[K any, V any] struct {
@@ -17,7 +17,7 @@ type Map[K any, V any] struct {
 func NewMap[K any, V any](less xsort.Less[K]) Map[K, V] {
 	return Map[K, V]{
 		t: newTree(func(a, b KVPair[K, V]) bool {
-			return less(a.k, b.k)
+			return less(a.K, b.K)
 		}),
 	}
 }
@@ -31,11 +31,11 @@ func (m Map[K, V]) Put(k K, v V) {
 }
 
 func (m Map[K, V]) Delete(k K) {
-	m.t.Delete(KVPair[K, V]{k: k})
+	m.t.Delete(KVPair[K, V]{K: k})
 }
 
 func (m Map[K, V]) Contains(k K) bool {
-	return m.t.Contains(KVPair[K, V]{k: k})
+	return m.t.Contains(KVPair[K, V]{K: k})
 }
 
 func (m Map[K, V]) Iterate() iterator.Iterator[KVPair[K, V]] {

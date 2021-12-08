@@ -9,18 +9,23 @@ import (
 type Less[T any] func(a, b T) bool
 
 type Heap[T any] struct {
-	lessFn Less[T]
-	a      []T
+	lessFn       Less[T]
+	indexChanged func(x T, i int)
+	a            []T
 }
 
-func New[T any](less Less[T], initial []T) Heap[T] {
+func New[T any](less Less[T], indexChanged func(x T, i int), initial []T) Heap[T] {
 	h := Heap[T]{
-		lessFn: less,
-		a:      initial,
+		lessFn:       less,
+		indexChanged: indexChanged,
+		a:            initial,
 	}
 
 	for i := len(initial)/2 - 1; i >= 0; i-- {
 		h.percolateDown(i)
+	}
+	for i := range initial {
+		h.notifyIndexChanged(i)
 	}
 
 	return h
@@ -36,6 +41,7 @@ func (h *Heap[T]) Grow(n int) {
 
 func (h *Heap[T]) Push(item T) {
 	h.a = append(h.a, item)
+	h.notifyIndexChanged(len(h.a) - 1)
 	h.percolateUp(len(h.a) - 1)
 }
 
@@ -49,8 +55,23 @@ func (h *Heap[T]) Pop() (T, bool) {
 	// In case T is a pointer, clear this out to keep the ref from being live.
 	(h.a)[len(h.a)-1] = zero
 	h.a = (h.a)[:len(h.a)-1]
+	if len(h.a) > 0 {
+		h.notifyIndexChanged(0)
+	}
 	h.percolateDown(0)
 	return item, true
+}
+
+func RemoveAt[T any](h *Heap[T], i int) {
+	var zero T
+	h.a[i] = h.a[len(h.a)-1]
+	h.a[len(h.a)-1] = zero
+	h.a = h.a[:len(h.a)-1]
+	if len(h.a) > 0 {
+		h.notifyIndexChanged(i)
+	}
+	h.percolateUp(i)
+	h.percolateDown(i)
 }
 
 func (h *Heap[T]) percolateUp(i int) {
@@ -65,6 +86,12 @@ func (h *Heap[T]) percolateUp(i int) {
 
 func (h *Heap[T]) swap(i, j int) {
 	(h.a)[i], (h.a)[j] = (h.a)[j], (h.a)[i]
+	h.notifyIndexChanged(i)
+	h.notifyIndexChanged(j)
+}
+
+func (h *Heap[T]) notifyIndexChanged(i int) {
+	h.indexChanged(h.a[i], i)
 }
 
 func (h *Heap[T]) less(i, j int) bool {
