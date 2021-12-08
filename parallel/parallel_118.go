@@ -1,15 +1,16 @@
-//+build go1.18
+//go:build go1.18
+// +build go1.18
 
 package parallel
 
-import ( 
+import (
 	"context"
 )
 
 func Map[T any, U any](
-    ctx context.Context,
-    parallelism int,
-    in []T,
+	ctx context.Context,
+	parallelism int,
+	in []T,
 	f func(ctx context.Context, in T) (U, error),
 ) ([]U, error) {
 	out := make([]U, len(in))

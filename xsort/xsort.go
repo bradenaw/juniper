@@ -35,7 +35,7 @@ func SliceIsSorted[T any](x []T, less Less[T]) bool {
 }
 
 type valueAndSource[T any] struct {
-	value T
+	value  T
 	source int
 }
 

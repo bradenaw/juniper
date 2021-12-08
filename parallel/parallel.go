@@ -1,6 +1,6 @@
 package parallel
 
-import ( 
+import (
 	"context"
 	"sync/atomic"
 
@@ -8,9 +8,9 @@ import (
 )
 
 func Do(
-    ctx context.Context,
-    parallelism int,
-    n int,
+	ctx context.Context,
+	parallelism int,
+	n int,
 	f func(ctx context.Context, i int) error,
 ) error {
 	if parallelism == 1 {
@@ -32,7 +32,7 @@ func Do(
 				if i >= n {
 					return nil
 				}
-				
+
 				err := f(ctx, i)
 				if err != nil {
 					return err

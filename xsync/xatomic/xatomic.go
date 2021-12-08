@@ -26,5 +26,5 @@ func (v *Value[T]) Swap(new T) (old T) {
 	if out == nil {
 		return zero
 	}
-	return out.(T) 
+	return out.(T)
 }

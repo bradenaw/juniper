@@ -1,8 +1,8 @@
 package slices
 
 func Grow[T any](x []T, n int) []T {
-	if cap(x) - len(x) < n {
-		x2 := make([]T, len(x) + n)
+	if cap(x)-len(x) < n {
+		x2 := make([]T, len(x)+n)
 		copy(x2, x)
 		return x2[:len(x)]
 	}
@@ -25,7 +25,7 @@ func Filter[T any](x []T, keep func(t T) bool) []T {
 }
 
 func Reverse[T any](x []T) {
-	for i := 0; i < len(x) / 2 - 1; i++ {
+	for i := 0; i < len(x)/2-1; i++ {
 		x[i], x[len(x)-i-1] = x[len(x)-i-1], x[i]
 	}
 }

@@ -13,7 +13,7 @@ type tree[T any] struct {
 }
 
 type node[T any] struct {
-	left *node[T]
+	left  *node[T]
 	right *node[T]
 	value T
 }
@@ -38,14 +38,14 @@ func (t *tree[T]) Put(item T) {
 	for {
 		if t.less(item, curr.value) {
 			if curr.left == nil {
-				curr.left = &node[T]{value:item}
+				curr.left = &node[T]{value: item}
 				t.size++
 				return
 			}
 			curr = curr.left
 		} else if t.less(curr.value, item) {
 			if curr.right == nil {
-				curr.right = &node[T]{value:item}
+				curr.right = &node[T]{value: item}
 				t.size++
 				return
 			}
@@ -128,8 +128,8 @@ func (t *tree[T]) Iterate() iterator.Iterator[T] {
 			var zero T
 			return zero, false
 		}
-		curr := stack[len(stack) - 1]
-		stack = stack[0:len(stack)-1]
+		curr := stack[len(stack)-1]
+		stack = stack[0 : len(stack)-1]
 		if curr.right != nil {
 			stack = append(stack, curr.right)
 			for stack[len(stack)-1].left != nil {
