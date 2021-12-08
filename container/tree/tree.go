@@ -17,8 +17,8 @@ type node[T any] struct {
 	value T
 }
 
-func newTree[T any](less xsort.Less[T]) tree[T] {
-	return tree[T]{
+func newTree[T any](less xsort.Less[T]) *tree[T] {
+	return &tree[T]{
 		root: nil,
 		less: less,
 		size: 0,
@@ -100,6 +100,20 @@ func (t *tree[T]) Get(item T) (T, bool) {
 	return zero, false
 }
 
+func (t *tree[T]) Contains(item T) bool {
+	curr := t.root
+	for curr != nil {
+		if t.less(item, curr.value) {
+			curr = curr.left
+		} else if t.less(curr.value, item) {
+			curr = curr.right
+		} else {
+			return true
+		}
+	}
+	return false
+}
+
 func (t *tree[T]) Iterate() iterator.Iterator[T] {
 	var stack []*node[T]
 	curr := t.root
@@ -123,6 +137,3 @@ func (t *tree[T]) Iterate() iterator.Iterator[T] {
 		return curr.value, true
 	})
 }
-
-// func (t *tree) Contains(item T) bool {
-// }

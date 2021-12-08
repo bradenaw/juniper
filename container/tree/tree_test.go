@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/bradenaw/xstd/iterator"
 	"github.com/bradenaw/xstd/xsort"
 )
 
@@ -35,7 +36,7 @@ func FuzzBasic(f *testing.F) {
 	})
 
 	f.Fuzz(func(t *testing.T, b []byte) {
-		tree := newTree[byte](xsort.OrderedLess[byte])
+		tree := newTree(xsort.OrderedLess[byte])
 		oracle := make(map[byte]struct{})
 		for i := range b {
 			item := b[i] & 0b00111111
@@ -50,24 +51,20 @@ func FuzzBasic(f *testing.F) {
 				_, treeOk := tree.Get(item)
 				_, oracleOk := oracle[item]
 				require.Equal(t, treeOk, oracleOk)
+				require.Equal(t, tree.Contains(item), oracleOk)
 			case ActCheck:
 				require.Equal(t, tree.size, len(oracle))
 			default:
 				panic("no action?")
 			}
 
-			require.Equal(t, tree.size, len(oracle))
-			oracleSlice := make([]byte, 0, len(oracle))
+			var oracleSlice []byte
 			for item := range oracle {
 				oracleSlice = append(oracleSlice, item)
 			}
 			xsort.Slice(oracleSlice, xsort.OrderedLess[byte])
-			treeIter := tree.Iterate()
-			for i := range oracleSlice {
-				require.True(t, treeIter.Next())
-				require.Equal(t, treeIter.Item(), oracleSlice[i])
-			}
-			require.False(t, treeIter.Next())
+			treeSlice := iterator.Collect(tree.Iterate())
+			require.Equal(t, treeSlice, oracleSlice)
 		}
 	})
 }

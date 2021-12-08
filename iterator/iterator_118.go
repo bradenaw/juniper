@@ -1,10 +1,10 @@
-//+build go1.18
+//go:build go1.18
 
 package iterator
 
 type Iterator[T any] struct {
 	inner func() (T, bool)
-	item T
+	item  T
 }
 
 func New[T any](f func() (T, bool)) Iterator[T] {
@@ -21,7 +21,20 @@ func (iter *Iterator[T]) Item() T {
 	return iter.item
 }
 
-func (iter *Iterator[T]) Collect() []T {
+func Slice[T any](s []T) Iterator[T] {
+	i := 0
+	return Iterator[T]{inner: func() (T, bool) {
+		if i >= len(s) {
+			var zero T
+			return zero, false
+		}
+		item := s[i]
+		i++
+		return item, true
+	}}
+}
+
+func Collect[T any](iter Iterator[T]) []T {
 	var out []T
 	for iter.Next() {
 		out = append(out, iter.Item())
