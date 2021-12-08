@@ -6,6 +6,7 @@ import (
 )
 
 type Heap[T any] struct {
+	// Indirect here so that Heap behaves as a reference type, like the map builtin.
 	*heap.Heap[T]
 }
 

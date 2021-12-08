@@ -6,6 +6,7 @@ import (
 )
 
 type tree[T any] struct {
+	// TODO: rebalancing.
 	root *node[T]
 	less xsort.Less[T]
 	size int
@@ -114,6 +115,7 @@ func (t *tree[T]) Contains(item T) bool {
 	return false
 }
 
+// TODO: Should work even if the tree is modified.
 func (t *tree[T]) Iterate() iterator.Iterator[T] {
 	var stack []*node[T]
 	curr := t.root
