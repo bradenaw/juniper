@@ -54,6 +54,28 @@ func Map[T any, U any](iter Iterator[T], f func(t T) U) Iterator[U] {
 	}
 }
 
+func Chunk[T any](iter Iterator[T], chunkSize int) Iterator[[]T] {
+	chunk := make([]T, 0, chunkSize)
+	return Iterator[[]T]{
+		inner: func() ([]T, bool) {
+			for iter.Next() {
+				chunk = append(chunk, iter.Item())
+				if len(chunk) == chunkSize {
+					item := chunk
+					chunk = chunk[:0]
+					return item, true
+				}
+			}
+			if len(chunk) > 0 {
+				item := chunk
+				chunk = chunk[:0]
+				return item, true
+			}
+			return nil, false
+		},
+	}
+}
+
 func Chain[T any](iters ...Iterator[T]) Iterator[T] {
 	i := 0
 	return Iterator[T]{
