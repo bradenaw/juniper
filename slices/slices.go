@@ -16,6 +16,11 @@ func Filter[T any](x []T, keep func(t T) bool) []T {
 			filtered = append(filtered, x[i])
 		}
 	}
+	// Zero out the rest in case they contain pointers, so that filtered doesn't retain references.
+	var zero T
+	for i := range x[len(filtered):] {
+		x[i] = zero
+	}
 	return filtered
 }
 
