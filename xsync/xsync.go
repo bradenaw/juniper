@@ -3,36 +3,41 @@ package xsync
 import (
 	"context"
 	"sync"
-
-	"xsync/xatomic"
 )
 
 type ContextCond struct {
-	ch xatomic.Value[chan struct{}]
-	l sync.Locker
+	m  sync.RWMutex
+	ch chan struct{}
+	l  sync.Locker
 }
 
 func NewContextCond(l sync.Locker) *ContextCond {
-	c := ContextCond{
-		l: l,
+	return &ContextCond{
+		l:  l,
+		ch: make(chan struct{}),
 	}
-	c.ch.Store(make(chan struct{}))
 }
 
 func (c *ContextCond) Broadcast() {
-	ch := c.ch.Swap(make(chan struct{}))
-	close(ch)
+	c.m.Lock()
+	close(c.ch)
+	c.ch = make(chan struct{})
+	c.m.Unlock()
 }
 
 func (c *ContextCond) Signal() {
+	c.m.RLock()
 	select {
-	case c.ch.Load() <- struct{}{}:
+	case c.ch <- struct{}{}:
 	default:
 	}
+	c.m.RUnlock()
 }
 
 func (c *ContextCond) Wait(ctx context.Context) error {
-	ch := c.ch.Load()
+	c.m.RLock()
+	ch := c.ch
+	c.m.RUnlock()
 	c.l.Unlock()
 	defer c.l.Lock()
 	select {
@@ -40,4 +45,5 @@ func (c *ContextCond) Wait(ctx context.Context) error {
 		return ctx.Err()
 	case <-ch:
 	}
+	return nil
 }

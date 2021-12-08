@@ -1,4 +1,4 @@
-module github.com/bradenaw/parallel
+module github.com/bradenaw/xstd
 
 go 1.18
 

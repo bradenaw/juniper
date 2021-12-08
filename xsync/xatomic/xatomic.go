@@ -4,7 +4,7 @@ import (
 	"sync/atomic"
 )
 
-type Value[T] struct {
+type Value[T any] struct {
 	v atomic.Value
 }
 
