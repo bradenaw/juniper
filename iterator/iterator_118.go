@@ -7,6 +7,10 @@ type Iterator[T any] struct {
 	item T
 }
 
+func New[T any](f func() (T, bool)) Iterator[T] {
+	return Iterator[T]{inner: f}
+}
+
 func (iter *Iterator[T]) Next() bool {
 	item, ok := iter.inner()
 	iter.item = item

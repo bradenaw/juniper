@@ -19,25 +19,55 @@ func TestBasic(t *testing.T) {
 }
 
 func FuzzBasic(f *testing.F) {
+	const (
+		ActPut byte = iota << 6
+		ActDelete
+		ActContains
+		ActCheck
+	)
+
+	f.Add([]byte{
+		ActContains & 5,
+		ActPut & 5,
+		ActContains & 5,
+		ActDelete & 5,
+		ActContains & 5,
+	})
+
 	f.Fuzz(func(t *testing.T, b []byte) {
 		tree := newTree[byte](xsort.OrderedLess[byte])
 		oracle := make(map[byte]struct{})
 		for i := range b {
-			item := b[i] & 0x7F
-			switch (b[i] & 0xB0) >> 6 {
-			case 0:
+			item := b[i] & 0b00111111
+			switch b[i] & 0b11000000 {
+			case ActPut:
 				tree.Put(item)
 				oracle[item] = struct{}{}
-			case 1:
+			case ActDelete:
 				tree.Delete(item)
 				delete(oracle, item)
-			case 2:
+			case ActContains:
 				_, treeOk := tree.Get(item)
 				_, oracleOk := oracle[item]
 				require.Equal(t, treeOk, oracleOk)
-			case 3:
+			case ActCheck:
 				require.Equal(t, tree.size, len(oracle))
+			default:
+				panic("no action?")
 			}
+
+			require.Equal(t, tree.size, len(oracle))
+			oracleSlice := make([]byte, 0, len(oracle))
+			for item := range oracle {
+				oracleSlice = append(oracleSlice, item)
+			}
+			xsort.Slice(oracleSlice, xsort.OrderedLess[byte])
+			treeIter := tree.Iterate()
+			for i := range oracleSlice {
+				require.True(t, treeIter.Next())
+				require.Equal(t, treeIter.Item(), oracleSlice[i])
+			}
+			require.False(t, treeIter.Next())
 		}
 	})
 }

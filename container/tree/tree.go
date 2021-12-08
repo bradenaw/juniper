@@ -1,6 +1,7 @@
 package tree
 
 import (
+	"github.com/bradenaw/xstd/iterator"
 	"github.com/bradenaw/xstd/xsort"
 )
 
@@ -79,6 +80,7 @@ func (t *tree[T]) Delete(item T) {
 				*in = curr.right
 			}
 			t.size--
+			return
 		}
 	}
 }
@@ -96,6 +98,30 @@ func (t *tree[T]) Get(item T) (T, bool) {
 	}
 	var zero T
 	return zero, false
+}
+
+func (t *tree[T]) Iterate() iterator.Iterator[T] {
+	var stack []*node[T]
+	curr := t.root
+	for curr != nil {
+		stack = append(stack, curr)
+		curr = curr.left
+	}
+	return iterator.New(func() (T, bool) {
+		if len(stack) == 0 {
+			var zero T
+			return zero, false
+		}
+		curr := stack[len(stack) - 1]
+		stack = stack[0:len(stack)-1]
+		if curr.right != nil {
+			stack = append(stack, curr.right)
+			for stack[len(stack)-1].left != nil {
+				stack = append(stack, stack[len(stack)-1].left)
+			}
+		}
+		return curr.value, true
+	})
 }
 
 // func (t *tree) Contains(item T) bool {
