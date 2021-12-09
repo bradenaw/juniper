@@ -9,7 +9,7 @@ import (
 
 type Heap[T any] struct {
 	// Indirect here so that Heap behaves as a reference type, like the map builtin.
-	*heap.Heap[T]
+	inner *heap.Heap[T]
 }
 
 func New[T any](less xsort.Less[T], initial []T) Heap[T] {
@@ -21,8 +21,24 @@ func New[T any](less xsort.Less[T], initial []T) Heap[T] {
 		initial,
 	)
 	return Heap[T]{
-		Heap: &inner,
+		inner: &inner,
 	}
+}
+
+func (h *Heap[T]) Len() int {
+	return h.inner.Len()
+}
+
+func (h *Heap[T]) Grow(n int) {
+	h.inner.Grow(n)
+}
+
+func (h *Heap[T]) Push(item T) {
+	h.inner.Push(item)
+}
+
+func (h *Heap[T]) Pop() (T, bool) {
+	return h.inner.Pop()
 }
 
 type KVPair[K any, V any] struct {
@@ -31,8 +47,9 @@ type KVPair[K any, V any] struct {
 }
 
 type MapHeap[K comparable, V any] struct {
-	*heap.Heap[KVPair[K, V]]
-	m map[K]int
+	// Indirect here so that Heap behaves as a reference type, like the map builtin.
+	inner *heap.Heap[KVPair[K, V]]
+	m     map[K]int
 }
 
 func NewMap[K comparable, V any](less xsort.Less[K], initial []KVPair[K, V]) MapHeap[K, V] {
@@ -48,12 +65,24 @@ func NewMap[K comparable, V any](less xsort.Less[K], initial []KVPair[K, V]) Map
 		},
 		initial,
 	)
-	h.Heap = &inner
+	h.inner = &inner
 	return h
 }
 
+func (h *MapHeap[K, V]) Len() int {
+	return h.inner.Len()
+}
+
+func (h *MapHeap[K, V]) Grow(n int) {
+	h.inner.Grow(n)
+}
+
+func (h *MapHeap[K, V]) Push(k K, v V) {
+	h.inner.Push(KVPair[K, V]{k, v})
+}
+
 func (h *MapHeap[K, V]) Pop() (KVPair[K, V], bool) {
-	item, ok := h.Heap.Pop()
+	item, ok := h.inner.Pop()
 	if ok {
 		delete(h.m, item.K)
 	}
@@ -65,6 +94,6 @@ func (h *MapHeap[K, V]) Remove(k K) {
 	if !ok {
 		panic(fmt.Sprintf("remove item not in MapHeap: %#v", k))
 	}
-	heap.RemoveAt(h.Heap, i)
+	h.inner.RemoveAt(i)
 	delete(h.m, k)
 }

@@ -62,7 +62,7 @@ func (h *Heap[T]) Pop() (T, bool) {
 	return item, true
 }
 
-func RemoveAt[T any](h *Heap[T], i int) {
+func (h *Heap[T]) RemoveAt(i int) {
 	var zero T
 	h.a[i] = h.a[len(h.a)-1]
 	h.a[len(h.a)-1] = zero
