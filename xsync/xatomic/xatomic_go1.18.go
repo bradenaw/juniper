@@ -1,11 +1,13 @@
 //go:build go1.18
 
+// Package xatomic contains extensions to the standard library package sync/atomic.
 package xatomic
 
 import (
 	"sync/atomic"
 )
 
+// Value is equivalent to sync/atomic.Value, except strongly typed.
 type Value[T any] struct {
 	v atomic.Value
 }
