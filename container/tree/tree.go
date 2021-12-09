@@ -1,9 +1,6 @@
 package tree
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/bradenaw/xstd/iterator"
 	"github.com/bradenaw/xstd/slices"
 	"github.com/bradenaw/xstd/xsort"
@@ -144,14 +141,6 @@ type treeIterator[T any] struct {
 	gen   int
 }
 
-func (iter *treeIterator[T]) stackString() string {
-	var sb strings.Builder
-	for i := range iter.stack {
-		fmt.Fprintf(&sb, "%#v ", iter.stack[i].value)
-	}
-	return sb.String()
-}
-
 func (iter *treeIterator[T]) Next() bool {
 	if iter.state == iterBeforeFirst {
 		iter.SeekStart()
@@ -258,24 +247,4 @@ func (t *tree[T]) Iterate() iterator.Iterator[T] {
 		}
 		return iter.Item(), true
 	})
-}
-
-func (t *tree[T]) debug() string {
-	var sb strings.Builder
-	fmt.Fprintf(&sb, "tree ====\n")
-	var visit func(x *node[T], prefix string, descPrefix string)
-	visit = func(x *node[T], prefix string, descPrefix string) {
-		fmt.Fprintf(&sb, "%s%#v\n", prefix, x.value)
-		if x.left != nil {
-			visit(x.left, descPrefix+"  l ", descPrefix+"    ")
-		}
-		if x.right != nil {
-			visit(x.right, descPrefix+"  r ", descPrefix+"    ")
-		}
-	}
-	if t.root != nil {
-		visit(t.root, "", "")
-	}
-	fmt.Fprintf(&sb, "=========")
-	return sb.String()
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/bradenaw/xstd/internal/heap"
+	"github.com/bradenaw/xstd/iterator"
 	"github.com/bradenaw/xstd/xsort"
 )
 
@@ -39,6 +40,10 @@ func (h *Heap[T]) Push(item T) {
 
 func (h *Heap[T]) Pop() (T, bool) {
 	return h.inner.Pop()
+}
+
+func (h *Heap[T]) Iterate() iterator.Iterator[T] {
+	return h.inner.Iterate()
 }
 
 type KVPair[K any, V any] struct {
@@ -96,4 +101,8 @@ func (h *MapHeap[K, V]) Remove(k K) {
 	}
 	h.inner.RemoveAt(i)
 	delete(h.m, k)
+}
+
+func (h *MapHeap[K, V]) Iterate() iterator.Iterator[KVPair[K, V]] {
+	return h.inner.Iterate()
 }

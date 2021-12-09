@@ -1,6 +1,8 @@
 package tree
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -109,7 +111,7 @@ func FuzzBasic(f *testing.F) {
 			default:
 				panic("no action?")
 			}
-			t.Log(tree.debug())
+			t.Log(treeToString(tree))
 		}
 
 		t.Log("check...")
@@ -121,4 +123,24 @@ func FuzzBasic(f *testing.F) {
 		treeSlice := iterator.Collect(tree.Iterate())
 		require.Equal(t, treeSlice, oracleSlice)
 	})
+}
+
+func treeToString[T any](t *tree[T]) string {
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "tree ====\n")
+	var visit func(x *node[T], prefix string, descPrefix string)
+	visit = func(x *node[T], prefix string, descPrefix string) {
+		fmt.Fprintf(&sb, "%s%#v\n", prefix, x.value)
+		if x.left != nil {
+			visit(x.left, descPrefix+"  l ", descPrefix+"    ")
+		}
+		if x.right != nil {
+			visit(x.right, descPrefix+"  r ", descPrefix+"    ")
+		}
+	}
+	if t.root != nil {
+		visit(t.root, "", "")
+	}
+	fmt.Fprintf(&sb, "=========")
+	return sb.String()
 }
