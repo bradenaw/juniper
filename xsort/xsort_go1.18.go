@@ -1,6 +1,6 @@
 //go:build go1.18
 
-// Package xsort provides primitives for sorting and working with sorted collections.
+// Package xsort contains extensions to the standard library package sort.
 package xsort
 
 import (
