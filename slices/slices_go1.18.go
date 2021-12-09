@@ -45,7 +45,7 @@ func Reverse[T any](x []T) {
 // be shifted.
 func Insert[T any](x []T, idx int, values ...T) []T {
 	x = Grow(x, len(values))
-	x = x[:len(x)+len(values):len(x)+len(values)]
+	x = x[: len(x)+len(values) : len(x)+len(values)]
 	copy(x[idx+len(values):], x[idx:])
 	copy(x[idx:], values)
 	return x
