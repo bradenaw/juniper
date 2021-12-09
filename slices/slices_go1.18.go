@@ -1,3 +1,5 @@
+//go:build go1.18
+
 package slices
 
 // Grow grows x's capacity, if necessary, to fit n more elements and returns the modified slice.
