@@ -36,3 +36,10 @@ func Remove[T any](x []T, i int) []T {
 	x[len(x)-1] = zero
 	return x[:len(x)-1]
 }
+
+func Clear[T any](x []T) {
+	var zero T
+	for i := range x {
+		x[i] = zero
+	}
+}

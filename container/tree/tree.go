@@ -1,7 +1,11 @@
 package tree
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/bradenaw/xstd/iterator"
+	"github.com/bradenaw/xstd/slices"
 	"github.com/bradenaw/xstd/xsort"
 )
 
@@ -10,6 +14,8 @@ type tree[T any] struct {
 	root *node[T]
 	less xsort.Less[T]
 	size int
+	// Incremented whenever the tree structure changes, so that iterators know to reset.
+	gen int
 }
 
 type node[T any] struct {
@@ -23,6 +29,7 @@ func newTree[T any](less xsort.Less[T]) *tree[T] {
 		root: nil,
 		less: less,
 		size: 0,
+		gen:  1,
 	}
 }
 
@@ -40,6 +47,7 @@ func (t *tree[T]) Put(item T) {
 			if curr.left == nil {
 				curr.left = &node[T]{value: item}
 				t.size++
+				t.gen++
 				return
 			}
 			curr = curr.left
@@ -47,6 +55,7 @@ func (t *tree[T]) Put(item T) {
 			if curr.right == nil {
 				curr.right = &node[T]{value: item}
 				t.size++
+				t.gen++
 				return
 			}
 			curr = curr.right
@@ -81,6 +90,7 @@ func (t *tree[T]) Delete(item T) {
 				*in = curr.right
 			}
 			t.size--
+			t.gen++
 			return
 		}
 	}
@@ -115,27 +125,157 @@ func (t *tree[T]) Contains(item T) bool {
 	return false
 }
 
-// TODO: Should work even if the tree is modified.
+type iterState int
+
+const (
+	iterBeforeFirst iterState = iota
+	iterAt
+	iterAfterLast
+)
+
+type treeIterator[T any] struct {
+	t *tree[T]
+	// Always an ancestor chain, that is, stack[i] is the parent of stack[i+1], or:
+	//   (stack[i].left == stack[i+1] || stack[i].right == stack[i+1])
+	//
+	// Should be manipulated via reset(), up(), left(), and right().
+	stack []*node[T]
+	state iterState
+	gen   int
+}
+
+func (iter *treeIterator[T]) stackString() string {
+	var sb strings.Builder
+	for i := range iter.stack {
+		fmt.Fprintf(&sb, "%#v ", iter.stack[i].value)
+	}
+	return sb.String()
+}
+
+func (iter *treeIterator[T]) Next() bool {
+	if iter.state == iterBeforeFirst {
+		iter.SeekStart()
+		return len(iter.stack) > 0
+	} else if iter.state == iterAfterLast {
+		return false
+	} else if iter.gen != iter.t.gen && len(iter.stack) > 0 {
+		// Iterator is not already done and the tree has changed structure, must re-seek to find our
+		// place.
+		iter.SeekFirstGreater(iter.stack[len(iter.stack)-1].value)
+		return len(iter.stack) > 0
+	}
+	curr := iter.curr()
+	if curr.right != nil {
+		iter.right()
+		for iter.curr().left != nil {
+			iter.left()
+		}
+	} else {
+		prev := curr
+		iter.up()
+		for len(iter.stack) > 0 && iter.t.less(iter.curr().value, prev.value) {
+			iter.up()
+		}
+	}
+	if len(iter.stack) == 0 {
+		iter.state = iterAfterLast
+		return false
+	}
+	return true
+}
+func (iter *treeIterator[T]) SeekStart() {
+	iter.reset()
+	if len(iter.stack) == 0 {
+		return
+	}
+
+	for iter.curr().left != nil {
+		iter.left()
+	}
+	iter.gen = iter.t.gen
+}
+func (iter *treeIterator[T]) SeekFirstGreater(item T) {
+	iter.reset()
+	if len(iter.stack) == 0 {
+		return
+	}
+
+	for {
+		if iter.curr().left != nil && iter.t.less(item, iter.curr().value) {
+			iter.left()
+		} else if iter.curr().right != nil && iter.t.less(iter.curr().value, item) {
+			iter.right()
+		} else {
+			break
+		}
+	}
+	iter.gen = iter.t.gen
+	iter.state = iterAt
+
+	curr := iter.curr().value
+	if iter.t.less(curr, item) || !iter.t.less(item, curr) {
+		// If less or equal, we need to advance to the next one.
+		iter.Next()
+	}
+}
+func (iter *treeIterator[T]) curr() *node[T] {
+	return iter.stack[len(iter.stack)-1]
+}
+
+func (iter *treeIterator[T]) reset() {
+	slices.Clear(iter.stack)
+	if iter.t.root == nil {
+		iter.state = iterAfterLast
+		iter.stack = iter.stack[:0]
+		return
+	}
+	iter.state = iterAt
+	iter.stack = append(iter.stack[:0], iter.t.root)
+}
+func (iter *treeIterator[T]) up() {
+	iter.stack = iter.stack[:len(iter.stack)-1]
+}
+func (iter *treeIterator[T]) left() {
+	iter.stack = append(iter.stack, iter.curr().left)
+}
+func (iter *treeIterator[T]) right() {
+	iter.stack = append(iter.stack, iter.curr().right)
+}
+func (iter *treeIterator[T]) Item() T {
+	return iter.curr().value
+}
+
 func (t *tree[T]) Iterate() iterator.Iterator[T] {
-	var stack []*node[T]
-	curr := t.root
-	for curr != nil {
-		stack = append(stack, curr)
-		curr = curr.left
+	iter := &treeIterator[T]{
+		stack: []*node[T]{},
+		t:     t,
 	}
 	return iterator.New(func() (T, bool) {
-		if len(stack) == 0 {
+		ok := iter.Next()
+		if !ok {
 			var zero T
 			return zero, false
 		}
-		curr := stack[len(stack)-1]
-		stack = stack[0 : len(stack)-1]
-		if curr.right != nil {
-			stack = append(stack, curr.right)
-			for stack[len(stack)-1].left != nil {
-				stack = append(stack, stack[len(stack)-1].left)
-			}
-		}
-		return curr.value, true
+		return iter.Item(), true
 	})
+}
+
+func (t *tree[T]) debug() string {
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "tree ====\n")
+	var visit func(x *node[T], prefix string, descPrefix string)
+	visit = func(x *node[T], prefix string, descPrefix string) {
+		fmt.Fprintf(&sb, "%s%#v\n", prefix, x.value)
+		if x.left != nil {
+			visit(x.left, descPrefix+"  l ", descPrefix+"    ")
+		}
+		if x.right != nil {
+			visit(x.right, descPrefix+"  r ", descPrefix+"    ")
+		}
+	}
+	if t.root != nil {
+		visit(t.root, "", "")
+	}
+	fmt.Fprintf(&sb, "=========")
+	return sb.String()
 }
