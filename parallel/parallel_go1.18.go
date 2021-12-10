@@ -7,6 +7,11 @@ import (
 	"context"
 )
 
+// Map uses parallelism goroutines to call f once for each element of in. out[i] is the result of f
+// for in[i].
+//
+// If any call to f returns an error the context passed to invocations of f is cancelled, no further
+// calls to f are made, and Map returns the first error encountered.
 func Map[T any, U any](
 	ctx context.Context,
 	parallelism int,
