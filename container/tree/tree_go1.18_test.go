@@ -81,7 +81,7 @@ func FuzzBasic(f *testing.F) {
 						iter = &x
 						iterLastSeen = nil
 					}
-					ok := iter.Next()
+					ok := (*iter).Next()
 					if len(oracle) == 0 {
 						require.False(t, ok)
 						iter = nil
@@ -99,7 +99,7 @@ func FuzzBasic(f *testing.F) {
 					}
 					require.Equal(t, expected != nil, ok)
 					if ok {
-						item := iter.Item()
+						item := (*iter).Item()
 						require.Equal(t, *expected, item)
 						iterLastSeen = &item
 						t.Logf(" -> %#v", item)
