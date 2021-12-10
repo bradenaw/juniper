@@ -1,6 +1,7 @@
 # Juniper
 
-Juniper is a library of extensions to the Go standard library.
+Juniper is a library of extensions to the Go standard library. It is **very much experimental** and
+nothing is guaranteed, use at your own risk.
 
 For example:
 
