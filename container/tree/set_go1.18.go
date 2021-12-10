@@ -7,32 +7,45 @@ import (
 	"github.com/bradenaw/xstd/xsort"
 )
 
+// Set is a tree-structured set. Sets are a collection of unique elements. Similar to Go's built-in
+// map[T]struct{} but keeps elements in sorted order.
 type Set[T any] struct {
 	t *tree[T]
 }
 
+// NewSet returns a Set that uses less to determine the sort order of items. If !less(a, b) &&
+// !less(b, a), then a and b are considered the same item.
 func NewSet[T any](less xsort.Less[T]) Set[T] {
 	return Set[T]{
 		t: newTree(less),
 	}
 }
 
+// Len returns the number of elements in the set.
 func (s Set[T]) Len() int {
 	return s.t.size
 }
 
+// Add adds item to the set if it is not already present.
 func (s Set[T]) Add(item T) {
 	s.t.Put(item)
 }
 
+// Delete removes item from the set if it is present, and does nothing otherwise.
 func (s Set[T]) Remove(item T) {
 	s.t.Delete(item)
 }
 
+// Contains returns true if item is present in the set.
 func (s Set[T]) Contains(item T) bool {
 	return s.t.Contains(item)
 }
 
+// Iterate returns an iterator that yields the elements of the set in sorted order.
+//
+// The set may be safely modified during iteration and the iterator will continue from the
+// next-lowest item. Thus if the set is modified, the iterator will not necessarily return all of
+// the items present in the set.
 func (s Set[T]) Iterate() iterator.Iterator[T] {
 	return s.t.Iterate()
 }
