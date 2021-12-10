@@ -27,11 +27,8 @@ func FuzzBasic(f *testing.F) {
 		}
 
 		outByPop := []byte{}
-		for {
-			item, ok := h.Pop()
-			if !ok {
-				break
-			}
+		for h.Len() > 0 {
+			item := h.Pop()
 			outByPop = append(outByPop, item)
 		}
 

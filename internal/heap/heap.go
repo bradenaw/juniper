@@ -1,9 +1,15 @@
+//go:build go1.18
+
 package heap
 
 import (
+	"errors"
+
 	"github.com/bradenaw/xstd/iterator"
 	"github.com/bradenaw/xstd/slices"
 )
+
+var ErrHeapModified = errors.New("heap modified during iteration")
 
 // Duplicated from xsort to avoid dependency cycle.
 type Less[T any] func(a, b T) bool
@@ -12,6 +18,7 @@ type Heap[T any] struct {
 	lessFn       Less[T]
 	indexChanged func(x T, i int)
 	a            []T
+	gen          int
 }
 
 func New[T any](less Less[T], indexChanged func(x T, i int), initial []T) Heap[T] {
@@ -43,13 +50,11 @@ func (h *Heap[T]) Push(item T) {
 	h.a = append(h.a, item)
 	h.notifyIndexChanged(len(h.a) - 1)
 	h.percolateUp(len(h.a) - 1)
+	h.gen++
 }
 
-func (h *Heap[T]) Pop() (T, bool) {
+func (h *Heap[T]) Pop() T {
 	var zero T
-	if len(h.a) == 0 {
-		return zero, false
-	}
 	item := h.a[0]
 	(h.a)[0] = (h.a)[len(h.a)-1]
 	// In case T is a pointer, clear this out to keep the ref from being live.
@@ -59,7 +64,12 @@ func (h *Heap[T]) Pop() (T, bool) {
 		h.notifyIndexChanged(0)
 	}
 	h.percolateDown(0)
-	return item, true
+	h.gen++
+	return item
+}
+
+func (h *Heap[T]) Peek() T {
+	return h.a[0]
 }
 
 func (h *Heap[T]) RemoveAt(i int) {
@@ -72,6 +82,7 @@ func (h *Heap[T]) RemoveAt(i int) {
 	}
 	h.percolateUp(i)
 	h.percolateDown(i)
+	h.gen++
 }
 
 func (h *Heap[T]) percolateUp(i int) {
@@ -129,7 +140,22 @@ func (h *Heap[T]) percolateDown(i int) {
 }
 
 func (h *Heap[T]) Iterate() iterator.Iterator[T] {
-	return iterator.Slice(h.a)
+	iter := iterator.Slice(h.a)
+	gen := -1
+	return iterator.New(func() (T, bool) {
+		if gen == -1 {
+			gen = h.gen
+		}
+		if gen != h.gen {
+			panic(ErrHeapModified)
+		}
+		ok := iter.Next()
+		if !ok {
+			var zero T
+			return zero, false
+		}
+		return iter.Item(), true
+	})
 }
 
 func parent(i int) int {

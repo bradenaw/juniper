@@ -85,11 +85,8 @@ func Merge[T any](less Less[T], out []T, in ...[]T) []T {
 		initial,
 	)
 	out = slices.Grow(out[:0], n)
-	for {
-		item, ok := h.Pop()
-		if !ok {
-			break
-		}
+	for h.Len() > 0 {
+		item := h.Pop()
 		out = append(out, item.value)
 		if len(in[item.source]) > 0 {
 			h.Push(valueAndSource[T]{in[item.source][0], item.source})
