@@ -95,7 +95,7 @@ func (t *tree[T]) Delete(item T) {
 	}
 }
 
-func (t *tree[T]) Get(item T) (T, bool) {
+func (t *tree[T]) Get(item T) T {
 	curr := t.root
 	for curr != nil {
 		if t.less(item, curr.value) {
@@ -103,11 +103,11 @@ func (t *tree[T]) Get(item T) (T, bool) {
 		} else if t.less(curr.value, item) {
 			curr = curr.right
 		} else {
-			return curr.value, true
+			return curr.value
 		}
 	}
 	var zero T
-	return zero, false
+	return zero
 }
 
 func (t *tree[T]) Contains(item T) bool {

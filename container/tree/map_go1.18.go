@@ -44,6 +44,13 @@ func (m Map[K, V]) Delete(k K) {
 	m.t.Delete(KVPair[K, V]{K: k})
 }
 
+// Get returns the value associated with the given key if it is present in the map. Otherwise, it
+// returns the zero-value of V.
+func (m Map[K, V]) Get(k K) V {
+	kv := m.t.Get(KVPair[K, V]{K: k})
+	return kv.V
+}
+
 // Contains returns true if the given key is present in the map.
 func (m Map[K, V]) Contains(k K) bool {
 	return m.t.Contains(KVPair[K, V]{K: k})
