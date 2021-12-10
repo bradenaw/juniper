@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/bradenaw/xstd/iterator"
-	"github.com/bradenaw/xstd/xsort"
+	"github.com/bradenaw/juniper/iterator"
+	"github.com/bradenaw/juniper/xsort"
 )
 
 func FuzzBasic(f *testing.F) {

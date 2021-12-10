@@ -3,8 +3,8 @@
 package tree
 
 import (
-	"github.com/bradenaw/xstd/iterator"
-	"github.com/bradenaw/xstd/xsort"
+	"github.com/bradenaw/juniper/iterator"
+	"github.com/bradenaw/juniper/xsort"
 )
 
 type KVPair[K any, V any] struct {

@@ -3,9 +3,9 @@
 package tree
 
 import (
-	"github.com/bradenaw/xstd/iterator"
-	"github.com/bradenaw/xstd/slices"
-	"github.com/bradenaw/xstd/xsort"
+	"github.com/bradenaw/juniper/iterator"
+	"github.com/bradenaw/juniper/slices"
+	"github.com/bradenaw/juniper/xsort"
 )
 
 type tree[T any] struct {

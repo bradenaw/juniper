@@ -6,9 +6,9 @@ package xheap
 import (
 	"fmt"
 
-	"github.com/bradenaw/xstd/internal/heap"
-	"github.com/bradenaw/xstd/iterator"
-	"github.com/bradenaw/xstd/xsort"
+	"github.com/bradenaw/juniper/internal/heap"
+	"github.com/bradenaw/juniper/iterator"
+	"github.com/bradenaw/juniper/xsort"
 )
 
 // Heap is a min-heap (https://en.wikipedia.org/wiki/Binary_heap). Min-heaps are a collection

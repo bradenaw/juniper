@@ -7,8 +7,8 @@ import (
 	"constraints"
 	"sort"
 
-	"github.com/bradenaw/xstd/internal/heap"
-	"github.com/bradenaw/xstd/slices"
+	"github.com/bradenaw/juniper/internal/heap"
+	"github.com/bradenaw/juniper/slices"
 )
 
 // Returns true if a is less than b. Must follow the same rules as sort.Interface.Less.

@@ -1,4 +1,4 @@
-module github.com/bradenaw/xstd
+module github.com/bradenaw/juniper
 
 go 1.18
 

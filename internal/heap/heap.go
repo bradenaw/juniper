@@ -5,8 +5,8 @@ package heap
 import (
 	"errors"
 
-	"github.com/bradenaw/xstd/iterator"
-	"github.com/bradenaw/xstd/slices"
+	"github.com/bradenaw/juniper/iterator"
+	"github.com/bradenaw/juniper/slices"
 )
 
 var ErrHeapModified = errors.New("heap modified during iteration")

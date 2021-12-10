@@ -3,8 +3,8 @@
 package tree
 
 import (
-	"github.com/bradenaw/xstd/iterator"
-	"github.com/bradenaw/xstd/xsort"
+	"github.com/bradenaw/juniper/iterator"
+	"github.com/bradenaw/juniper/xsort"
 )
 
 // Set is a tree-structured set. Sets are a collection of unique elements. Similar to Go's built-in
