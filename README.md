@@ -11,6 +11,9 @@ For example:
 - `iterator` contains an iterator interface used by the containers, along with a few functions to manipulate them.
 - `xsort` contains mostly equivalents to `sort`, but type-safe with the advent of generics.
 
+Packages that overlap directly with a standard library package are named the same but with an `x`
+prefix for "extensions", e.g. `sort` and `xsort`.
+
 Currently it's an experiment with Go 1.18's generics and how the standard library might evolve to
 take advantage of them. Go itself is (smartly) not adopting changes to the standard library with Go
 1.18, instead waiting until the Go community has gotten some experience working with them. So here's
