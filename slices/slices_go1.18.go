@@ -67,3 +67,8 @@ func Clear[T any](x []T) {
 		x[i] = zero
 	}
 }
+
+// Clone creates a new slice and copies the elements of x into it.
+func Clone[T any](x []T) []T {
+	return append([]T{}, x...)
+}

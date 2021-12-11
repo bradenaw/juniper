@@ -74,3 +74,12 @@ func ExampleClear() {
 	// Output:
 	// [0 0 0]
 }
+
+func ExampleClone() {
+	x := []int{1, 2, 3}
+	cloned := Clone(x)
+	fmt.Println(cloned)
+
+	// Output:
+	// [1 2 3]
+}
