@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/bradenaw/juniper/iterator"
+	"github.com/bradenaw/juniper/xmath"
 	"github.com/bradenaw/juniper/xsort"
 )
 
@@ -22,18 +23,18 @@ func FuzzTree(f *testing.F) {
 	)
 
 	f.Add([]byte{
-		ActPut & 3,
+		ActPut | 3,
 	})
 	f.Add([]byte{
-		ActPut & 3,
-		ActPut & 5,
+		ActPut | 3,
+		ActPut | 5,
 	})
 	f.Add([]byte{
-		ActContains & 5,
-		ActPut & 5,
-		ActContains & 5,
-		ActDelete & 5,
-		ActContains & 5,
+		ActContains | 5,
+		ActPut | 5,
+		ActContains | 5,
+		ActDelete | 5,
+		ActContains | 5,
 	})
 
 	f.Fuzz(func(t *testing.T, b []byte) {
@@ -107,6 +108,7 @@ func FuzzTree(f *testing.F) {
 		}
 
 		t.Log("check...")
+		checkTree(t, tree)
 		var oracleSlice []byte
 		for item := range oracle {
 			oracleSlice = append(oracleSlice, item)
@@ -117,12 +119,52 @@ func FuzzTree(f *testing.F) {
 	})
 }
 
+func checkNode[T any](t *testing.T, tree *tree[T], curr *node[T]) int {
+	if curr == nil {
+		return 0
+	}
+	if curr.left != nil {
+		require.True(t, tree.less(curr.left.value, curr.value))
+	}
+	if curr.right != nil {
+		require.True(t, tree.less(curr.value, curr.right.value))
+	}
+	if curr.left == nil && curr.right == nil {
+		require.Equalf(t, 0, curr.height, "%#v is a leaf and should have height 0", curr.value)
+	} else {
+		require.Equalf(
+			t,
+			xmath.Max(tree.leftHeight(curr), tree.rightHeight(curr))+1,
+			curr.height,
+			"%#v has wrong height",
+			curr.value,
+		)
+	}
+	imbalance := tree.leftHeight(curr) - tree.rightHeight(curr)
+	require.LessOrEqual(t, imbalance, 1, fmt.Sprintf("%#v is imbalanced", curr.value))
+	require.GreaterOrEqual(t, imbalance, -1, fmt.Sprintf("%#v is imbalanced", curr.value))
+
+	leftSize := checkNode(t, tree, curr.left)
+	rightSize := checkNode(t, tree, curr.right)
+	return leftSize + rightSize + 1
+}
+func checkTree[T any](t *testing.T, tree *tree[T]) {
+	size := checkNode(t, tree, tree.root)
+	require.Equal(t, size, tree.size)
+}
+
 func treeToString[T any](t *tree[T]) string {
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "tree ====\n")
 	var visit func(x *node[T], prefix string, descPrefix string)
+	seen := make(map[*node[T]]struct{})
 	visit = func(x *node[T], prefix string, descPrefix string) {
-		fmt.Fprintf(&sb, "%s%#v\n", prefix, x.value)
+		_, ok := seen[x]
+		if ok {
+			panic(fmt.Sprintf("cycle detected: already saw %#v", x.value))
+		}
+		seen[x] = struct{}{}
+		fmt.Fprintf(&sb, "%s%#v h:%d\n", prefix, x.value, x.height)
 		if x.left != nil {
 			visit(x.left, descPrefix+"  l ", descPrefix+"    ")
 		}

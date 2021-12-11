@@ -5,11 +5,12 @@ package tree
 import (
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/slices"
+	"github.com/bradenaw/juniper/xmath"
 	"github.com/bradenaw/juniper/xsort"
 )
 
+// tree is an AVL tree: https://en.wikipedia.org/wiki/AVL_tree
 type tree[T any] struct {
-	// TODO: rebalancing.
 	root *node[T]
 	less xsort.Less[T]
 	size int
@@ -20,6 +21,10 @@ type tree[T any] struct {
 type node[T any] struct {
 	left  *node[T]
 	right *node[T]
+	// The height of this node. Leaves have height 0, internal nodes are one higher than their
+	// highest child.
+	height int
+	// iterator depends on the value of this not changing with respect to tree.less.
 	value T
 }
 
@@ -40,59 +45,79 @@ func (t *tree[T]) Put(item T) {
 		t.size++
 		return
 	}
-	curr := t.root
-	for {
-		if t.less(item, curr.value) {
-			if curr.left == nil {
-				curr.left = &node[T]{value: item}
-				t.size++
-				t.gen++
-				return
-			}
-			curr = curr.left
-		} else if t.less(curr.value, item) {
-			if curr.right == nil {
-				curr.right = &node[T]{value: item}
-				t.size++
-				t.gen++
-				return
-			}
-			curr = curr.right
-		} else {
-			curr.value = item
-			return
-		}
+	var added bool
+	t.root, added = t.putTraverse(item, t.root)
+	if added {
+		t.size++
+		t.gen++
 	}
 }
 
+// Returns true if a new node got added.
+func (t *tree[T]) putTraverse(item T, curr *node[T]) (*node[T], bool) {
+	if curr == nil {
+		return &node[T]{value: item}, true
+	}
+
+	var added bool
+	if t.less(item, curr.value) {
+		curr.left, added = t.putTraverse(item, curr.left)
+	} else if t.less(curr.value, item) {
+		curr.right, added = t.putTraverse(item, curr.right)
+	} else {
+		curr.value = item
+		return curr, false
+	}
+
+	return t.rebalance(curr), added
+}
+
 func (t *tree[T]) Delete(item T) {
-	in := &t.root
-	curr := t.root
-	for curr != nil {
-		if t.less(item, curr.value) {
-			in = &curr.left
-			curr = curr.left
-		} else if t.less(curr.value, item) {
-			in = &curr.right
-			curr = curr.right
-		} else {
-			if curr.left != nil && curr.right != nil {
-				*in = curr.right
-				curr2 := &curr.right.left
-				for *curr2 != nil {
-					curr2 = &(*curr2).left
-				}
-				*curr2 = curr.left
-			} else if curr.left != nil {
-				*in = curr.left
-			} else {
-				*in = curr.right
+	var deleted bool
+	t.root, deleted = t.deleteTraverse(item, t.root)
+	if deleted {
+		t.size--
+		t.gen++
+	}
+}
+
+func (t *tree[T]) deleteTraverse(item T, curr *node[T]) (*node[T], bool) {
+	if curr == nil {
+		// item isn't in the tree
+		return nil, false
+	}
+	var deleted bool
+	if t.less(item, curr.value) {
+		curr.left, deleted = t.deleteTraverse(item, curr.left)
+	} else if t.less(curr.value, item) {
+		curr.right, deleted = t.deleteTraverse(item, curr.right)
+	} else {
+		// curr contains item
+		if curr.left != nil && curr.right != nil {
+			// curr has both children, so replace it with its successor - one move right and then
+			// all the way left. Since we're removing the successor from this subtree, correct the
+			// heihts all the way down
+			in := &curr.right
+			successor := curr.right
+			successor.height = t.rightHeight(successor) + 1
+			for successor.left != nil {
+				in = &successor.left
+				successor = successor.left
+				successor.height = t.rightHeight(successor) + 1
 			}
-			t.size--
-			t.gen++
-			return
+			*in = successor.right
+			successor.left = curr.left
+			successor.right = t.rebalance(curr.right)
+			return t.rebalance(successor), true
+		} else if curr.left != nil {
+			// curr has only a left child, just hoist it upwards
+			return curr.left, true
+		} else {
+			// curr has only a right child, just hoist it upwards
+			return curr.right, true
 		}
 	}
+	return t.rebalance(curr), deleted
 }
 
 func (t *tree[T]) Get(item T) T {
@@ -122,6 +147,88 @@ func (t *tree[T]) Contains(item T) bool {
 		}
 	}
 	return false
+}
+
+func (t *tree[T]) rebalance(curr *node[T]) *node[T] {
+	if curr == nil {
+		return nil
+	}
+	imbalance := t.imbalance(curr)
+	newSubtreeRoot := curr
+	if imbalance > 1 {
+		if t.imbalance(curr.left) < 0 {
+			curr.left = t.rotateLeft(curr.left)
+		}
+		newSubtreeRoot = t.rotateRight(curr)
+		t.gen++
+	} else if imbalance < -1 {
+		if t.imbalance(curr.right) > 0 {
+			curr.right = t.rotateRight(curr.right)
+		}
+		newSubtreeRoot = t.rotateLeft(curr)
+		t.gen++
+	} else {
+		t.setHeight(curr)
+	}
+	return newSubtreeRoot
+}
+
+//        b                                d
+//   ┌────┴────┐                     ┌─────┴─────┐
+//   a         d        ╶──>         b           e
+//          ┌──┴──┐               ┌──┴──┐
+//          c     e               a     c
+func (t *tree[T]) rotateLeft(b *node[T]) *node[T] {
+	d := b.right
+	c := d.left
+	d.left = b
+	b.right = c
+	t.setHeight(b)
+	t.setHeight(d)
+	return d
+}
+
+//            d                           b
+//      ┌─────┴─────┐                ┌────┴────┐
+//      b           e      ╶──>      a         d
+//   ┌──┴──┐                                ┌──┴──┐
+//   a     c                                c     e
+func (t *tree[T]) rotateRight(d *node[T]) *node[T] {
+	b := d.left
+	c := b.right
+	d.left = c
+	b.right = d
+	t.setHeight(d)
+	t.setHeight(b)
+	return b
+}
+
+// The height of x's left node, or -1 if no child.
+func (t *tree[T]) leftHeight(x *node[T]) int {
+	if x.left != nil {
+		return x.left.height
+	}
+	return -1
+}
+
+// The height of x's right node, or -1 if no child.
+func (t *tree[T]) rightHeight(x *node[T]) int {
+	if x.right != nil {
+		return x.right.height
+	}
+	return -1
+}
+
+// imbalance is the difference in height between x's children.
+// 0 means perfectly balanced.
+// >0 means the left tree is higher.
+// <0 means the right tree is higher.
+func (t *tree[T]) imbalance(x *node[T]) int {
+	return t.leftHeight(x) - t.rightHeight(x)
+}
+
+func (t *tree[T]) setHeight(x *node[T]) {
+	x.height = xmath.Max(t.leftHeight(x), t.rightHeight(x)) + 1
 }
 
 type iterState int
