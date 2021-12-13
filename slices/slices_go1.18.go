@@ -72,3 +72,15 @@ func Clear[T any](x []T) {
 func Clone[T any](x []T) []T {
 	return append([]T{}, x...)
 }
+
+// Compact removes adjacent duplicates from x in-place and returns the modified slice.
+func Compact[T comparable](x []T) []T {
+	compacted := x[:0]
+	for i := range x {
+		if i == 0 || x[i-1] != x[i] {
+			compacted = append(compacted, x[i])
+		}
+	}
+	Clear(x[len(compacted):])
+	return compacted
+}

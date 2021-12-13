@@ -83,3 +83,12 @@ func ExampleClone() {
 	// Output:
 	// [1 2 3]
 }
+
+func ExampleCompact() {
+	x := []string{"a", "a", "b", "c", "c", "c", "a"}
+	compacted := Compact(x)
+	fmt.Println(compacted)
+
+	// Output:
+	// [a b c a]
+}
