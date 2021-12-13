@@ -23,7 +23,8 @@ const (
 )
 
 // Deque is a double-ended queue, allowing push and pop to both the front and back of the queue.
-// The zero-value is ready to use. Deque should not be copied after first use.
+// Pushes and pops are amoritized O(1). The zero-value is ready to use. Deque should not be copied
+// after first use.
 type Deque[T any] struct {
 	// Backing slice for the deque. Empty if the deque is empty.
 	a []T
