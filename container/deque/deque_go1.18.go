@@ -147,6 +147,16 @@ func (r *Deque[T]) PopBack() T {
 	return item
 }
 
+// PeekFront returns the item at the front of the deque. It panics if the deque is empty.
+func (r *Deque[T]) PeekFront() T {
+	return r.a[r.front]
+}
+
+// PeekBack returns the item at the back of the deque. It panics if the deque is empty.
+func (r *Deque[T]) PeekFront() T {
+	return r.a[r.back]
+}
+
 func positiveMod(l, r int) int {
 	x := l % r
 	if x < 0 {
