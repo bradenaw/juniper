@@ -153,7 +153,7 @@ func (r *Deque[T]) PeekFront() T {
 }
 
 // PeekBack returns the item at the back of the deque. It panics if the deque is empty.
-func (r *Deque[T]) PeekFront() T {
+func (r *Deque[T]) PeekBack() T {
 	return r.a[r.back]
 }
 
@@ -170,6 +170,7 @@ func positiveMod(l, r int) int {
 // The iterator panics if the deque has been modified since iteration started.
 func (r *Deque[T]) Iterate() iterator.Iterator[T] {
 	i := r.front
+	done := false
 	gen := -1
 	return iterator.New(func() (T, bool) {
 		if gen == -1 {
@@ -181,13 +182,13 @@ func (r *Deque[T]) Iterate() iterator.Iterator[T] {
 		if r.Len() == 0 {
 			return zero, false
 		}
-		if r.front <= r.back && i > r.back {
-			return zero, false
-		}
-		if r.front > r.back && i > r.back && i < r.front {
+		if done {
 			return zero, false
 		}
 		item := r.a[i]
+		if i == r.back {
+			done = true
+		}
 		i = (i + 1) % len(r.a)
 		return item, true
 	})

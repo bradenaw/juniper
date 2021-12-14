@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/bradenaw/juniper/iterator"
 )
 
 func FuzzDeque(f *testing.F) {
@@ -15,6 +17,9 @@ func FuzzDeque(f *testing.F) {
 		PushBack  = 0b00100000
 		PopFront  = 0b01000000
 		PopBack   = 0b01100000
+		PeekFront = 0b10000000
+		PeekBack  = 0b10100000
+		Iterate   = 0b11000000
 	)
 
 	f.Add([]byte{
@@ -55,6 +60,32 @@ func FuzzDeque(f *testing.F) {
 				oracle = oracle[:len(oracle)-1]
 				dequeItem := deque.PopBack()
 				require.Equal(t, oracleItem, dequeItem)
+			case PeekFront:
+				if len(oracle) == 0 {
+					continue
+				}
+				oracleItem := oracle[0]
+				t.Logf("PeekFront() -> %#v", oracleItem)
+				dequeItem := deque.PeekFront()
+				require.Equal(t, oracleItem, dequeItem)
+			case PeekBack:
+				if len(oracle) == 0 {
+					continue
+				}
+				oracleItem := oracle[len(oracle)-1]
+				t.Logf("PeekBack() -> %#v", oracleItem)
+				dequeItem := deque.PeekBack()
+				require.Equal(t, oracleItem, dequeItem)
+			case Iterate:
+				oracleAll := oracle
+				if len(oracleAll) == 0 {
+					oracleAll = nil
+				}
+				dequeAll := iterator.Collect(deque.Iterate())
+				if len(dequeAll) == 0 {
+					dequeAll = nil
+				}
+				require.Equal(t, oracleAll, dequeAll)
 			}
 
 			t.Logf("oracle state: %#v", oracle)
