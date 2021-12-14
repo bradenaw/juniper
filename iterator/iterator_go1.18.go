@@ -83,7 +83,7 @@ func Chunk[T any](iter Iterator[T], chunkSize int) Iterator[[]T] {
 				chunk = append(chunk, iter.Item())
 				if len(chunk) == chunkSize {
 					item := chunk
-					chunk = chunk[:0]
+					chunk = make([]T, 0, chunkSize)
 					return item, true
 				}
 			}
