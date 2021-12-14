@@ -22,7 +22,7 @@ func OrderedLess[T constraints.Ordered](a, b T) bool {
 // Reverse returns a Less that orders elements in the opposite order of the provided less.
 func Reverse[T any](less Less[T]) Less[T] {
 	return func(a, b T) bool {
-		return !less(a, b)
+		return less(b, a)
 	}
 }
 
