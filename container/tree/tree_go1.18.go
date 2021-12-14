@@ -81,6 +81,17 @@ func (t *tree[T]) Delete(item T) {
 	}
 }
 
+// returns (newCurr, leftmost)
+func (t *tree[T]) removeLeftmost(curr *node[T]) (*node[T], *node[T]) {
+	if curr.left == nil {
+		return curr.right, curr
+	}
+	var leftmost *node[T]
+	curr.left, leftmost = t.removeLeftmost(curr.left)
+	t.setHeight(curr)
+	return t.rebalance(curr), leftmost
+}
+
 func (t *tree[T]) deleteTraverse(item T, curr *node[T]) (*node[T], bool) {
 	if curr == nil {
 		// item isn't in the tree
@@ -94,20 +105,10 @@ func (t *tree[T]) deleteTraverse(item T, curr *node[T]) (*node[T], bool) {
 	} else {
 		// curr contains item
 		if curr.left != nil && curr.right != nil {
-			// curr has both children, so replace it with its successor - one move right and then
-			// all the way left. Since we're removing the successor from this subtree, correct the
-			// heihts all the way down
-			in := &curr.right
-			successor := curr.right
-			successor.height = t.rightHeight(successor) + 1
-			for successor.left != nil {
-				in = &successor.left
-				successor = successor.left
-				successor.height = t.rightHeight(successor) + 1
-			}
-			*in = successor.right
+			// curr has both children, so replace it with its successor.
+			right, successor := t.removeLeftmost(curr.right)
 			successor.left = curr.left
-			successor.right = t.rebalance(curr.right)
+			successor.right = right
 			return t.rebalance(successor), true
 		} else if curr.left != nil {
 			// curr has only a left child, just hoist it upwards
