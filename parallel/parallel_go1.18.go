@@ -12,6 +12,8 @@ import (
 //
 // If any call to f returns an error the context passed to invocations of f is cancelled, no further
 // calls to f are made, and Map returns the first error encountered.
+//
+// If parallelism <= 0, uses GOMAXPROCS instead.
 func Map[T any, U any](
 	ctx context.Context,
 	parallelism int,

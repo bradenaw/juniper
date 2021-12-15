@@ -2,6 +2,7 @@ package parallel
 
 import (
 	"context"
+	"runtime"
 	"sync/atomic"
 
 	"golang.org/x/sync/errgroup"
@@ -11,12 +12,18 @@ import (
 //
 // If any call to f returns an error the context passed to invocations of f is cancelled, no further
 // calls to f are made, and Do returns the first error encountered.
+//
+// If parallelism <= 0, uses GOMAXPROCS instead.
 func Do(
 	ctx context.Context,
 	parallelism int,
 	n int,
 	f func(ctx context.Context, i int) error,
 ) error {
+	if parallelism <= 0 {
+		parallelism = runtime.GOMAXPROCS(-1)
+	}
+
 	if parallelism == 1 {
 		for i := 0; i < n; i++ {
 			err := f(ctx, i)
