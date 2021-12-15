@@ -171,11 +171,9 @@ func positiveMod(l, r int) int {
 func (r *Deque[T]) Iterate() iterator.Iterator[T] {
 	i := r.front
 	done := false
-	gen := -1
+	gen := r.gen
 	return iterator.New(func() (T, bool) {
-		if gen == -1 {
-			gen = r.gen
-		} else if gen != r.gen {
+		if gen != r.gen {
 			panic(errDequeModified)
 		}
 		var zero T
