@@ -41,8 +41,7 @@ func Reverse[T any](x []T) {
 //
 //   x[:len(x):len(x)]
 //
-// The cost is linear in the number of elements added and the number of elements after idx that must
-// be shifted.
+// The time cost is O(n+m) where n is len(values) and m is len(x[idx:]).
 func Insert[T any](x []T, idx int, values ...T) []T {
 	x = Grow(x, len(values))
 	x = x[: len(x)+len(values) : len(x)+len(values)]
