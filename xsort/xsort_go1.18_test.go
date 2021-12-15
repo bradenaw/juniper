@@ -8,16 +8,22 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/bradenaw/juniper/iterator"
 )
 
-func TestMerge(t *testing.T) {
+func TestMergeSlices(t *testing.T) {
 	check := func(in ...[]int) {
 		var all []int
 		for i := range in {
 			require.True(t, SliceIsSorted(in[i], OrderedLess[int]))
 			all = append(all, in[i]...)
 		}
-		merged := Merge(OrderedLess[int], nil, in...)
+		merged := MergeSlices(
+			OrderedLess[int],
+			nil,
+			in...,
+		)
 		require.True(t, SliceIsSorted(merged, OrderedLess[int]))
 		require.ElementsMatch(t, all, merged)
 	}
@@ -60,9 +66,17 @@ func FuzzMerge(f *testing.F) {
 		expected := append([]byte{}, b...)
 		Slice(expected, OrderedLess[byte])
 
-		merged := Merge(OrderedLess[byte], make([]byte, r.Intn(len(b))), bs...)
+		merged := Merge(
+			OrderedLess[byte],
+			iterator.Collect(
+				iterator.Map(
+					iterator.Slice(bs),
+					func(b []byte) iterator.Iterator[byte] { return iterator.Slice(b) },
+				),
+			)...,
+		)
 
-		require.Equal(t, expected, merged)
+		require.Equal(t, expected, iterator.Collect(merged))
 	})
 }
 
@@ -71,7 +85,31 @@ func ExampleMerge() {
 	listTwo := []string{"b", "e", "o", "v"}
 	listThree := []string{"s", "z"}
 
-	merged := Merge(OrderedLess[string], nil, listOne, listTwo, listThree)
+	merged := Merge(
+		OrderedLess[string],
+		iterator.Slice(listOne),
+		iterator.Slice(listTwo),
+		iterator.Slice(listThree),
+	)
+
+	fmt.Println(iterator.Collect(merged))
+
+	// Output:
+	// [a b e f o p s v x z]
+}
+
+func ExampleMergeSlices() {
+	listOne := []string{"a", "f", "p", "x"}
+	listTwo := []string{"b", "e", "o", "v"}
+	listThree := []string{"s", "z"}
+
+	merged := MergeSlices(
+		OrderedLess[string],
+		nil,
+		listOne,
+		listTwo,
+		listThree,
+	)
 
 	fmt.Println(merged)
 

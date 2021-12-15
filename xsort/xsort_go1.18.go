@@ -8,6 +8,7 @@ import (
 	"sort"
 
 	"github.com/bradenaw/juniper/internal/heap"
+	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/slices"
 )
 
@@ -61,20 +62,17 @@ type valueAndSource[T any] struct {
 	source int
 }
 
-// Merge merges the already-sorted slices of in. Optionally, a pre-allocated out slice can be
-// provided to store the result into.
+// Merge returns an iterator that yields all items from in in sorted order.
 //
-// The results are undefined if the in slices are not already sorted.
+// The results are undefined if the in iterators do not yield items in sorted order according to
+// less.
 //
-// The complexity is O(n * log(k)) where n is the total number of items and k is len(in).
-func Merge[T any](less Less[T], out []T, in ...[]T) []T {
+// The time complexity of Next() is O(log(k)) where k is len(in).
+func Merge[T any](less Less[T], in ...iterator.Iterator[T]) iterator.Iterator[T] {
 	initial := make([]valueAndSource[T], 0, len(in))
-	n := 0
-	for j := range in {
-		n += len(in[j])
-		if len(in[j]) > 0 {
-			initial = append(initial, valueAndSource[T]{in[j][0], j})
-			in[j] = in[j][1:]
+	for i := range in {
+		if in[i].Next() {
+			initial = append(initial, valueAndSource[T]{in[i].Item(), i})
 		}
 	}
 	h := heap.New(
@@ -84,14 +82,38 @@ func Merge[T any](less Less[T], out []T, in ...[]T) []T {
 		func(a valueAndSource[T], i int) {},
 		initial,
 	)
-	out = slices.Grow(out[:0], n)
-	for h.Len() > 0 {
-		item := h.Pop()
-		out = append(out, item.value)
-		if len(in[item.source]) > 0 {
-			h.Push(valueAndSource[T]{in[item.source][0], item.source})
-			in[item.source] = in[item.source][1:]
+	return iterator.New(func() (T, bool) {
+		if h.Len() == 0 {
+			var zero T
+			return zero, false
 		}
+		item := h.Pop()
+		if in[item.source].Next() {
+			h.Push(valueAndSource[T]{in[item.source].Item(), item.source})
+		}
+		return item.value, true
+	})
+}
+
+// Merge merges the already-sorted slices of in. Optionally, a pre-allocated out slice can be
+// provided to store the result into.
+//
+// The results are undefined if the in slices are not already sorted.
+//
+// The time complexity is O(n * log(k)) where n is the total number of items and k is len(in).
+func MergeSlices[T any](less Less[T], out []T, in ...[]T) []T {
+	n := 0
+	for i := range in {
+		n += len(in[i])
+	}
+	out = slices.Grow(out[:0], n)
+	inIters := make([]iterator.Iterator[T], len(in))
+	for i := range in {
+		inIters[i] = iterator.Slice(in[i])
+	}
+	iter := Merge(less, inIters...)
+	for iter.Next() {
+		out = append(out, iter.Item())
 	}
 	return out
 }
