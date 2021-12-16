@@ -41,6 +41,18 @@ func (s Set[T]) Contains(item T) bool {
 	return s.t.Contains(item)
 }
 
+// First returns the lowest item in the set according to less.
+func (s Set[T]) First() T {
+	item, _ := s.t.First()
+	return item
+}
+
+// Last returns the highest item in the set according to less.
+func (s Set[T]) Last() T {
+	item, _ := s.t.Last()
+	return item
+}
+
 // Iterate returns an iterator that yields the elements of the set in sorted order.
 //
 // The set may be safely modified during iteration and the iterator will continue from the

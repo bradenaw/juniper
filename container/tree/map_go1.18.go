@@ -53,6 +53,16 @@ func (m Map[K, V]) Contains(k K) bool {
 	return m.t.Contains(k)
 }
 
+// First returns the lowest-keyed entry in the map according to less.
+func (m Map[K, V]) First() (K, V) {
+	return m.t.First()
+}
+
+// Last returns the highest-keyed entry in the map according to less.
+func (m Map[K, V]) Last() (K, V) {
+	return m.t.Last()
+}
+
 // Iterate returns an iterator that yields the elements of the map in sorted order by key.
 //
 // The map may be safely modified during iteration and the iterator will continue from the

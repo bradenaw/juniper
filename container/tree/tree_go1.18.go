@@ -153,6 +153,32 @@ func (t *tree[K, V]) Contains(k K) bool {
 	return false
 }
 
+func (t *tree[K, V]) First() (K, V) {
+	curr := t.root
+	for curr != nil {
+		if curr.left == nil {
+			return curr.key, curr.value
+		}
+		curr = curr.left
+	}
+	var zeroK K
+	var zeroV V
+	return zeroK, zeroV
+}
+
+func (t *tree[K, V]) Last() (K, V) {
+	curr := t.root
+	for curr != nil {
+		if curr.right == nil {
+			return curr.key, curr.value
+		}
+		curr = curr.right
+	}
+	var zeroK K
+	var zeroV V
+	return zeroK, zeroV
+}
+
 func (t *tree[K, V]) rebalance(curr *node[K, V]) *node[K, V] {
 	if curr == nil {
 		return nil
