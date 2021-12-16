@@ -83,3 +83,60 @@ func Compact[T comparable](x []T) []T {
 	Clear(x[len(compacted):])
 	return compacted
 }
+
+// Equal returns true if a and b contain the same items in the same order.
+func Equal[T comparable](a, b []T) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// Count returns the number of times item appears in a.
+func Count[T comparable](a []T, item T) int {
+	n := 0
+	for i := range a {
+		if a[i] == item {
+			n++
+		}
+	}
+	return n
+}
+
+// Index returns the first index of item in a, or -1 if item is not in a.
+func Index[T comparable](a []T, item T) int {
+	for i := range a {
+		if a[i] == item {
+			return i
+		}
+	}
+	return -1
+}
+
+// Index returns the last index of item in a, or -1 if item is not in a.
+func LastIndex[T comparable](a []T, item T) int {
+	for i := len(a) - 1; i >= 0; i-- {
+		if a[i] == item {
+			return i
+		}
+	}
+	return -1
+}
+
+// Join joins together the contents of each in.
+func Join[T any](in ...[]T) []T {
+	n := 0
+	for i := range in {
+		n += len(in[i])
+	}
+	out := make([]T, 0, n)
+	for i := range in {
+		out = append(out, in[i]...)
+	}
+	return out
+}

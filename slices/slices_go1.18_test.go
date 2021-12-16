@@ -92,3 +92,62 @@ func ExampleCompact() {
 	// Output:
 	// [a b c a]
 }
+
+func ExampleEqual() {
+	x := []string{"a", "b", "c"}
+	y := []string{"a", "b", "c"}
+	z := []string{"a", "b", "d"}
+
+	fmt.Println(Equal(x, y))
+	fmt.Println(Equal(x[:2], y))
+	fmt.Println(Equal(z, y))
+
+	// Output:
+	// true
+	// false
+	// false
+}
+
+func ExampleCount() {
+	x := []string{"a", "b", "a", "a", "b"}
+
+	fmt.Println(Count(x, "a"))
+
+	// Output:
+	// 3
+}
+
+func ExampleIndex() {
+	x := []string{"a", "b", "a", "a", "b"}
+
+	fmt.Println(Index(x, "b"))
+	fmt.Println(Index(x, "c"))
+
+	// Output:
+	// 1
+	// -1
+}
+
+func ExampleLastIndex() {
+	x := []string{"a", "b", "a", "a", "b"}
+
+	fmt.Println(LastIndex(x, "a"))
+	fmt.Println(LastIndex(x, "c"))
+
+	// Output:
+	// 3
+	// -1
+}
+
+func ExampleJoin() {
+	joined := Join(
+		[]string{"a", "b", "c"},
+		[]string{"x", "y"},
+		[]string{"l", "m", "n", "o"},
+	)
+
+	fmt.Println(joined)
+
+	// Output:
+	// [a b c x y l m n o]
+}
