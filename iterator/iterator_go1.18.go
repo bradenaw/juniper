@@ -116,3 +116,30 @@ func Chain[T any](iters ...Iterator[T]) Iterator[T] {
 		},
 	}
 }
+
+// Equal returns true if the given iterators yield the same items in the same order. Consumes the
+// iterators.
+func Equal[T comparable](iters ...Iterator[T]) bool {
+	if len(iters) == 0 {
+		return true
+	}
+	for {
+		ok := iters[0].Next()
+		for i := 1; i < len(iters); i++ {
+			iterIOk := iters[i].Next()
+			if ok != iterIOk {
+				return false
+			}
+		}
+		if !ok {
+			return true
+		}
+		item := iters[0].Item()
+		for i := 1; i < len(iters); i++ {
+			iterIItem := iters[i].Item()
+			if item != iterIItem {
+				return false
+			}
+		}
+	}
+}

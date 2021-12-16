@@ -45,3 +45,23 @@ func ExampleChunk() {
 	// [d e f]
 	// [g h]
 }
+
+func ExampleEqual() {
+	fmt.Println(
+		Equal(
+			Slice([]string{"a", "b", "c"}),
+			Slice([]string{"a", "b", "c"}),
+		),
+	)
+
+	fmt.Println(
+		Equal(
+			Slice([]string{"a", "b", "c"}),
+			Slice([]string{"a", "b", "c", "d"}),
+		),
+	)
+
+	// Output:
+	// true
+	// false
+}
