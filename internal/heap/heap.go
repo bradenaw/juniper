@@ -77,12 +77,23 @@ func (h *Heap[T]) RemoveAt(i int) {
 	h.a[i] = h.a[len(h.a)-1]
 	h.a[len(h.a)-1] = zero
 	h.a = h.a[:len(h.a)-1]
-	if len(h.a) > 0 {
+	if i < len(h.a) {
 		h.notifyIndexChanged(i)
+		h.percolateUp(i)
+		h.percolateDown(i)
 	}
+	h.gen++
+}
+
+func (h *Heap[T]) Item(i int) T {
+	return h.a[i]
+}
+
+func (h *Heap[T]) UpdateAt(i int, item T) {
+	h.a[i] = item
+	h.notifyIndexChanged(i)
 	h.percolateUp(i)
 	h.percolateDown(i)
-	h.gen++
 }
 
 func (h *Heap[T]) percolateUp(i int) {

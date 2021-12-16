@@ -11,7 +11,7 @@ import (
 	"github.com/bradenaw/juniper/xsort"
 )
 
-func FuzzBasic(f *testing.F) {
+func FuzzHeap(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b1 []byte, b2 []byte) {
 		t.Logf("initial: %#v", b1)
 		t.Logf("pushed:  %#v", b2)
@@ -39,5 +39,102 @@ func FuzzBasic(f *testing.F) {
 
 		require.Equal(t, expected, outByPop)
 		require.Equal(t, expected, outByIterate)
+	})
+}
+
+func FuzzPriorityQueue(f *testing.F) {
+	const (
+		Update = iota
+		Pop
+		Peek
+		Contains
+		Priority
+		Remove
+		Iterate
+	)
+	f.Fuzz(func(t *testing.T, b1 []byte, b2 []byte) {
+		initial := make([]KP[int, float32], 0, len(b1))
+		oracle := make(map[int]float32)
+		for i := range b1 {
+			k := int((b1[i] & 0b00011100) >> 2)
+			p := float32((b1[i] & 0b00000011))
+
+			_, ok := oracle[k]
+			if ok {
+				continue
+			}
+
+			initial = append(initial, KP[int, float32]{k, p})
+			oracle[k] = p
+		}
+		t.Logf("initial:        %#v", initial)
+		t.Logf("initial oracle: %#v", oracle)
+
+		h := NewPriorityQueue(xsort.OrderedLess[float32], initial)
+
+		oracleLowestP := func() float32 {
+			first := true
+			lowest := float32(0)
+			for _, p := range oracle {
+				if first || p < lowest {
+					lowest = p
+				}
+				first = false
+			}
+			return lowest
+		}
+
+		for _, b := range b2 {
+			op := (b & 0b11100000) >> 5
+			k := int((b & 0b00011100) >> 2)
+			p := float32(b & 0b00000011)
+
+			switch op {
+			case Update:
+				t.Logf("Update(%d, %f)", k, p)
+				oracle[k] = p
+				h.Update(k, p)
+			case Pop:
+				t.Logf("Pop()")
+				if len(oracle) == 0 {
+					require.Equal(t, 0, h.Len())
+					continue
+				}
+				lowestP := oracleLowestP()
+				hPopped := h.Pop()
+				require.Equal(t, lowestP, oracle[hPopped])
+				delete(oracle, hPopped)
+			case Peek:
+				t.Logf("Peek()")
+				if len(oracle) == 0 {
+					require.Equal(t, 0, h.Len())
+					continue
+				}
+				lowestP := oracleLowestP()
+				hPeeked := h.Peek()
+				require.Equal(t, lowestP, oracle[hPeeked])
+			case Contains:
+				t.Logf("Contains(%d)", k)
+				_, oracleContains := oracle[k]
+				require.Equal(t, oracleContains, h.Contains(k))
+			case Priority:
+				t.Logf("Priority(%d)", k)
+				require.Equal(t, oracle[k], h.Priority(k))
+			case Remove:
+				t.Logf("Remove(%d)", k)
+				delete(oracle, k)
+				h.Remove(k)
+			case Iterate:
+				t.Logf("Iterate()")
+				oracleItems := make([]int, 0, len(oracle))
+				for k := range oracle {
+					oracleItems = append(oracleItems, k)
+				}
+				items := iterator.Collect(h.Iterate())
+				require.ElementsMatch(t, oracleItems, items)
+			}
+
+			require.Equal(t, len(oracle), h.Len())
+		}
 	})
 }
