@@ -10,26 +10,27 @@ import (
 )
 
 // tree is an AVL tree: https://en.wikipedia.org/wiki/AVL_tree
-type tree[T any] struct {
-	root *node[T]
-	less xsort.Less[T]
+type tree[K any, V any] struct {
+	root *node[K, V]
+	less xsort.Less[K]
 	size int
 	// Incremented whenever the tree structure changes, so that iterators know to reset.
 	gen int
 }
 
-type node[T any] struct {
-	left  *node[T]
-	right *node[T]
+type node[K any, V any] struct {
+	left  *node[K, V]
+	right *node[K, V]
 	// The height of this node. Leaves have height 0, internal nodes are one higher than their
 	// highest child.
 	height int
-	// iterator depends on the value of this not changing with respect to tree.less.
-	value T
+	// iterator depends on key not changing with respect to tree.less.
+	key   K
+	value V
 }
 
-func newTree[T any](less xsort.Less[T]) *tree[T] {
-	return &tree[T]{
+func newTree[K any, V any](less xsort.Less[K]) *tree[K, V] {
+	return &tree[K, V]{
 		root: nil,
 		less: less,
 		size: 0,
@@ -37,73 +38,63 @@ func newTree[T any](less xsort.Less[T]) *tree[T] {
 	}
 }
 
-func (t *tree[T]) Put(item T) {
+func (t *tree[K, V]) Put(k K, v V) {
 	if t.root == nil {
-		t.root = &node[T]{
-			value: item,
+		t.root = &node[K, V]{
+			key:   k,
+			value: v,
 		}
 		t.size++
 		return
 	}
 	var added bool
-	t.root, added = t.putTraverse(item, t.root)
+	t.root, added = t.putTraverse(k, v, t.root)
 	if added {
 		t.size++
 		t.gen++
 	}
 }
 
-// Returns true if a new node got added.
-func (t *tree[T]) putTraverse(item T, curr *node[T]) (*node[T], bool) {
+func (t *tree[K, V]) putTraverse(k K, v V, curr *node[K, V]) (_newCurr *node[K, V], _added bool) {
 	if curr == nil {
-		return &node[T]{value: item}, true
+		return &node[K, V]{key: k, value: v}, true
 	}
 
 	var added bool
-	if t.less(item, curr.value) {
-		curr.left, added = t.putTraverse(item, curr.left)
-	} else if t.less(curr.value, item) {
-		curr.right, added = t.putTraverse(item, curr.right)
+	if t.less(k, curr.key) {
+		curr.left, added = t.putTraverse(k, v, curr.left)
+	} else if t.less(curr.key, k) {
+		curr.right, added = t.putTraverse(k, v, curr.right)
 	} else {
-		curr.value = item
+		curr.key = k
+		curr.value = v
 		return curr, false
 	}
 
 	return t.rebalance(curr), added
 }
 
-func (t *tree[T]) Delete(item T) {
+func (t *tree[K, V]) Delete(k K) {
 	var deleted bool
-	t.root, deleted = t.deleteTraverse(item, t.root)
+	t.root, deleted = t.deleteTraverse(k, t.root)
 	if deleted {
 		t.size--
 		t.gen++
 	}
 }
 
-// returns (newCurr, leftmost)
-func (t *tree[T]) removeLeftmost(curr *node[T]) (*node[T], *node[T]) {
-	if curr.left == nil {
-		return curr.right, curr
-	}
-	var leftmost *node[T]
-	curr.left, leftmost = t.removeLeftmost(curr.left)
-	t.setHeight(curr)
-	return t.rebalance(curr), leftmost
-}
-
-func (t *tree[T]) deleteTraverse(item T, curr *node[T]) (*node[T], bool) {
+func (t *tree[K, V]) deleteTraverse(k K, curr *node[K, V]) (_newCurr *node[K, V], _deleted bool) {
 	if curr == nil {
-		// item isn't in the tree
+		// k isn't in the tree
 		return nil, false
 	}
 	var deleted bool
-	if t.less(item, curr.value) {
-		curr.left, deleted = t.deleteTraverse(item, curr.left)
-	} else if t.less(curr.value, item) {
-		curr.right, deleted = t.deleteTraverse(item, curr.right)
+	if t.less(k, curr.key) {
+		curr.left, deleted = t.deleteTraverse(k, curr.left)
+	} else if t.less(curr.key, k) {
+		curr.right, deleted = t.deleteTraverse(k, curr.right)
 	} else {
-		// curr contains item
+		// curr contains k
 		if curr.left != nil && curr.right != nil {
 			// curr has both children, so replace it with its successor.
 			right, successor := t.removeLeftmost(curr.right)
@@ -121,27 +112,39 @@ func (t *tree[T]) deleteTraverse(item T, curr *node[T]) (*node[T], bool) {
 	return t.rebalance(curr), deleted
 }
 
-func (t *tree[T]) Get(item T) T {
+func (t *tree[K, V]) removeLeftmost(
+	curr *node[K, V],
+) (_newCurr *node[K, V], _leftmost *node[K, V]) {
+	if curr.left == nil {
+		return curr.right, curr
+	}
+	var leftmost *node[K, V]
+	curr.left, leftmost = t.removeLeftmost(curr.left)
+	t.setHeight(curr)
+	return t.rebalance(curr), leftmost
+}
+
+func (t *tree[K, V]) Get(k K) V {
 	curr := t.root
 	for curr != nil {
-		if t.less(item, curr.value) {
+		if t.less(k, curr.key) {
 			curr = curr.left
-		} else if t.less(curr.value, item) {
+		} else if t.less(curr.key, k) {
 			curr = curr.right
 		} else {
 			return curr.value
 		}
 	}
-	var zero T
+	var zero V
 	return zero
 }
 
-func (t *tree[T]) Contains(item T) bool {
+func (t *tree[K, V]) Contains(k K) bool {
 	curr := t.root
 	for curr != nil {
-		if t.less(item, curr.value) {
+		if t.less(k, curr.key) {
 			curr = curr.left
-		} else if t.less(curr.value, item) {
+		} else if t.less(curr.key, k) {
 			curr = curr.right
 		} else {
 			return true
@@ -150,7 +153,7 @@ func (t *tree[T]) Contains(item T) bool {
 	return false
 }
 
-func (t *tree[T]) rebalance(curr *node[T]) *node[T] {
+func (t *tree[K, V]) rebalance(curr *node[K, V]) *node[K, V] {
 	if curr == nil {
 		return nil
 	}
@@ -179,7 +182,7 @@ func (t *tree[T]) rebalance(curr *node[T]) *node[T] {
 //   a         d        ╶──>         b           e
 //          ┌──┴──┐               ┌──┴──┐
 //          c     e               a     c
-func (t *tree[T]) rotateLeft(b *node[T]) *node[T] {
+func (t *tree[K, V]) rotateLeft(b *node[K, V]) *node[K, V] {
 	d := b.right
 	c := d.left
 	d.left = b
@@ -194,7 +197,7 @@ func (t *tree[T]) rotateLeft(b *node[T]) *node[T] {
 //      b           e      ╶──>      a         d
 //   ┌──┴──┐                                ┌──┴──┐
 //   a     c                                c     e
-func (t *tree[T]) rotateRight(d *node[T]) *node[T] {
+func (t *tree[K, V]) rotateRight(d *node[K, V]) *node[K, V] {
 	b := d.left
 	c := b.right
 	d.left = c
@@ -205,7 +208,7 @@ func (t *tree[T]) rotateRight(d *node[T]) *node[T] {
 }
 
 // The height of x's left node, or -1 if no child.
-func (t *tree[T]) leftHeight(x *node[T]) int {
+func (t *tree[K, V]) leftHeight(x *node[K, V]) int {
 	if x.left != nil {
 		return x.left.height
 	}
@@ -213,7 +216,7 @@ func (t *tree[T]) leftHeight(x *node[T]) int {
 }
 
 // The height of x's right node, or -1 if no child.
-func (t *tree[T]) rightHeight(x *node[T]) int {
+func (t *tree[K, V]) rightHeight(x *node[K, V]) int {
 	if x.right != nil {
 		return x.right.height
 	}
@@ -224,11 +227,11 @@ func (t *tree[T]) rightHeight(x *node[T]) int {
 // 0 means perfectly balanced.
 // >0 means the left tree is higher.
 // <0 means the right tree is higher.
-func (t *tree[T]) imbalance(x *node[T]) int {
+func (t *tree[K, V]) imbalance(x *node[K, V]) int {
 	return t.leftHeight(x) - t.rightHeight(x)
 }
 
-func (t *tree[T]) setHeight(x *node[T]) {
+func (t *tree[K, V]) setHeight(x *node[K, V]) {
 	x.height = xmath.Max(t.leftHeight(x), t.rightHeight(x)) + 1
 }
 
@@ -240,18 +243,18 @@ const (
 	iterAfterLast
 )
 
-type treeIterator[T any] struct {
-	t *tree[T]
+type treeIterator[K any, V any] struct {
+	t *tree[K, V]
 	// Always an ancestor chain, that is, stack[i] is the parent of stack[i+1], or:
 	//   (stack[i].left == stack[i+1] || stack[i].right == stack[i+1])
 	//
 	// Should be manipulated via reset(), up(), left(), and right().
-	stack []*node[T]
+	stack []*node[K, V]
 	state iterState
 	gen   int
 }
 
-func (iter *treeIterator[T]) Next() bool {
+func (iter *treeIterator[K, V]) Next() bool {
 	if iter.state == iterBeforeFirst {
 		iter.SeekStart()
 		return len(iter.stack) > 0
@@ -260,7 +263,7 @@ func (iter *treeIterator[T]) Next() bool {
 	} else if iter.gen != iter.t.gen && len(iter.stack) > 0 {
 		// Iterator is not already done and the tree has changed structure, must re-seek to find our
 		// place.
-		iter.SeekFirstGreater(iter.stack[len(iter.stack)-1].value)
+		iter.SeekFirstGreater(iter.stack[len(iter.stack)-1].key)
 		return len(iter.stack) > 0
 	}
 	curr := iter.curr()
@@ -272,7 +275,7 @@ func (iter *treeIterator[T]) Next() bool {
 	} else {
 		prev := curr
 		iter.up()
-		for len(iter.stack) > 0 && iter.t.less(iter.curr().value, prev.value) {
+		for len(iter.stack) > 0 && iter.t.less(iter.curr().key, prev.key) {
 			iter.up()
 		}
 	}
@@ -282,7 +285,7 @@ func (iter *treeIterator[T]) Next() bool {
 	}
 	return true
 }
-func (iter *treeIterator[T]) SeekStart() {
+func (iter *treeIterator[K, V]) SeekStart() {
 	iter.reset()
 	if len(iter.stack) == 0 {
 		return
@@ -293,16 +296,16 @@ func (iter *treeIterator[T]) SeekStart() {
 	}
 	iter.gen = iter.t.gen
 }
-func (iter *treeIterator[T]) SeekFirstGreater(item T) {
+func (iter *treeIterator[K, V]) SeekFirstGreater(k K) {
 	iter.reset()
 	if len(iter.stack) == 0 {
 		return
 	}
 
 	for {
-		if iter.curr().left != nil && iter.t.less(item, iter.curr().value) {
+		if iter.curr().left != nil && iter.t.less(k, iter.curr().key) {
 			iter.left()
-		} else if iter.curr().right != nil && iter.t.less(iter.curr().value, item) {
+		} else if iter.curr().right != nil && iter.t.less(iter.curr().key, k) {
 			iter.right()
 		} else {
 			break
@@ -311,17 +314,17 @@ func (iter *treeIterator[T]) SeekFirstGreater(item T) {
 	iter.gen = iter.t.gen
 	iter.state = iterAt
 
-	curr := iter.curr().value
-	if iter.t.less(curr, item) || !iter.t.less(item, curr) {
+	curr := iter.curr()
+	if iter.t.less(curr.key, k) || !iter.t.less(k, curr.key) {
 		// If less or equal, we need to advance to the next one.
 		iter.Next()
 	}
 }
-func (iter *treeIterator[T]) curr() *node[T] {
+func (iter *treeIterator[K, V]) curr() *node[K, V] {
 	return iter.stack[len(iter.stack)-1]
 }
 
-func (iter *treeIterator[T]) reset() {
+func (iter *treeIterator[K, V]) reset() {
 	slices.Clear(iter.stack)
 	if iter.t.root == nil {
 		iter.state = iterAfterLast
@@ -331,30 +334,21 @@ func (iter *treeIterator[T]) reset() {
 	iter.state = iterAt
 	iter.stack = append(iter.stack[:0], iter.t.root)
 }
-func (iter *treeIterator[T]) up() {
+func (iter *treeIterator[K, V]) up() {
 	iter.stack = iter.stack[:len(iter.stack)-1]
 }
-func (iter *treeIterator[T]) left() {
+func (iter *treeIterator[K, V]) left() {
 	iter.stack = append(iter.stack, iter.curr().left)
 }
-func (iter *treeIterator[T]) right() {
+func (iter *treeIterator[K, V]) right() {
 	iter.stack = append(iter.stack, iter.curr().right)
 }
-func (iter *treeIterator[T]) Item() T {
-	return iter.curr().value
+func (iter *treeIterator[K, V]) Item() KVPair[K, V] {
+	curr := iter.curr()
+	return KVPair[K, V]{curr.key, curr.value}
 }
 
-func (t *tree[T]) Iterate() iterator.Iterator[T] {
-	iter := &treeIterator[T]{
-		stack: []*node[T]{},
-		t:     t,
-	}
-	return iterator.New(func() (T, bool) {
-		ok := iter.Next()
-		if !ok {
-			var zero T
-			return zero, false
-		}
-		return iter.Item(), true
-	})
+func (t *tree[K, V]) Iterate() iterator.Iterator[KVPair[K, V]] {
+	iter := &treeIterator[K, V]{t: t}
+	return iter
 }

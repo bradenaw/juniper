@@ -38,16 +38,16 @@ func FuzzTree(f *testing.F) {
 	})
 
 	f.Fuzz(func(t *testing.T, b []byte) {
-		tree := newTree(xsort.OrderedLess[byte])
+		tree := newTree[byte, struct{}](xsort.OrderedLess[byte])
 		oracle := make(map[byte]struct{})
-		var iter *iterator.Iterator[byte]
+		var iter *iterator.Iterator[KVPair[byte, struct{}]]
 		var iterLastSeen *byte
 		for i := range b {
 			item := b[i] & 0b00111111
 			switch b[i] & 0b11000000 {
 			case ActPut:
 				t.Logf("tree.Put(%#v)", item)
-				tree.Put(item)
+				tree.Put(item, struct{}{})
 				oracle[item] = struct{}{}
 			case ActDelete:
 				t.Logf("tree.Delete(%#v)", item)
@@ -91,8 +91,8 @@ func FuzzTree(f *testing.F) {
 					require.Equal(t, expected != nil, ok)
 					if ok {
 						item := (*iter).Item()
-						require.Equal(t, *expected, item)
-						iterLastSeen = &item
+						require.Equal(t, *expected, item.K)
+						iterLastSeen = &item.K
 						t.Logf(" -> %#v", item)
 						break
 					} else {
@@ -114,57 +114,59 @@ func FuzzTree(f *testing.F) {
 			oracleSlice = append(oracleSlice, item)
 		}
 		xsort.Slice(oracleSlice, xsort.OrderedLess[byte])
-		treeSlice := iterator.Collect(tree.Iterate())
+		treeSlice := iterator.Collect(iterator.Map(tree.Iterate(), func(kv KVPair[byte, struct{}]) byte {
+			return kv.K
+		}))
 		require.Equal(t, treeSlice, oracleSlice)
 	})
 }
 
-func checkNode[T any](t *testing.T, tree *tree[T], curr *node[T]) int {
+func checkNode[K any, V any](t *testing.T, tree *tree[K, V], curr *node[K, V]) int {
 	if curr == nil {
 		return 0
 	}
 	if curr.left != nil {
-		require.True(t, tree.less(curr.left.value, curr.value))
+		require.True(t, tree.less(curr.left.key, curr.key))
 	}
 	if curr.right != nil {
-		require.True(t, tree.less(curr.value, curr.right.value))
+		require.True(t, tree.less(curr.key, curr.right.key))
 	}
 	if curr.left == nil && curr.right == nil {
-		require.Equalf(t, 0, curr.height, "%#v is a leaf and should have height 0", curr.value)
+		require.Equalf(t, 0, curr.height, "%#v is a leaf and should have height 0", curr.key)
 	} else {
 		require.Equalf(
 			t,
 			xmath.Max(tree.leftHeight(curr), tree.rightHeight(curr))+1,
 			curr.height,
 			"%#v has wrong height",
-			curr.value,
+			curr.key,
 		)
 	}
 	imbalance := tree.leftHeight(curr) - tree.rightHeight(curr)
-	require.LessOrEqual(t, imbalance, 1, fmt.Sprintf("%#v is imbalanced", curr.value))
-	require.GreaterOrEqual(t, imbalance, -1, fmt.Sprintf("%#v is imbalanced", curr.value))
+	require.LessOrEqual(t, imbalance, 1, fmt.Sprintf("%#v is imbalanced", curr.key))
+	require.GreaterOrEqual(t, imbalance, -1, fmt.Sprintf("%#v is imbalanced", curr.key))
 
 	leftSize := checkNode(t, tree, curr.left)
 	rightSize := checkNode(t, tree, curr.right)
 	return leftSize + rightSize + 1
 }
-func checkTree[T any](t *testing.T, tree *tree[T]) {
+func checkTree[K any, V any](t *testing.T, tree *tree[K, V]) {
 	size := checkNode(t, tree, tree.root)
 	require.Equal(t, size, tree.size)
 }
 
-func treeToString[T any](t *tree[T]) string {
+func treeToString[K any, V any](t *tree[K, V]) string {
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "tree ====\n")
-	var visit func(x *node[T], prefix string, descPrefix string)
-	seen := make(map[*node[T]]struct{})
-	visit = func(x *node[T], prefix string, descPrefix string) {
+	var visit func(x *node[K, V], prefix string, descPrefix string)
+	seen := make(map[*node[K, V]]struct{})
+	visit = func(x *node[K, V], prefix string, descPrefix string) {
 		_, ok := seen[x]
 		if ok {
 			panic(fmt.Sprintf("cycle detected: already saw %#v", x.value))
 		}
 		seen[x] = struct{}{}
-		fmt.Fprintf(&sb, "%s%#v h:%d\n", prefix, x.value, x.height)
+		fmt.Fprintf(&sb, "%s%#v h:%d\n", prefix, x.key, x.height)
 		if x.left != nil {
 			visit(x.left, descPrefix+"  l ", descPrefix+"    ")
 		}
