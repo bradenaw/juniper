@@ -140,3 +140,97 @@ func Join[T any](in ...[]T) []T {
 	}
 	return out
 }
+
+// Partition moves elements of x such that all elements for which f returns false are at the
+// beginning and all elements for which f returns true are at the end. It makes no other guarantees
+// about the final order of elements.
+func Partition[T any](x []T, f func(t T) bool) {
+	i := 0
+	j := len(x) - 1
+	for {
+		for i < j {
+			if !f(x[i]) {
+				i++
+			} else {
+				break
+			}
+		}
+		for j > i {
+			if f(x[j]) {
+				j--
+			} else {
+				break
+			}
+		}
+		if i >= j {
+			break
+		}
+		x[i], x[j] = x[j], x[i]
+		i++
+		j--
+	}
+}
+
+// Unique removes duplicates from x in-place, preserving order, and returns the modified slice.
+//
+// Compact is more efficient if duplicates are already adjacent in x, for example if x is in sorted
+// order.
+func Unique[T comparable](x []T) []T {
+	filtered := x[:0]
+	m := make(map[T]struct{}, len(x))
+	for i := range x {
+		_, ok := m[x[i]]
+		if !ok {
+			filtered = append(filtered, x[i])
+			m[x[i]] = struct{}{}
+		}
+	}
+	Clear(x[len(filtered):])
+	return filtered
+}
+
+// Chunk returns non-overlapping chunks of x. The last chunk will be smaller than chunkSize if
+// len(x) is not a multiple of chunkSize.
+//
+// Returns an empty slice if len(x)==0. Panics if chunkSize <= 0.
+func Chunk[T any](x []T, chunkSize int) [][]T {
+	out := make([][]T, (len(x)+chunkSize-1)/chunkSize)
+	for i := range out {
+		start := i * chunkSize
+		end := (i + 1) * chunkSize
+		if end > len(x) {
+			end = len(x)
+		}
+		out[i] = x[start:end]
+	}
+	return out
+}
+
+// Any returns true if f(x[i]) returns true for any i. Trivially, returns false if x is empty.
+func Any[T any](x []T, f func(T) bool) bool {
+	for i := range x {
+		if f(x[i]) {
+			return true
+		}
+	}
+	return false
+}
+
+// All returns true if f(x[i]) returns true for all i. Trivially, returns true if x is empty.
+func All[T any](x []T, f func(T) bool) bool {
+	for i := range x {
+		if !f(x[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+// Map creates a new slice by applying f to each element of x.
+func Map[T any, U any](x []T, f func(T) U) []U {
+	out := make([]U, len(x))
+	for i := range x {
+		out[i] = f(x[i])
+	}
+	return out
+}

@@ -1,14 +1,17 @@
 //go:build go1.18
 
-package slices
+package slices_test
 
 import (
 	"fmt"
+	"testing"
+
+	"github.com/bradenaw/juniper/slices"
 )
 
 func ExampleGrow() {
 	x := make([]int, 0, 1)
-	x = Grow(x, 4)
+	x = slices.Grow(x, 4)
 	fmt.Println(len(x))
 	fmt.Println(cap(x))
 	x = append(x, 1)
@@ -30,7 +33,7 @@ func ExampleGrow() {
 
 func ExampleFilter() {
 	x := []int{5, -9, -2, 1, -4, 8, 3}
-	x = Filter(x, func(value int) bool {
+	x = slices.Filter(x, func(value int) bool {
 		return value > 0
 	})
 	fmt.Println(x)
@@ -41,7 +44,7 @@ func ExampleFilter() {
 
 func ExampleReverse() {
 	x := []string{"a", "b", "c", "d", "e"}
-	Reverse(x)
+	slices.Reverse(x)
 	fmt.Println(x)
 
 	// Output:
@@ -50,7 +53,7 @@ func ExampleReverse() {
 
 func ExampleInsert() {
 	x := []string{"a", "b", "c", "d", "e"}
-	x = Insert(x, 3, "f", "g")
+	x = slices.Insert(x, 3, "f", "g")
 	fmt.Println(x)
 
 	// Output:
@@ -59,7 +62,7 @@ func ExampleInsert() {
 
 func ExampleRemove() {
 	x := []int{1, 2, 3, 4, 5}
-	x = Remove(x, 1, 2)
+	x = slices.Remove(x, 1, 2)
 	fmt.Println(x)
 
 	// Output:
@@ -68,7 +71,7 @@ func ExampleRemove() {
 
 func ExampleClear() {
 	x := []int{1, 2, 3}
-	Clear(x)
+	slices.Clear(x)
 	fmt.Println(x)
 
 	// Output:
@@ -77,7 +80,7 @@ func ExampleClear() {
 
 func ExampleClone() {
 	x := []int{1, 2, 3}
-	cloned := Clone(x)
+	cloned := slices.Clone(x)
 	fmt.Println(cloned)
 
 	// Output:
@@ -86,7 +89,7 @@ func ExampleClone() {
 
 func ExampleCompact() {
 	x := []string{"a", "a", "b", "c", "c", "c", "a"}
-	compacted := Compact(x)
+	compacted := slices.Compact(x)
 	fmt.Println(compacted)
 
 	// Output:
@@ -98,9 +101,9 @@ func ExampleEqual() {
 	y := []string{"a", "b", "c"}
 	z := []string{"a", "b", "d"}
 
-	fmt.Println(Equal(x, y))
-	fmt.Println(Equal(x[:2], y))
-	fmt.Println(Equal(z, y))
+	fmt.Println(slices.Equal(x, y))
+	fmt.Println(slices.Equal(x[:2], y))
+	fmt.Println(slices.Equal(z, y))
 
 	// Output:
 	// true
@@ -111,7 +114,7 @@ func ExampleEqual() {
 func ExampleCount() {
 	x := []string{"a", "b", "a", "a", "b"}
 
-	fmt.Println(Count(x, "a"))
+	fmt.Println(slices.Count(x, "a"))
 
 	// Output:
 	// 3
@@ -120,8 +123,8 @@ func ExampleCount() {
 func ExampleIndex() {
 	x := []string{"a", "b", "a", "a", "b"}
 
-	fmt.Println(Index(x, "b"))
-	fmt.Println(Index(x, "c"))
+	fmt.Println(slices.Index(x, "b"))
+	fmt.Println(slices.Index(x, "c"))
 
 	// Output:
 	// 1
@@ -131,8 +134,8 @@ func ExampleIndex() {
 func ExampleLastIndex() {
 	x := []string{"a", "b", "a", "a", "b"}
 
-	fmt.Println(LastIndex(x, "a"))
-	fmt.Println(LastIndex(x, "c"))
+	fmt.Println(slices.LastIndex(x, "a"))
+	fmt.Println(slices.LastIndex(x, "c"))
 
 	// Output:
 	// 3
@@ -140,7 +143,7 @@ func ExampleLastIndex() {
 }
 
 func ExampleJoin() {
-	joined := Join(
+	joined := slices.Join(
 		[]string{"a", "b", "c"},
 		[]string{"x", "y"},
 		[]string{"l", "m", "n", "o"},
@@ -150,4 +153,97 @@ func ExampleJoin() {
 
 	// Output:
 	// [a b c x y l m n o]
+}
+
+func ExamplePartition() {
+	a := []int{11, 3, 4, 2, 7, 8, 0, 1, 14}
+
+	slices.Partition(a, func(x int) bool { return x%2 == 0 })
+
+	fmt.Println(a)
+
+	// Output:
+	// [11 3 1 7 2 8 0 4 14]
+}
+
+func FuzzPartition(f *testing.F) {
+	f.Fuzz(func(t *testing.T, b []byte) {
+		test := func(x byte) bool { return x%2 == 0 }
+
+		slices.Partition(b, test)
+
+		for i := range b {
+			if test(b[i]) {
+				for j := i + 1; j < len(b); j++ {
+					if !test(b[j]) {
+						t.FailNow()
+					}
+				}
+				break
+			}
+		}
+	})
+}
+
+func ExampleUnique() {
+	a := []string{"a", "b", "b", "c", "a", "b", "b", "c"}
+	unique := slices.Unique(a)
+	fmt.Println(unique)
+
+	// Output:
+	// [a b c]
+}
+
+func ExampleChunk() {
+	a := []string{"a", "b", "c", "d", "e", "f", "g", "h"}
+	chunks := slices.Chunk(a, 3)
+	fmt.Println(chunks)
+
+	// Output:
+	// [[a b c] [d e f] [g h]]
+}
+
+func ExampleAny() {
+	isOdd := func(x int) bool {
+		return x%2 != 0
+	}
+
+	anyOdd := slices.Any([]int{2, 3, 4}, isOdd)
+	fmt.Println(anyOdd)
+
+	anyOdd = slices.Any([]int{2, 4, 6}, isOdd)
+	fmt.Println(anyOdd)
+
+	// Output:
+	// true
+	// false
+}
+
+func ExampleAll() {
+	isOdd := func(x int) bool {
+		return x%2 != 0
+	}
+
+	allOdd := slices.All([]int{1, 3, 5}, isOdd)
+	fmt.Println(allOdd)
+
+	allOdd = slices.All([]int{1, 3, 6}, isOdd)
+	fmt.Println(allOdd)
+
+	// Output:
+	// true
+	// false
+}
+
+func ExampleMap() {
+	toHalfFloat := func(x int) float32 {
+		return float32(x) / 2
+	}
+
+	a := []int{1, 2, 3}
+	floats := slices.Map(a, toHalfFloat)
+	fmt.Println(floats)
+
+	// Output:
+	// [0.5 1 1.5]
 }
