@@ -1,4 +1,5 @@
 //go:build go1.18
+
 package chans
 
 import "context"
@@ -9,7 +10,7 @@ func SendOrExpire[T any](ctx context.Context, c chan<- T, item T) error {
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
-	case c<-item:
+	case c <- item:
 		return nil
 	}
 }

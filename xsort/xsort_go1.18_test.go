@@ -1,6 +1,6 @@
 //go:build go1.18
 
-package xsort
+package xsort_test
 
 import (
 	"fmt"
@@ -10,21 +10,22 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/bradenaw/juniper/iterator"
+	"github.com/bradenaw/juniper/xsort"
 )
 
 func TestMergeSlices(t *testing.T) {
 	check := func(in ...[]int) {
 		var all []int
 		for i := range in {
-			require.True(t, SliceIsSorted(in[i], OrderedLess[int]))
+			require.True(t, xsort.SliceIsSorted(in[i], xsort.OrderedLess[int]))
 			all = append(all, in[i]...)
 		}
-		merged := MergeSlices(
-			OrderedLess[int],
+		merged := xsort.MergeSlices(
+			xsort.OrderedLess[int],
 			nil,
 			in...,
 		)
-		require.True(t, SliceIsSorted(merged, OrderedLess[int]))
+		require.True(t, xsort.SliceIsSorted(merged, xsort.OrderedLess[int]))
 		require.ElementsMatch(t, all, merged)
 	}
 
@@ -60,14 +61,14 @@ func FuzzMerge(f *testing.F) {
 			bs[j] = append(bs[j], b[i])
 		}
 		for i := range bs {
-			Slice(bs[i], OrderedLess[byte])
+			xsort.Slice(bs[i], xsort.OrderedLess[byte])
 		}
 
 		expected := append([]byte{}, b...)
-		Slice(expected, OrderedLess[byte])
+		xsort.Slice(expected, xsort.OrderedLess[byte])
 
-		merged := Merge(
-			OrderedLess[byte],
+		merged := xsort.Merge(
+			xsort.OrderedLess[byte],
 			iterator.Collect(
 				iterator.Map(
 					iterator.Slice(bs),
@@ -80,13 +81,24 @@ func FuzzMerge(f *testing.F) {
 	})
 }
 
+func ExampleSearch() {
+	x := []string{"a", "f", "h", "i", "p", "z"}
+
+	fmt.Println(xsort.Search(x, xsort.OrderedLess[string], "h"))
+	fmt.Println(xsort.Search(x, xsort.OrderedLess[string], "k"))
+
+	// Output:
+	// 2
+	// 4
+}
+
 func ExampleMerge() {
 	listOne := []string{"a", "f", "p", "x"}
 	listTwo := []string{"b", "e", "o", "v"}
 	listThree := []string{"s", "z"}
 
-	merged := Merge(
-		OrderedLess[string],
+	merged := xsort.Merge(
+		xsort.OrderedLess[string],
 		iterator.Slice(listOne),
 		iterator.Slice(listTwo),
 		iterator.Slice(listThree),
@@ -103,8 +115,8 @@ func ExampleMergeSlices() {
 	listTwo := []string{"b", "e", "o", "v"}
 	listThree := []string{"s", "z"}
 
-	merged := MergeSlices(
-		OrderedLess[string],
+	merged := xsort.MergeSlices(
+		xsort.OrderedLess[string],
 		nil,
 		listOne,
 		listTwo,

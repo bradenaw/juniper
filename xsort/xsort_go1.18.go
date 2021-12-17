@@ -60,8 +60,8 @@ func SliceIsSorted[T any](x []T, less Less[T]) bool {
 // Search searches for item in x, assumed sorted according to less, and returns the index. The
 // return value is the index to insert item at if it is not present (it could be len(a)).
 func Search[T any](x []T, less Less[T], item T) int {
-	sort.Search(len(x), func(i int) bool {
-		return less(x[i], item) || !less(item, x[i])
+	return sort.Search(len(x), func(i int) bool {
+		return less(item, x[i]) || !less(x[i], item)
 	})
 }
 
