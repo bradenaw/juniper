@@ -4,7 +4,6 @@
 package parallel
 
 import (
-	"context"
 	"strconv"
 	"testing"
 
@@ -13,14 +12,12 @@ import (
 
 func TestMap(t *testing.T) {
 	ints := []int{1, 2, 3, 4, 5}
-	strs, err := Map(
-		context.Background(),
+	strs := Map(
 		2, // parallelism
 		ints,
-		func(ctx context.Context, i int) (string, error) {
-			return strconv.Itoa(i), nil
+		func(i int) string {
+			return strconv.Itoa(i)
 		},
 	)
-	require.NoError(t, err)
 	require.Equal(t, strs, []string{"1", "2", "3", "4", "5"})
 }
