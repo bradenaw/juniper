@@ -32,3 +32,14 @@ func Abs[T constraints.Signed](x T) T {
 	}
 	return x
 }
+
+// Clamp clamps the value of x to within min and max.
+func Clamp[T constraints.Ordered](x, min, max T) T {
+	if x < min {
+		return min
+	}
+	if x > max {
+		return max
+	}
+	return x
+}
