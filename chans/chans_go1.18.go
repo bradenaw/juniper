@@ -4,9 +4,9 @@ package chans
 
 import "context"
 
-// SendOrExpire sends item on channel c and returns nil, unless ctx expires in which case it returns
+// SendContext sends item on channel c and returns nil, unless ctx expires in which case it returns
 // ctx.Err().
-func SendOrExpire[T any](ctx context.Context, c chan<- T, item T) error {
+func SendContext[T any](ctx context.Context, c chan<- T, item T) error {
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -15,9 +15,9 @@ func SendOrExpire[T any](ctx context.Context, c chan<- T, item T) error {
 	}
 }
 
-// RecvOrExpire attempts to receive from channel c. If c is closed before or during, returns (_,
+// RecvContext attempts to receive from channel c. If c is closed before or during, returns (_,
 // false, nil). If ctx expires before or during, returns (_, _, ctx.Err()).
-func RecvOrExpire[T any](ctx context.Context, c <-chan T) (T, bool, error) {
+func RecvContext[T any](ctx context.Context, c <-chan T) (T, bool, error) {
 	select {
 	case <-ctx.Done():
 		var zero T
