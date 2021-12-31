@@ -172,7 +172,7 @@ func (r *Deque[T]) Iterate() iterator.Iterator[T] {
 	i := r.front
 	done := false
 	gen := r.gen
-	return iterator.New(func() (T, bool) {
+	return iterator.FromNext(func() (T, bool) {
 		if gen != r.gen {
 			panic(errDequeModified)
 		}

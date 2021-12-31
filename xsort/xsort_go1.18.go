@@ -79,9 +79,11 @@ type valueAndSource[T any] struct {
 func Merge[T any](less Less[T], in ...iterator.Iterator[T]) iterator.Iterator[T] {
 	initial := make([]valueAndSource[T], 0, len(in))
 	for i := range in {
-		if in[i].Next() {
-			initial = append(initial, valueAndSource[T]{in[i].Item(), i})
+		item, ok := in[i].Next()
+		if !ok {
+			continue
 		}
+		initial = append(initial, valueAndSource[T]{item, i})
 	}
 	h := heap.New(
 		func(a, b valueAndSource[T]) bool {
@@ -90,14 +92,15 @@ func Merge[T any](less Less[T], in ...iterator.Iterator[T]) iterator.Iterator[T]
 		func(a valueAndSource[T], i int) {},
 		initial,
 	)
-	return iterator.New(func() (T, bool) {
+	return iterator.FromNext(func() (T, bool) {
 		if h.Len() == 0 {
 			var zero T
 			return zero, false
 		}
 		item := h.Pop()
-		if in[item.source].Next() {
-			h.Push(valueAndSource[T]{in[item.source].Item(), item.source})
+		nextItem, ok := in[item.source].Next()
+		if ok {
+			h.Push(valueAndSource[T]{nextItem, item.source})
 		}
 		return item.value, true
 	})
@@ -120,8 +123,12 @@ func MergeSlices[T any](less Less[T], out []T, in ...[]T) []T {
 		inIters[i] = iterator.Slice(in[i])
 	}
 	iter := Merge(less, inIters...)
-	for iter.Next() {
-		out = append(out, iter.Item())
+	for {
+		item, ok := iter.Next()
+		if !ok {
+			break
+		}
+		out = append(out, item)
 	}
 	return out
 }

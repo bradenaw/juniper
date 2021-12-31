@@ -11,36 +11,26 @@ package iterator
 type Iterator[T any] interface {
 	// Next advances the iterator to the next item in the sequence. Returns false if the iterator
 	// is now past the end of the sequence.
-	Next() bool
-	// Item returns the item the iterator is currently at.
-	Item() T
+	Next() (T, bool)
 }
 
 type iterator[T any] struct {
-	inner func() (T, bool)
-	item  T
+	next func() (T, bool)
 }
 
-// New returns an iterator using a short-hand function next. The second return is false when next
-// has advanced past the end of the sequence.
-func New[T any](next func() (T, bool)) Iterator[T] {
-	return &iterator[T]{inner: next}
+// FromNext returns an iterator using the given next.
+func FromNext[T any](next func() (T, bool)) Iterator[T] {
+	return &iterator[T]{next: next}
 }
 
-func (iter *iterator[T]) Next() bool {
-	item, ok := iter.inner()
-	iter.item = item
-	return ok
-}
-
-func (iter *iterator[T]) Item() T {
-	return iter.item
+func (iter *iterator[T]) Next() (T, bool) {
+	return iter.next()
 }
 
 // Slice returns an iterator over the elements of s.
 func Slice[T any](s []T) Iterator[T] {
 	i := 0
-	return &iterator[T]{inner: func() (T, bool) {
+	return FromNext(func() (T, bool) {
 		if i >= len(s) {
 			var zero T
 			return zero, false
@@ -48,73 +38,73 @@ func Slice[T any](s []T) Iterator[T] {
 		item := s[i]
 		i++
 		return item, true
-	}}
+	})
 }
 
 // Collect advances iter to the end and returns all of the items seen as a slice.
 func Collect[T any](iter Iterator[T]) []T {
 	var out []T
-	for iter.Next() {
-		out = append(out, iter.Item())
+	for {
+		item, ok := iter.Next()
+		if !ok {
+			break
+		}
+		out = append(out, item)
 	}
 	return out
 }
 
 // Map transforms the results of iter using the conversion f.
 func Map[T any, U any](iter Iterator[T], f func(t T) U) Iterator[U] {
-	return &iterator[U]{
-		inner: func() (U, bool) {
-			var zero U
-			if !iter.Next() {
-				return zero, false
-			}
-			return f(iter.Item()), true
-		},
-	}
+	return FromNext(func() (U, bool) {
+		var zero U
+		item, ok := iter.Next()
+		if !ok {
+			return zero, false
+		}
+		return f(item), true
+	})
 }
 
 // Chunk returns an iterator over non-overlapping chunks of size chunkSize. The last chunk will be
 // smaller than chunkSize if the iterator does not contain an even multiple.
 func Chunk[T any](iter Iterator[T], chunkSize int) Iterator[[]T] {
-	chunk := make([]T, 0, chunkSize)
-	return &iterator[[]T]{
-		inner: func() ([]T, bool) {
-			for iter.Next() {
-				chunk = append(chunk, iter.Item())
-				if len(chunk) == chunkSize {
-					item := chunk
-					chunk = make([]T, 0, chunkSize)
-					return item, true
-				}
+	return FromNext(func() ([]T, bool) {
+		chunk := make([]T, 0, chunkSize)
+		for {
+			item, ok := iter.Next()
+			if !ok {
+				break
 			}
-			if len(chunk) > 0 {
-				item := chunk
-				chunk = chunk[:0]
-				return item, true
+			chunk = append(chunk, item)
+			if len(chunk) == chunkSize {
+				return chunk, true
 			}
-			return nil, false
-		},
-	}
+		}
+		if len(chunk) > 0 {
+			return chunk, true
+		}
+		return nil, false
+	})
 }
 
 // Chain returns an Iterator that returns all elements of iters[0], then all elements of iters[1],
 // and so on.
 func Chain[T any](iters ...Iterator[T]) Iterator[T] {
 	i := 0
-	return &iterator[T]{
-		inner: func() (T, bool) {
-			var zero T
-			for {
-				if i >= len(iters) {
-					return zero, false
-				}
-				if iters[i].Next() {
-					return iters[i].Item(), true
-				}
-				i++
+	return FromNext(func() (T, bool) {
+		var zero T
+		for {
+			if i >= len(iters) {
+				return zero, false
 			}
-		},
-	}
+			item, ok := iters[i].Next()
+			if ok {
+				return item, true
+			}
+			i++
+		}
+	})
 }
 
 // Equal returns true if the given iterators yield the same items in the same order. Consumes the
@@ -124,22 +114,18 @@ func Equal[T comparable](iters ...Iterator[T]) bool {
 		return true
 	}
 	for {
-		ok := iters[0].Next()
+		item, ok := iters[0].Next()
 		for i := 1; i < len(iters); i++ {
-			iterIOk := iters[i].Next()
+			iterIItem, iterIOk := iters[i].Next()
 			if ok != iterIOk {
+				return false
+			}
+			if item != iterIItem {
 				return false
 			}
 		}
 		if !ok {
 			return true
-		}
-		item := iters[0].Item()
-		for i := 1; i < len(iters); i++ {
-			iterIItem := iters[i].Item()
-			if item != iterIItem {
-				return false
-			}
 		}
 	}
 }

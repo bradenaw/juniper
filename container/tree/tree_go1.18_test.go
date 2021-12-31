@@ -72,7 +72,7 @@ func FuzzTree(f *testing.F) {
 						iter = &x
 						iterLastSeen = nil
 					}
-					ok := (*iter).Next()
+					item, ok := (*iter).Next()
 					if len(oracle) == 0 {
 						require.False(t, ok)
 						iter = nil
@@ -90,7 +90,6 @@ func FuzzTree(f *testing.F) {
 					}
 					require.Equal(t, expected != nil, ok)
 					if ok {
-						item := (*iter).Item()
 						require.Equal(t, *expected, item.K)
 						iterLastSeen = &item.K
 						t.Logf(" -> %#v", item)

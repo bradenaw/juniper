@@ -280,17 +280,17 @@ type treeIterator[K any, V any] struct {
 	gen   int
 }
 
-func (iter *treeIterator[K, V]) Next() bool {
+func (iter *treeIterator[K, V]) Next() (KVPair[K, V], bool) {
 	if iter.state == iterBeforeFirst {
 		iter.SeekStart()
-		return len(iter.stack) > 0
+		return iter.item()
 	} else if iter.state == iterAfterLast {
-		return false
+		return iter.item()
 	} else if iter.gen != iter.t.gen && len(iter.stack) > 0 {
 		// Iterator is not already done and the tree has changed structure, must re-seek to find our
 		// place.
 		iter.SeekFirstGreater(iter.stack[len(iter.stack)-1].key)
-		return len(iter.stack) > 0
+		return iter.item()
 	}
 	curr := iter.curr()
 	if curr.right != nil {
@@ -307,9 +307,16 @@ func (iter *treeIterator[K, V]) Next() bool {
 	}
 	if len(iter.stack) == 0 {
 		iter.state = iterAfterLast
-		return false
 	}
-	return true
+	return iter.item()
+}
+func (iter *treeIterator[K, V]) item() (KVPair[K, V], bool) {
+	if len(iter.stack) == 0 {
+		var zero KVPair[K, V]
+		return zero, false
+	}
+	curr := iter.curr()
+	return KVPair[K, V]{curr.key, curr.value}, true
 }
 func (iter *treeIterator[K, V]) SeekStart() {
 	iter.reset()
@@ -368,10 +375,6 @@ func (iter *treeIterator[K, V]) left() {
 }
 func (iter *treeIterator[K, V]) right() {
 	iter.stack = append(iter.stack, iter.curr().right)
-}
-func (iter *treeIterator[K, V]) Item() KVPair[K, V] {
-	curr := iter.curr()
-	return KVPair[K, V]{curr.key, curr.value}
 }
 
 func (t *tree[K, V]) Iterate() iterator.Iterator[KVPair[K, V]] {

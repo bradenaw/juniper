@@ -153,19 +153,14 @@ func (h *Heap[T]) percolateDown(i int) {
 func (h *Heap[T]) Iterate() iterator.Iterator[T] {
 	iter := iterator.Slice(h.a)
 	gen := -1
-	return iterator.New(func() (T, bool) {
+	return iterator.FromNext(func() (T, bool) {
 		if gen == -1 {
 			gen = h.gen
 		}
 		if gen != h.gen {
 			panic(ErrHeapModified)
 		}
-		ok := iter.Next()
-		if !ok {
-			var zero T
-			return zero, false
-		}
-		return iter.Item(), true
+		return iter.Next()
 	})
 }
 

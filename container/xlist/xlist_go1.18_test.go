@@ -118,7 +118,7 @@ func FuzzList(f *testing.F) {
 				}
 				oracle = slices.Insert(oracle, dest+1, item)
 			},
-			func (idx int) {
+			func(idx int) {
 				if len(oracle) == 0 || idx < 0 {
 					return
 				}
@@ -129,7 +129,7 @@ func FuzzList(f *testing.F) {
 				oracle = slices.Remove(oracle, idx, 1)
 				oracle = append([]int{item}, oracle...)
 			},
-			func (idx int) {
+			func(idx int) {
 				if len(oracle) == 0 || idx < 0 {
 					return
 				}

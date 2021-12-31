@@ -1,14 +1,16 @@
 //go:build go1.18
 
-package iterator
+package iterator_test
 
 import (
 	"fmt"
+
+	"github.com/bradenaw/juniper/iterator"
 )
 
 func ExampleIterator() {
 	i := 0
-	iter := New(func() (int, bool) {
+	iter := iterator.FromNext(func() (int, bool) {
 		if i >= 5 {
 			return 0, false
 		}
@@ -17,8 +19,12 @@ func ExampleIterator() {
 		return item, true
 	})
 
-	for iter.Next() {
-		fmt.Println(iter.Item())
+	for {
+		item, ok := iter.Next()
+		if !ok {
+			break
+		}
+		fmt.Println(item)
 	}
 
 	// Output:
@@ -30,15 +36,15 @@ func ExampleIterator() {
 }
 
 func ExampleChunk() {
-	iter := Slice([]string{"a", "b", "c", "d", "e", "f", "g", "h"})
+	iter := iterator.Slice([]string{"a", "b", "c", "d", "e", "f", "g", "h"})
 
-	chunked := Chunk(iter, 3)
-	chunked.Next()
-	fmt.Println(chunked.Item())
-	chunked.Next()
-	fmt.Println(chunked.Item())
-	chunked.Next()
-	fmt.Println(chunked.Item())
+	chunked := iterator.Chunk(iter, 3)
+	item, _ := chunked.Next()
+	fmt.Println(item)
+	item, _ = chunked.Next()
+	fmt.Println(item)
+	item, _ = chunked.Next()
+	fmt.Println(item)
 
 	// Output:
 	// [a b c]
@@ -48,16 +54,16 @@ func ExampleChunk() {
 
 func ExampleEqual() {
 	fmt.Println(
-		Equal(
-			Slice([]string{"a", "b", "c"}),
-			Slice([]string{"a", "b", "c"}),
+		iterator.Equal(
+			iterator.Slice([]string{"a", "b", "c"}),
+			iterator.Slice([]string{"a", "b", "c"}),
 		),
 	)
 
 	fmt.Println(
-		Equal(
-			Slice([]string{"a", "b", "c"}),
-			Slice([]string{"a", "b", "c", "d"}),
+		iterator.Equal(
+			iterator.Slice([]string{"a", "b", "c"}),
+			iterator.Slice([]string{"a", "b", "c", "d"}),
 		),
 	)
 

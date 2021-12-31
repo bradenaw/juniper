@@ -11,13 +11,13 @@ type List[T any] struct {
 }
 
 // Len returns the number of items in the list.
-func (l *List[T]) Len() int        { return l.size }
+func (l *List[T]) Len() int { return l.size }
 
 // Front returns the node at the front of the list.
 func (l *List[T]) Front() *Node[T] { return l.front }
 
 // Back returns the node at the back of the list.
-func (l *List[T]) Back() *Node[T]  { return l.back }
+func (l *List[T]) Back() *Node[T] { return l.back }
 
 // Clear removes all nodes from the list.
 func (l *List[T]) Clear() { l.front = nil; l.back = nil; l.size = 0 }
@@ -60,8 +60,8 @@ func (l *List[T]) PushBack(value T) *Node[T] {
 func (l *List[T]) InsertBefore(value T, mark *Node[T]) *Node[T] {
 	node := &Node[T]{
 		Value: value,
-		prev: mark.prev,
-		next: mark,
+		prev:  mark.prev,
+		next:  mark,
 	}
 	mark.prev = node
 	if node.prev != nil {
@@ -78,8 +78,8 @@ func (l *List[T]) InsertBefore(value T, mark *Node[T]) *Node[T] {
 func (l *List[T]) InsertAfter(value T, mark *Node[T]) *Node[T] {
 	node := &Node[T]{
 		Value: value,
-		prev: mark,
-		next: mark.next,
+		prev:  mark,
+		next:  mark.next,
 	}
 	mark.next = node
 	if node.next != nil {
@@ -159,8 +159,8 @@ func (l *List[T]) MoveToBack(node *Node[T]) {
 
 // Node is a node in a linked-list.
 type Node[T any] struct {
-	prev  *Node[T]
-	next  *Node[T]
+	prev *Node[T]
+	next *Node[T]
 	// Value is user-controlled, and never modified by this package.
 	Value T
 }
