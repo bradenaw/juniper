@@ -71,3 +71,23 @@ func ExampleEqual() {
 	// true
 	// false
 }
+
+func ExampleFirst() {
+	iter := iterator.Slice([]string{"a", "b", "c", "d", "e"})
+
+	first3 := iterator.First(iter, 3)
+	fmt.Println(iterator.Collect(first3))
+
+	// Output:
+	// [a b c]
+}
+
+func ExampleFilter() {
+	iter := iterator.Slice([]int{1, 2, 3, 4, 5, 6})
+
+	evens := iterator.Filter(iter, func(x int) bool { return x%2 == 0 })
+	fmt.Println(iterator.Collect(evens))
+
+	// Output:
+	// [2 4 6]
+}

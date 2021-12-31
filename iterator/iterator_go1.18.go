@@ -129,3 +129,33 @@ func Equal[T comparable](iters ...Iterator[T]) bool {
 		}
 	}
 }
+
+// Filter returns an iterator that yields only the items from iter for which keep returns true.
+func Filter[T any](iter Iterator[T], keep func(T) bool) Iterator[T] {
+	return FromNext(func() (T, bool) {
+		for {
+			item, ok := iter.Next()
+			if !ok {
+				break
+			}
+			if keep(item) {
+				return item, true
+			}
+		}
+		var zero T
+		return zero, false
+	})
+}
+
+// First returns an iterator that yields the first n items from iter.
+func First[T any](iter Iterator[T], n int) Iterator[T] {
+	i := 0
+	return FromNext(func() (T, bool) {
+		if i >= n {
+			var zero T
+			return zero, false
+		}
+		i++
+		return iter.Next()
+	})
+}
