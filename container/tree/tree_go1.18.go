@@ -3,7 +3,6 @@
 package tree
 
 import (
-	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/slices"
 	"github.com/bradenaw/juniper/xmath"
 	"github.com/bradenaw/juniper/xsort"
@@ -264,9 +263,9 @@ func (t *tree[K, V]) setHeight(x *node[K, V]) {
 type iterState int
 
 const (
-	iterBeforeFirst iterState = iota
+	iterNotStarted iterState = iota
 	iterAt
-	iterAfterLast
+	iterDone
 )
 
 type treeIterator[K any, V any] struct {
@@ -281,12 +280,12 @@ type treeIterator[K any, V any] struct {
 }
 
 func (iter *treeIterator[K, V]) Next() (KVPair[K, V], bool) {
-	if iter.state == iterBeforeFirst {
-		iter.SeekStart()
+	if iter.state == iterNotStarted {
+		iter.SeekToFirst()
 		return iter.item()
-	} else if iter.state == iterAfterLast {
+	} else if iter.state == iterDone {
 		return iter.item()
-	} else if iter.gen != iter.t.gen && len(iter.stack) > 0 {
+	} else if iter.gen != iter.t.gen {
 		// Iterator is not already done and the tree has changed structure, must re-seek to find our
 		// place.
 		iter.SeekFirstGreater(iter.stack[len(iter.stack)-1].key)
@@ -306,7 +305,37 @@ func (iter *treeIterator[K, V]) Next() (KVPair[K, V], bool) {
 		}
 	}
 	if len(iter.stack) == 0 {
-		iter.state = iterAfterLast
+		iter.state = iterDone
+	}
+	return iter.item()
+}
+func (iter *treeIterator[K, V]) Prev() (KVPair[K, V], bool) {
+	if iter.state == iterNotStarted {
+		iter.SeekToLast()
+		return iter.item()
+	} else if iter.state == iterDone {
+		return iter.item()
+	} else if iter.gen != iter.t.gen && len(iter.stack) > 0 {
+		// Iterator is not already done and the tree has changed structure, must re-seek to find our
+		// place.
+		iter.SeekLastLess(iter.stack[len(iter.stack)-1].key)
+		return iter.item()
+	}
+	curr := iter.curr()
+	if curr.left != nil {
+		iter.left()
+		for iter.curr().right != nil {
+			iter.right()
+		}
+	} else {
+		prev := curr
+		iter.up()
+		for len(iter.stack) > 0 && iter.t.less(prev.key, iter.curr().key) {
+			iter.up()
+		}
+	}
+	if len(iter.stack) == 0 {
+		iter.state = iterDone
 	}
 	return iter.item()
 }
@@ -318,7 +347,7 @@ func (iter *treeIterator[K, V]) item() (KVPair[K, V], bool) {
 	curr := iter.curr()
 	return KVPair[K, V]{curr.key, curr.value}, true
 }
-func (iter *treeIterator[K, V]) SeekStart() {
+func (iter *treeIterator[K, V]) SeekToFirst() {
 	iter.reset()
 	if len(iter.stack) == 0 {
 		return
@@ -329,9 +358,21 @@ func (iter *treeIterator[K, V]) SeekStart() {
 	}
 	iter.gen = iter.t.gen
 }
-func (iter *treeIterator[K, V]) SeekFirstGreater(k K) {
+func (iter *treeIterator[K, V]) SeekToLast() {
 	iter.reset()
 	if len(iter.stack) == 0 {
+		return
+	}
+	for iter.curr().right != nil {
+		iter.right()
+	}
+	iter.gen = iter.t.gen
+}
+
+func (iter *treeIterator[K, V]) seek(k K) {
+	iter.reset()
+	if len(iter.stack) == 0 {
+		iter.state = iterDone
 		return
 	}
 
@@ -346,11 +387,23 @@ func (iter *treeIterator[K, V]) SeekFirstGreater(k K) {
 	}
 	iter.gen = iter.t.gen
 	iter.state = iterAt
-
-	curr := iter.curr()
-	if iter.t.less(curr.key, k) || !iter.t.less(k, curr.key) {
-		// If less or equal, we need to advance to the next one.
+}
+func (iter *treeIterator[K, V]) SeekFirstGreater(k K) {
+	iter.seek(k)
+	if iter.state == iterDone {
+		return
+	}
+	if xsort.GreaterOrEqual(iter.t.less, k, iter.curr().key) {
 		iter.Next()
+	}
+}
+func (iter *treeIterator[K, V]) SeekLastLess(k K) {
+	iter.seek(k)
+	if iter.state == iterDone {
+		return
+	}
+	if xsort.LessOrEqual(iter.t.less, k, iter.curr().key) {
+		iter.Prev()
 	}
 }
 func (iter *treeIterator[K, V]) curr() *node[K, V] {
@@ -360,8 +413,8 @@ func (iter *treeIterator[K, V]) curr() *node[K, V] {
 func (iter *treeIterator[K, V]) reset() {
 	slices.Clear(iter.stack)
 	if iter.t.root == nil {
-		iter.state = iterAfterLast
-		iter.stack = iter.stack[:0]
+		iter.state = iterDone
+		iter.stack = nil
 		return
 	}
 	iter.state = iterAt
@@ -377,7 +430,7 @@ func (iter *treeIterator[K, V]) right() {
 	iter.stack = append(iter.stack, iter.curr().right)
 }
 
-func (t *tree[K, V]) Iterate() iterator.Iterator[KVPair[K, V]] {
+func (t *tree[K, V]) Iterate() *treeIterator[K, V] {
 	iter := &treeIterator[K, V]{t: t}
 	return iter
 }

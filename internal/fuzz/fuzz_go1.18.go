@@ -18,6 +18,14 @@ func Operations(b []byte, check func(), fns ...interface{}) {
 		b = b[1:]
 		return choice, true
 	}
+	takeByte := func() (byte, bool) {
+		if len(b) < 1 {
+			return 0, false
+		}
+		x := b[0]
+		b = b[1:]
+		return x, true
+	}
 	takeInt := func() (int, bool) {
 		if len(b) < 8 {
 			return 0, false
@@ -43,6 +51,12 @@ Loop:
 			switch argType.Kind() {
 			case reflect.Int:
 				x, ok := takeInt()
+				if !ok {
+					break Loop
+				}
+				args[j] = reflect.ValueOf(x)
+			case reflect.Uint8:
+				x, ok := takeByte()
 				if !ok {
 					break Loop
 				}

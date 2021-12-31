@@ -59,7 +59,7 @@ func (s Set[T]) Last() T {
 // next-lowest item. Thus if the set is modified, the iterator will not necessarily return all of
 // the items present in the set.
 func (s Set[T]) Iterate() iterator.Iterator[T] {
-	return iterator.Map(s.t.Iterate(), func(kv KVPair[T, struct{}]) T {
+	return iterator.Map[KVPair[T, struct{}], T](s.t.Iterate(), func(kv KVPair[T, struct{}]) T {
 		return kv.K
 	})
 }

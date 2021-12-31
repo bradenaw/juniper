@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("172089 !\xe0\xdd\xe1\xe1\xe0")

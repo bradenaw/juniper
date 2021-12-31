@@ -9,114 +9,159 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/bradenaw/juniper/internal/fuzz"
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/xmath"
 	"github.com/bradenaw/juniper/xsort"
 )
 
 func FuzzTree(f *testing.F) {
-	const (
-		ActPut byte = iota << 6
-		ActDelete
-		ActContains
-		ActIterNext
-	)
-
-	f.Add([]byte{
-		ActPut | 3,
-	})
-	f.Add([]byte{
-		ActPut | 3,
-		ActPut | 5,
-	})
-	f.Add([]byte{
-		ActContains | 5,
-		ActPut | 5,
-		ActContains | 5,
-		ActDelete | 5,
-		ActContains | 5,
-	})
-
 	f.Fuzz(func(t *testing.T, b []byte) {
-		tree := newTree[byte, struct{}](xsort.OrderedLess[byte])
-		oracle := make(map[byte]struct{})
-		var iter *iterator.Iterator[KVPair[byte, struct{}]]
+		tree := newTree[byte, int](xsort.OrderedLess[byte])
+		oracle := make(map[byte]int)
+		var iter *treeIterator[byte, int]
 		var iterLastSeen *byte
-		for i := range b {
-			item := b[i] & 0b00111111
-			switch b[i] & 0b11000000 {
-			case ActPut:
-				t.Logf("tree.Put(%#v)", item)
-				tree.Put(item, struct{}{})
-				oracle[item] = struct{}{}
-			case ActDelete:
-				t.Logf("tree.Delete(%#v)", item)
-				tree.Delete(item)
-				delete(oracle, item)
-			case ActContains:
-				t.Logf("tree.Contains(%#v)", item)
-				treeOk := tree.Contains(item)
-				_, oracleOk := oracle[item]
-				require.Equal(t, treeOk, oracleOk)
-				require.Equal(t, tree.Contains(item), oracleOk)
-			case ActIterNext:
+
+		// If k is non-nil, returns the greatest key in oracle less than k.
+		// If k is nil, returns the last key in oracle.
+		// The second return is false if there is no such key.
+		oracleLastLess := func(k *byte) (byte, bool) {
+			var out byte
+			found := false
+			for existingK := range oracle {
+				if k != nil && existingK >= *k {
+					continue
+				}
+				if !found || existingK > out {
+					out = existingK
+					found = true
+				}
+			}
+			return out, found
+		}
+		// If k is non-nil, returns the lowest key in oracle greater than k.
+		// If k is nil, returns the first key in oracle.
+		// The second return is false if there is no such key.
+		oracleFirstGreater := func(k *byte) (byte, bool) {
+			var out byte
+			found := false
+			for existingK := range oracle {
+				if k != nil && existingK <= *k {
+					continue
+				}
+				if !found || existingK < out {
+					out = existingK
+					found = true
+				}
+			}
+			return out, found
+		}
+
+		fuzz.Operations(
+			b,
+			func() { // check
+				t.Log("check")
+				t.Log(treeToString(tree))
+
+				require.Equal(t, len(oracle), tree.size)
+				var oracleSlice []KVPair[byte, int]
+				for k, v := range oracle {
+					oracleSlice = append(oracleSlice, KVPair[byte, int]{k, v})
+				}
+				xsort.Slice(oracleSlice, func(a, b KVPair[byte, int]) bool {
+					return a.K < b.K
+				})
+				t.Logf("oracle: %#v", oracleSlice)
+
+				checkTree(t, tree)
+
+				treeSlice := iterator.Collect[KVPair[byte, int]](tree.Iterate())
+				require.Equal(t, oracleSlice, treeSlice)
+
+				if len(oracle) > 0 {
+					expectedFirst, _ := oracleFirstGreater(nil)
+					firstK, _ := tree.First()
+					require.Equal(t, expectedFirst, firstK, "expected first")
+
+					expectedLast, _ := oracleLastLess(nil)
+					lastK, _ := tree.Last()
+					require.Equal(t, expectedLast, lastK)
+				}
+			},
+			func(k byte, v int) {
+				t.Logf("tree.Put(%#v)", k)
+				tree.Put(k, v)
+				oracle[k] = v
+			},
+			func(k byte) {
+				t.Logf("tree.Delete(%#v)", k)
+				tree.Delete(k)
+				delete(oracle, k)
+			},
+			func(k byte) {
+				t.Logf("tree.Contains(%#v)", k)
+				treeOk := tree.Contains(k)
+				_, oracleOk := oracle[k]
+				require.Equal(t, oracleOk, treeOk)
+			},
+			func(k byte) {
+				t.Logf("tree.Get(%#v)", k)
+				v := tree.Get(k)
+				expectedV := oracle[k]
+				require.Equal(t, expectedV, v)
+			},
+			func() {
 				if iterLastSeen == nil {
 					t.Logf("iter.Next() from beginning")
 				} else {
 					t.Logf("iter.Next() after %#v", *iterLastSeen)
 				}
 
-				for {
-					if iter == nil {
-						x := tree.Iterate()
-						iter = &x
-						iterLastSeen = nil
-					}
-					item, ok := (*iter).Next()
-					if len(oracle) == 0 {
-						require.False(t, ok)
-						iter = nil
-						break
-					}
-					var expected *byte
-					for k := range oracle {
-						k := k
-						if iterLastSeen != nil && k <= *iterLastSeen {
-							continue
-						}
-						if expected == nil || k < *expected {
-							expected = &k
-						}
-					}
-					require.Equal(t, expected != nil, ok)
-					if ok {
-						require.Equal(t, *expected, item.K)
-						iterLastSeen = &item.K
-						t.Logf(" -> %#v", item)
-						break
-					} else {
-						t.Logf(" -> (end)")
-						iter = nil
-						iterLastSeen = nil
-					}
+				if iter == nil {
+					iter = tree.Iterate()
+					iterLastSeen = nil
 				}
-			default:
-				panic("no action?")
-			}
-			t.Log(treeToString(tree))
-		}
+				t.Logf("iter state: %#v", iter)
+				item, ok := iter.Next()
+				expectedK, oracleOK := oracleFirstGreater(iterLastSeen)
+				require.Equal(t, oracleOK, ok)
+				if ok {
+					require.Equal(t, expectedK, item.K)
+					require.Equal(t, oracle[expectedK], item.V)
+					iterLastSeen = &item.K
+					t.Logf(" -> %#v", item)
+				} else {
+					t.Logf(" -> (end)")
+					iter = nil
+					iterLastSeen = nil
+				}
+			},
+			func() {
+				if iterLastSeen == nil {
+					t.Logf("iter.Prev() from end")
+				} else {
+					t.Logf("iter.Prev() before %#v", *iterLastSeen)
+				}
 
-		t.Log("check...")
-		checkTree(t, tree)
-		var oracleSlice []byte
-		for item := range oracle {
-			oracleSlice = append(oracleSlice, item)
-		}
-		xsort.Slice(oracleSlice, xsort.OrderedLess[byte])
-		treeSlice := iterator.Collect(iterator.Map(tree.Iterate(), func(kv KVPair[byte, struct{}]) byte {
-			return kv.K
-		}))
-		require.Equal(t, treeSlice, oracleSlice)
+				if iter == nil {
+					iter = tree.Iterate()
+					iterLastSeen = nil
+				}
+				item, ok := iter.Prev()
+				expectedK, oracleOK := oracleLastLess(iterLastSeen)
+				require.Equal(t, oracleOK, ok)
+				if ok {
+					require.Equal(t, expectedK, item.K)
+					require.Equal(t, oracle[expectedK], item.V)
+					iterLastSeen = &item.K
+					t.Logf(" -> %#v", item)
+				} else {
+					t.Logf(" -> (end)")
+					iter = nil
+					iterLastSeen = nil
+				}
+			},
+		)
 	})
 }
 

@@ -20,15 +20,40 @@ func OrderedLess[T constraints.Ordered](a, b T) bool {
 	return a < b
 }
 
+// Compile-time assert the types match.
+var _ Less[int] = OrderedLess[int]
+
+// Greater returns true if a > b according to less.
+func Greater[T any](less Less[T], a T, b T) bool {
+	return less(b, a)
+}
+
+// LessOrEqual returns true if a <= b according to less.
+func LessOrEqual[T any](less Less[T], a T, b T) bool {
+	// a <= b
+	// !(a > b)
+	// !(b < a)
+	return !less(b, a)
+}
+
+// LessOrEqual returns true if a >= b according to less.
+func GreaterOrEqual[T any](less Less[T], a T, b T) bool {
+	// a >= b
+	// !(a < b)
+	return !less(a, b)
+}
+
+// Equal returns true if a == b according to less.
+func Equal[T any](less Less[T], a T, b T) bool {
+	return !less(a, b) && !less(b, a)
+}
+
 // Reverse returns a Less that orders elements in the opposite order of the provided less.
 func Reverse[T any](less Less[T]) Less[T] {
 	return func(a, b T) bool {
 		return less(b, a)
 	}
 }
-
-// Compile-time assert the types match.
-var _ Less[int] = OrderedLess[int]
 
 // Slice sorts x in-place using the given less function to compare items.
 //
