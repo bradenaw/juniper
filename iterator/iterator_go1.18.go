@@ -1,11 +1,10 @@
 //go:build go1.18
 
+// package iterator allows iterating over sequences of values, for example the contents of a
+// container.
 package iterator
 
 // Iterator is used to iterate over a sequence of values.
-//
-// On creation, iterators are placed 'before' the sequence, and so Next() must be called to advance
-// to the first item.
 //
 // Iterators are lazy, meaning they do no work until a call to Next().
 type Iterator[T any] interface {
