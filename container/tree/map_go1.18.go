@@ -80,8 +80,10 @@ func (m Map[K, V]) Cursor() *MapCursor[K, V] {
 	}
 }
 
-// MapCursor is a cursor into a Map. It is a pointer to an element within a Map. A cursor is usable
-// while a map is being modified.
+// MapCursor is a cursor into a Map.
+//
+// A cursor is usable while a map is being modified. If the element the cursor is at is deleted, the
+// cursor will still return the old value.
 type MapCursor[K any, V any] struct {
 	inner cursor[K, V]
 }

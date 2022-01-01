@@ -323,39 +323,15 @@ func (c *cursor[K, V]) Prev() {
 	}
 }
 
-// This isn't very sane behavior and probably needs some rethinking. The goal here is to get it to
-// do something reasonable when the key the cursor is sitting at gets deleted. We could immediately
-// axe the cursor, but that makes it so you can't filter the contents of a map by looping and
-// removing items. We could just keep the cursor at the removed node and continue returning its
-// contents, but then you get weirdness like:
-//
-//   t.Put(1, 1)
-//   c := t.Cursor()
-//   t.Delete(1)
-//   t.Put(1, 2)
-//   c.Value() // 1!
-//
-// Advancing inside Ok/Key/Value seems _extremely_ weird, though. Maybe the right thing to do is
-// make Ok() return false, and thus make it illegal to call Key/Value, but legal to call
-// Next/Prev/Seek?
-func (c *cursor[K, V]) maybeRecover() {
-	if len(c.stack) > 0 && c.gen != c.t.gen {
-		c.SeekFirstGreaterOrEqual(c.curr().key)
-	}
-}
-
 func (c *cursor[K, V]) Ok() bool {
-	c.maybeRecover()
 	return len(c.stack) > 0
 }
 
 func (c *cursor[K, V]) Key() K {
-	c.maybeRecover()
 	return c.curr().key
 }
 
 func (c *cursor[K, V]) Value() V {
-	c.maybeRecover()
 	return c.curr().value
 }
 

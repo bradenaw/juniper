@@ -70,8 +70,10 @@ func (s Set[T]) Cursor() *SetCursor[T] {
 	}
 }
 
-// SetCursor is a cursor into a Set. It is a pointer to an item within a Set. A cursor is usable
-// while a set is being modified.
+// SetCursor is a cursor into a Set.
+//
+// A cursor is usable while a set is being modified. If the item the cursor is at is deleted, the
+// cursor will still return the old item.
 type SetCursor[T any] struct {
 	inner cursor[T, struct{}]
 }

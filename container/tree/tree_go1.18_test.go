@@ -22,20 +22,22 @@ func FuzzTree(f *testing.F) {
 		tree := newTree[byte, int](xsort.OrderedLess[byte])
 		oracle := make(map[byte]int)
 		cursor := tree.Cursor()
-		var oracleCursor *byte
+		var oracleCursor *KVPair[byte, int]
+		// Since the cursor points at a tree node, they preserve the old value if the key is deleted
+		// from a map, but show updates for overwrites.
+		var cursorDeleted bool
 
 		// If k is non-nil, returns the greatest key in oracle less than k.
 		// If k is nil, returns the last key in oracle.
 		// The return is nil if there is no such key.
-		oracleLastLess := func(k *byte) *byte {
-			var out *byte
-			for existingK := range oracle {
-				existingK := existingK
+		oracleLastLess := func(k *byte) *KVPair[byte, int] {
+			var out *KVPair[byte, int]
+			for existingK, existingV := range oracle {
 				if k != nil && existingK >= *k {
 					continue
 				}
-				if out == nil || existingK > *out {
-					out = &existingK
+				if out == nil || existingK > out.K {
+					out = &KVPair[byte, int]{existingK, existingV}
 				}
 			}
 			return out
@@ -43,15 +45,14 @@ func FuzzTree(f *testing.F) {
 		// If k is non-nil, returns the lowest key in oracle greater than k.
 		// If k is nil, returns the first key in oracle.
 		// The return is nil if there is no such key.
-		oracleFirstGreater := func(k *byte) *byte {
-			var out *byte
-			for existingK := range oracle {
-				existingK := existingK
+		oracleFirstGreater := func(k *byte) *KVPair[byte, int] {
+			var out *KVPair[byte, int]
+			for existingK, existingV := range oracle {
 				if k != nil && existingK <= *k {
 					continue
 				}
-				if out == nil || existingK < *out {
-					out = &existingK
+				if out == nil || existingK < out.K {
+					out = &KVPair[byte, int]{existingK, existingV}
 				}
 			}
 			return out
@@ -92,35 +93,37 @@ func FuzzTree(f *testing.F) {
 					require.False(t, cursor.Ok())
 				} else {
 					require.True(t, cursor.Ok())
-					require.Equal(t, *oracleCursor, cursor.Key())
-
-					_, oracleOk := oracle[*oracleCursor]
-					if oracleOk {
-						require.Equal(t, oracle[*oracleCursor], cursor.Value())
-					}
+					require.Equal(t, oracleCursor.K, cursor.Key())
+					require.Equal(t, oracleCursor.V, cursor.Value())
 				}
 
 				if len(oracle) > 0 {
 					expectedFirst := oracleFirstGreater(nil)
-					firstK, _ := tree.First()
-					require.Equal(t, *expectedFirst, firstK)
+					firstK, firstV := tree.First()
+					require.Equal(t, expectedFirst.K, firstK)
+					require.Equal(t, expectedFirst.V, firstV)
 
 					expectedLast := oracleLastLess(nil)
-					lastK, _ := tree.Last()
-					require.Equal(t, *expectedLast, lastK)
+					lastK, lastV := tree.Last()
+					require.Equal(t, expectedLast.K, lastK)
+					require.Equal(t, expectedLast.V, lastV)
 				}
 			},
 			func(k byte, v int) {
 				t.Logf("tree.Put(%#v, %#v)", k, v)
 				tree.Put(k, v)
 				oracle[k] = v
+
+				if oracleCursor != nil && oracleCursor.K == k && !cursorDeleted {
+					oracleCursor.V = v
+				}
 			},
 			func(k byte) {
 				t.Logf("tree.Delete(%#v)", k)
 				tree.Delete(k)
 				delete(oracle, k)
-				if oracleCursor != nil && k == *oracleCursor {
-					oracleCursor = oracleFirstGreater(oracleCursor)
+				if oracleCursor != nil && oracleCursor.K == k {
+					cursorDeleted = true
 				}
 			},
 			func(k byte) {
@@ -139,55 +142,63 @@ func FuzzTree(f *testing.F) {
 				t.Log("cursor.Next()")
 				cursor.Next()
 				if oracleCursor != nil {
-					oracleCursor = oracleFirstGreater(oracleCursor)
+					oracleCursor = oracleFirstGreater(&oracleCursor.K)
 				}
+				cursorDeleted = false
 			},
 			func() {
 				t.Log("cursor.Prev()")
 				cursor.Prev()
 				if oracleCursor != nil {
-					oracleCursor = oracleLastLess(oracleCursor)
+					oracleCursor = oracleLastLess(&oracleCursor.K)
 				}
+				cursorDeleted = false
 			},
 			func() {
 				t.Log("cursor.SeekFirst()")
 				cursor.SeekFirst()
 				oracleCursor = oracleFirstGreater(nil)
+				cursorDeleted = false
 			},
 			func(k byte) {
 				t.Logf("tree.SeekLastLess(%#v)", k)
 				cursor.SeekLastLess(k)
 				oracleCursor = oracleLastLess(&k)
+				cursorDeleted = false
 			},
 			func(k byte) {
 				t.Logf("tree.SeekLastLessOrEqual(%#v)", k)
 				cursor.SeekLastLessOrEqual(k)
-				_, ok := oracle[k]
+				v, ok := oracle[k]
 				if ok {
-					oracleCursor = &k
+					oracleCursor = &KVPair[byte, int]{k, v}
 				} else {
 					oracleCursor = oracleLastLess(&k)
 				}
+				cursorDeleted = false
 			},
 			func(k byte) {
 				t.Logf("tree.SeekFirstGreaterOrEqual(%#v)", k)
 				cursor.SeekFirstGreaterOrEqual(k)
-				_, ok := oracle[k]
+				v, ok := oracle[k]
 				if ok {
-					oracleCursor = &k
+					oracleCursor = &KVPair[byte, int]{k, v}
 				} else {
 					oracleCursor = oracleFirstGreater(&k)
 				}
+				cursorDeleted = false
 			},
 			func(k byte) {
 				t.Logf("tree.SeekFirstGreater(%#v)", k)
 				cursor.SeekFirstGreater(k)
 				oracleCursor = oracleFirstGreater(&k)
+				cursorDeleted = false
 			},
 			func() {
 				t.Log("cursor.SeekLast()")
 				cursor.SeekLast()
 				oracleCursor = oracleLastLess(nil)
+				cursorDeleted = false
 			},
 			func() {
 				t.Log("cursor.Forward()")
@@ -197,7 +208,7 @@ func FuzzTree(f *testing.F) {
 					expectedKVs = slices.Map(
 						slices.Filter(
 							maps.Keys(oracle),
-							func(k byte) bool { return k >= *oracleCursor },
+							func(k byte) bool { return k >= oracleCursor.K },
 						),
 						func(k byte) KVPair[byte, int] {
 							return KVPair[byte, int]{k, oracle[k]}
@@ -218,7 +229,7 @@ func FuzzTree(f *testing.F) {
 					expectedKVs = slices.Map(
 						slices.Filter(
 							maps.Keys(oracle),
-							func(k byte) bool { return k <= *oracleCursor },
+							func(k byte) bool { return k <= oracleCursor.K },
 						),
 						func(k byte) KVPair[byte, int] {
 							return KVPair[byte, int]{k, oracle[k]}
