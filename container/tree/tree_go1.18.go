@@ -3,6 +3,7 @@
 package tree
 
 import (
+	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/slices"
 	"github.com/bradenaw/juniper/xmath"
 	"github.com/bradenaw/juniper/xsort"
@@ -260,177 +261,235 @@ func (t *tree[K, V]) setHeight(x *node[K, V]) {
 	x.height = xmath.Max(t.leftHeight(x), t.rightHeight(x)) + 1
 }
 
-type iterState int
-
-const (
-	iterNotStarted iterState = iota
-	iterAt
-	iterDone
-)
-
-type treeIterator[K any, V any] struct {
+type cursor[K any, V any] struct {
 	t *tree[K, V]
 	// Always an ancestor chain, that is, stack[i] is the parent of stack[i+1], or:
 	//   (stack[i].left == stack[i+1] || stack[i].right == stack[i+1])
 	//
 	// Should be manipulated via reset(), up(), left(), and right().
 	stack []*node[K, V]
-	state iterState
 	gen   int
 }
 
-func (iter *treeIterator[K, V]) Next() (KVPair[K, V], bool) {
-	if iter.state == iterNotStarted {
-		iter.SeekToFirst()
-		return iter.item()
-	} else if iter.state == iterDone {
-		return iter.item()
-	} else if iter.gen != iter.t.gen {
-		// Iterator is not already done and the tree has changed structure, must re-seek to find our
-		// place.
-		iter.SeekFirstGreater(iter.stack[len(iter.stack)-1].key)
-		return iter.item()
+func (c *cursor[K, V]) clone() *cursor[K, V] {
+	return &cursor[K, V]{
+		t:     c.t,
+		stack: slices.Clone(c.stack),
+		gen:   c.gen,
 	}
-	curr := iter.curr()
-	if curr.right != nil {
-		iter.right()
-		for iter.curr().left != nil {
-			iter.left()
+}
+
+func (c *cursor[K, V]) Next() {
+	if !c.Ok() {
+		return
+	}
+	if c.gen != c.t.gen {
+		// Tree has changed structure, must re-seek to find our place.
+		c.SeekFirstGreater(c.curr().key)
+		return
+	}
+	if c.curr().right != nil {
+		c.right()
+		for c.curr().left != nil {
+			c.left()
 		}
 	} else {
-		prev := curr
-		iter.up()
-		for len(iter.stack) > 0 && iter.t.less(iter.curr().key, prev.key) {
-			iter.up()
+		prev := c.curr()
+		c.up()
+		for len(c.stack) > 0 && c.t.less(c.curr().key, prev.key) {
+			c.up()
 		}
 	}
-	if len(iter.stack) == 0 {
-		iter.state = iterDone
-	}
-	return iter.item()
 }
-func (iter *treeIterator[K, V]) Prev() (KVPair[K, V], bool) {
-	if iter.state == iterNotStarted {
-		iter.SeekToLast()
-		return iter.item()
-	} else if iter.state == iterDone {
-		return iter.item()
-	} else if iter.gen != iter.t.gen && len(iter.stack) > 0 {
-		// Iterator is not already done and the tree has changed structure, must re-seek to find our
-		// place.
-		iter.SeekLastLess(iter.stack[len(iter.stack)-1].key)
-		return iter.item()
+func (c *cursor[K, V]) Prev() {
+	if !c.Ok() {
+		return
 	}
-	curr := iter.curr()
-	if curr.left != nil {
-		iter.left()
-		for iter.curr().right != nil {
-			iter.right()
+	if c.gen != c.t.gen && len(c.stack) > 0 {
+		c.SeekLastLess(c.curr().key)
+		return
+	}
+	if c.curr().left != nil {
+		c.left()
+		for c.curr().right != nil {
+			c.right()
 		}
 	} else {
-		prev := curr
-		iter.up()
-		for len(iter.stack) > 0 && iter.t.less(prev.key, iter.curr().key) {
-			iter.up()
+		prev := c.curr()
+		c.up()
+		for len(c.stack) > 0 && c.t.less(prev.key, c.curr().key) {
+			c.up()
 		}
 	}
-	if len(iter.stack) == 0 {
-		iter.state = iterDone
-	}
-	return iter.item()
-}
-func (iter *treeIterator[K, V]) item() (KVPair[K, V], bool) {
-	if len(iter.stack) == 0 {
-		var zero KVPair[K, V]
-		return zero, false
-	}
-	curr := iter.curr()
-	return KVPair[K, V]{curr.key, curr.value}, true
-}
-func (iter *treeIterator[K, V]) SeekToFirst() {
-	iter.reset()
-	if len(iter.stack) == 0 {
-		return
-	}
-
-	for iter.curr().left != nil {
-		iter.left()
-	}
-	iter.gen = iter.t.gen
-}
-func (iter *treeIterator[K, V]) SeekToLast() {
-	iter.reset()
-	if len(iter.stack) == 0 {
-		return
-	}
-	for iter.curr().right != nil {
-		iter.right()
-	}
-	iter.gen = iter.t.gen
 }
 
-func (iter *treeIterator[K, V]) seek(k K) {
-	iter.reset()
-	if len(iter.stack) == 0 {
-		iter.state = iterDone
-		return
+// This isn't very sane behavior and probably needs some rethinking. The goal here is to get it to
+// do something reasonable when the key the cursor is sitting at gets deleted. We could immediately
+// axe the cursor, but that makes it so you can't filter the contents of a map by looping and
+// removing items. We could just keep the cursor at the removed node and continue returning its
+// contents, but then you get weirdness like:
+//
+//   t.Put(1, 1)
+//   c := t.Cursor()
+//   t.Delete(1)
+//   t.Put(1, 2)
+//   c.Value() // 1!
+//
+// Advancing inside Ok/Key/Value seems _extremely_ weird, though. Maybe the right thing to do is
+// make Ok() return false, and thus make it illegal to call Key/Value, but legal to call
+// Next/Prev/Seek?
+func (c *cursor[K, V]) maybeRecover() {
+	if len(c.stack) > 0 && c.gen != c.t.gen {
+		c.SeekFirstGreaterOrEqual(c.curr().key)
 	}
+}
 
+func (c *cursor[K, V]) Ok() bool {
+	c.maybeRecover()
+	return len(c.stack) > 0
+}
+
+func (c *cursor[K, V]) Key() K {
+	c.maybeRecover()
+	return c.curr().key
+}
+
+func (c *cursor[K, V]) Value() V {
+	c.maybeRecover()
+	return c.curr().value
+}
+
+func (c *cursor[K, V]) seek(k K) bool {
+	if !c.reset() {
+		return false
+	}
 	for {
-		if iter.curr().left != nil && iter.t.less(k, iter.curr().key) {
-			iter.left()
-		} else if iter.curr().right != nil && iter.t.less(iter.curr().key, k) {
-			iter.right()
+		if c.curr().left != nil && c.t.less(k, c.curr().key) {
+			c.left()
+		} else if c.curr().right != nil && c.t.less(c.curr().key, k) {
+			c.right()
 		} else {
 			break
 		}
 	}
-	iter.gen = iter.t.gen
-	iter.state = iterAt
-}
-func (iter *treeIterator[K, V]) SeekFirstGreater(k K) {
-	iter.seek(k)
-	if iter.state == iterDone {
-		return
-	}
-	if xsort.GreaterOrEqual(iter.t.less, k, iter.curr().key) {
-		iter.Next()
-	}
-}
-func (iter *treeIterator[K, V]) SeekLastLess(k K) {
-	iter.seek(k)
-	if iter.state == iterDone {
-		return
-	}
-	if xsort.LessOrEqual(iter.t.less, k, iter.curr().key) {
-		iter.Prev()
-	}
-}
-func (iter *treeIterator[K, V]) curr() *node[K, V] {
-	return iter.stack[len(iter.stack)-1]
+	c.gen = c.t.gen
+	return true
 }
 
-func (iter *treeIterator[K, V]) reset() {
-	slices.Clear(iter.stack)
-	if iter.t.root == nil {
-		iter.state = iterDone
-		iter.stack = nil
+func (c *cursor[K, V]) SeekFirst() {
+	if !c.reset() {
 		return
 	}
-	iter.state = iterAt
-	iter.stack = append(iter.stack[:0], iter.t.root)
-}
-func (iter *treeIterator[K, V]) up() {
-	iter.stack = iter.stack[:len(iter.stack)-1]
-}
-func (iter *treeIterator[K, V]) left() {
-	iter.stack = append(iter.stack, iter.curr().left)
-}
-func (iter *treeIterator[K, V]) right() {
-	iter.stack = append(iter.stack, iter.curr().right)
+	for c.curr().left != nil {
+		c.left()
+	}
+	c.gen = c.t.gen
 }
 
-func (t *tree[K, V]) Iterate() *treeIterator[K, V] {
-	iter := &treeIterator[K, V]{t: t}
-	return iter
+func (c *cursor[K, V]) SeekLast() {
+	if !c.reset() {
+		return
+	}
+	for c.curr().right != nil {
+		c.right()
+	}
+	c.gen = c.t.gen
+}
+
+func (c *cursor[K, V]) SeekLastLess(k K) {
+	if !c.seek(k) {
+		return
+	}
+	if xsort.LessOrEqual(c.t.less, k, c.curr().key) {
+		c.Prev()
+	}
+}
+
+func (c *cursor[K, V]) SeekLastLessOrEqual(k K) {
+	if !c.seek(k) {
+		return
+	}
+	if c.t.less(k, c.curr().key) {
+		c.Prev()
+	}
+}
+
+func (c *cursor[K, V]) SeekFirstGreaterOrEqual(k K) {
+	if !c.seek(k) {
+		return
+	}
+	if xsort.Greater(c.t.less, k, c.curr().key) {
+		c.Next()
+	}
+}
+
+func (c *cursor[K, V]) SeekFirstGreater(k K) {
+	if !c.seek(k) {
+		return
+	}
+	if xsort.GreaterOrEqual(c.t.less, k, c.curr().key) {
+		c.Next()
+	}
+}
+
+func (c *cursor[K, V]) Forward() iterator.Iterator[KVPair[K, V]] {
+	c2 := c.clone()
+	if c2.gen != c2.t.gen && c2.Ok() {
+		c2.SeekFirstGreaterOrEqual(c2.Key())
+	}
+	return iterator.FromNext(func() (KVPair[K, V], bool) {
+		if !c2.Ok() {
+			var zero KVPair[K, V]
+			return zero, false
+		}
+		k := c2.Key()
+		v := c2.Value()
+		c2.Next()
+		return KVPair[K, V]{k, v}, true
+	})
+}
+
+func (c *cursor[K, V]) Backward() iterator.Iterator[KVPair[K, V]] {
+	c2 := c.clone()
+	if c2.gen != c2.t.gen && c2.Ok() {
+		c2.SeekLastLessOrEqual(c2.Key())
+	}
+	return iterator.FromNext(func() (KVPair[K, V], bool) {
+		if !c2.Ok() {
+			var zero KVPair[K, V]
+			return zero, false
+		}
+		k := c2.Key()
+		v := c2.Value()
+		c2.Prev()
+		return KVPair[K, V]{k, v}, true
+	})
+}
+
+func (c *cursor[K, V]) curr() *node[K, V] {
+	return c.stack[len(c.stack)-1]
+}
+func (c *cursor[K, V]) reset() bool {
+	slices.Clear(c.stack)
+	if c.t.root == nil {
+		c.stack = nil
+		return false
+	}
+	c.stack = append(c.stack[:0], c.t.root)
+	return true
+}
+func (c *cursor[K, V]) up() {
+	c.stack = c.stack[:len(c.stack)-1]
+}
+func (c *cursor[K, V]) left() {
+	c.stack = append(c.stack, c.curr().left)
+}
+func (c *cursor[K, V]) right() {
+	c.stack = append(c.stack, c.curr().right)
+}
+
+func (t *tree[K, V]) Cursor() cursor[K, V] {
+	c := cursor[K, V]{t: t}
+	c.SeekFirst()
+	return c
 }
