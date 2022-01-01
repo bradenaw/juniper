@@ -159,3 +159,23 @@ func First[T any](iter Iterator[T], n int) Iterator[T] {
 		return iter.Next()
 	})
 }
+
+// While returns an iterator that terminates at the first item from iter for which f returns false.
+func While[T any](iter Iterator[T], f func(T) bool) Iterator[T] {
+	done := false
+	return FromNext(func() (T, bool) {
+		var zero T
+		if done {
+			return zero, false
+		}
+		item, ok := iter.Next()
+		if !ok {
+			return zero, false
+		}
+		if !f(item) {
+			done = true
+			return zero, false
+		}
+		return item, true
+	})
+}
