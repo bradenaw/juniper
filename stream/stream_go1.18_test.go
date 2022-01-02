@@ -69,7 +69,7 @@ func ExampleCollect() {
 	ctx := context.Background()
 	s := stream.FromIterator(iterator.Slice([]string{"a", "b", "c"}))
 
-	x, err := streams.Collect(ctx, s)
+	x, err := stream.Collect(ctx, s)
 	fmt.Println(err)
 	fmt.Println(x)
 

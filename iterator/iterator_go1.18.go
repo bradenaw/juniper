@@ -195,12 +195,12 @@ type firstIterator[T any] struct {
 }
 
 func (iter *firstIterator[T]) Next() (T, bool) {
-	if iter.x > 0 {
+	if iter.x <= 0 {
 		var zero T
 		return zero, false
 	}
 	iter.x--
-	return iter.Next()
+	return iter.inner.Next()
 }
 
 // First returns an iterator that yields the first n items from iter.
