@@ -271,8 +271,8 @@ type cursor[K any, V any] struct {
 	gen   int
 }
 
-func (c *cursor[K, V]) clone() *cursor[K, V] {
-	return &cursor[K, V]{
+func (c *cursor[K, V]) clone() cursor[K, V] {
+	return cursor[K, V]{
 		t:     c.t,
 		stack: slices.Clone(c.stack),
 		gen:   c.gen,
@@ -408,21 +408,42 @@ func (c *cursor[K, V]) SeekFirstGreater(k K) {
 	}
 }
 
+type forwardIterator[K any, V any] struct {
+	c cursor[K, V]
+}
+
+func (iter *forwardIterator[K, V]) Next() (KVPair[K, V], bool) {
+	if !iter.c.Ok() {
+		var zero KVPair[K, V]
+		return zero, false
+	}
+	k := iter.c.Key()
+	v := iter.c.Value()
+	iter.c.Next()
+	return KVPair[K, V]{k, v}, true
+}
+
 func (c *cursor[K, V]) Forward() iterator.Iterator[KVPair[K, V]] {
 	c2 := c.clone()
 	if c2.gen != c2.t.gen && c2.Ok() {
 		c2.SeekFirstGreaterOrEqual(c2.Key())
 	}
-	return iterator.FromNext(func() (KVPair[K, V], bool) {
-		if !c2.Ok() {
-			var zero KVPair[K, V]
-			return zero, false
-		}
-		k := c2.Key()
-		v := c2.Value()
-		c2.Next()
-		return KVPair[K, V]{k, v}, true
-	})
+	return &forwardIterator[K, V]{c: c2}
+}
+
+type backwardIterator[K any, V any] struct {
+	c cursor[K, V]
+}
+
+func (iter *backwardIterator[K, V]) Next() (KVPair[K, V], bool) {
+	if !iter.c.Ok() {
+		var zero KVPair[K, V]
+		return zero, false
+	}
+	k := iter.c.Key()
+	v := iter.c.Value()
+	iter.c.Prev()
+	return KVPair[K, V]{k, v}, true
 }
 
 func (c *cursor[K, V]) Backward() iterator.Iterator[KVPair[K, V]] {
@@ -430,16 +451,7 @@ func (c *cursor[K, V]) Backward() iterator.Iterator[KVPair[K, V]] {
 	if c2.gen != c2.t.gen && c2.Ok() {
 		c2.SeekLastLessOrEqual(c2.Key())
 	}
-	return iterator.FromNext(func() (KVPair[K, V], bool) {
-		if !c2.Ok() {
-			var zero KVPair[K, V]
-			return zero, false
-		}
-		k := c2.Key()
-		v := c2.Value()
-		c2.Prev()
-		return KVPair[K, V]{k, v}, true
-	})
+	return &backwardIterator[K, V]{c: c2}
 }
 
 func (c *cursor[K, V]) curr() *node[K, V] {

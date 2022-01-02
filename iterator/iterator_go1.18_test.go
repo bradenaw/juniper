@@ -9,15 +9,7 @@ import (
 )
 
 func ExampleIterator() {
-	i := 0
-	iter := iterator.FromNext(func() (int, bool) {
-		if i >= 5 {
-			return 0, false
-		}
-		item := i
-		i++
-		return item, true
-	})
+	iter := iterator.Count(5)
 
 	for {
 		item, ok := iter.Next()

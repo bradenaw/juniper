@@ -14,19 +14,6 @@ type Iterator[T any] interface {
 	Next() (T, bool)
 }
 
-type iterator[T any] struct {
-	next func() (T, bool)
-}
-
-func (iter *iterator[T]) Next() (T, bool) {
-	return iter.next()
-}
-
-// FromNext returns an iterator using the given next.
-func FromNext[T any](next func() (T, bool)) Iterator[T] {
-	return &iterator[T]{next: next}
-}
-
 type sliceIterator[T any] struct {
 	a []T
 }
@@ -252,4 +239,39 @@ func (iter *chanIterator[T]) Next() (T, bool) {
 // Chan returns an Iterator that yields the values received on c.
 func Chan[T any](c <-chan T) Iterator[T] {
 	return &chanIterator[T]{c: c}
+}
+
+type countIterator struct {
+	i int
+	n int
+}
+
+func (iter *countIterator) Next() (int, bool) {
+	if iter.i >= iter.n {
+		return 0, false
+	}
+	item := iter.i
+	iter.i++
+	return item, true
+}
+
+// Count returns an iterator that counts up from 0, yielding n items.
+//
+// The following are equivalent:
+//
+//   for i := 0; i < n; i++ {
+//     fmt.Println(n)
+//   }
+//
+//
+//   iter := iterator.Count(n)
+//   for {
+//     item, ok := iter.Next()
+//     if !ok {
+//       break
+//     }
+//     fmt.Println(item)
+//   }
+func Count(n int) Iterator[int] {
+	return &countIterator{i: 0, n: n}
 }

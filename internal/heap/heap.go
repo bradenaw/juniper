@@ -150,18 +150,24 @@ func (h *Heap[T]) percolateDown(i int) {
 	}
 }
 
+type heapIterator[T any] struct {
+	h     *Heap[T]
+	inner iterator.Iterator[T]
+	gen   int
+}
+
+func (iter *heapIterator[T]) Next() (T, bool) {
+	if iter.gen == -1 {
+		iter.gen = iter.h.gen
+		iter.inner = iterator.Slice(iter.h.a)
+	} else if iter.gen != iter.h.gen {
+		panic(ErrHeapModified)
+	}
+	return iter.inner.Next()
+}
+
 func (h *Heap[T]) Iterate() iterator.Iterator[T] {
-	iter := iterator.Slice(h.a)
-	gen := -1
-	return iterator.FromNext(func() (T, bool) {
-		if gen == -1 {
-			gen = h.gen
-		}
-		if gen != h.gen {
-			panic(ErrHeapModified)
-		}
-		return iter.Next()
-	})
+	return &heapIterator[T]{h: h, gen: -1}
 }
 
 func parent(i int) int {

@@ -95,6 +95,24 @@ type valueAndSource[T any] struct {
 	source int
 }
 
+type mergeIterator[T any] struct {
+	in []iterator.Iterator[T]
+	h  heap.Heap[valueAndSource[T]]
+}
+
+func (iter *mergeIterator[T]) Next() (T, bool) {
+	if iter.h.Len() == 0 {
+		var zero T
+		return zero, false
+	}
+	item := iter.h.Pop()
+	nextItem, ok := iter.in[item.source].Next()
+	if ok {
+		iter.h.Push(valueAndSource[T]{nextItem, item.source})
+	}
+	return item.value, true
+}
+
 // Merge returns an iterator that yields all items from in in sorted order.
 //
 // The results are undefined if the in iterators do not yield items in sorted order according to
@@ -117,18 +135,10 @@ func Merge[T any](less Less[T], in ...iterator.Iterator[T]) iterator.Iterator[T]
 		func(a valueAndSource[T], i int) {},
 		initial,
 	)
-	return iterator.FromNext(func() (T, bool) {
-		if h.Len() == 0 {
-			var zero T
-			return zero, false
-		}
-		item := h.Pop()
-		nextItem, ok := in[item.source].Next()
-		if ok {
-			h.Push(valueAndSource[T]{nextItem, item.source})
-		}
-		return item.value, true
-	})
+	return &mergeIterator[T]{
+		in: in,
+		h:  h,
+	}
 }
 
 // Merge merges the already-sorted slices of in. Optionally, a pre-allocated out slice can be

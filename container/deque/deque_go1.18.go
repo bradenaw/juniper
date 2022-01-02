@@ -165,29 +165,40 @@ func positiveMod(l, r int) int {
 	return x
 }
 
+type dequeIterator[T any] struct {
+	r    *Deque[T]
+	i    int
+	done bool
+	gen  int
+}
+
+func (iter *dequeIterator[T]) Next() (T, bool) {
+	if iter.gen != iter.r.gen {
+		panic(errDequeModified)
+	}
+	var zero T
+	if iter.r.Len() == 0 {
+		return zero, false
+	}
+	if iter.done {
+		return zero, false
+	}
+	item := iter.r.a[iter.i]
+	if iter.i == iter.r.back {
+		iter.done = true
+	}
+	iter.i = (iter.i + 1) % len(iter.r.a)
+	return item, true
+}
+
 // Iterate iterates over the elements of the deque.
 //
 // The iterator panics if the deque has been modified since iteration started.
 func (r *Deque[T]) Iterate() iterator.Iterator[T] {
-	i := r.front
-	done := false
-	gen := r.gen
-	return iterator.FromNext(func() (T, bool) {
-		if gen != r.gen {
-			panic(errDequeModified)
-		}
-		var zero T
-		if r.Len() == 0 {
-			return zero, false
-		}
-		if done {
-			return zero, false
-		}
-		item := r.a[i]
-		if i == r.back {
-			done = true
-		}
-		i = (i + 1) % len(r.a)
-		return item, true
-	})
+	return &dequeIterator[T]{
+		r:    r,
+		i:    r.front,
+		done: false,
+		gen:  r.gen,
+	}
 }
