@@ -8,8 +8,9 @@ package iterator
 //
 // Iterators are lazy, meaning they do no work until a call to Next().
 type Iterator[T any] interface {
-	// Next advances the iterator to the next item in the sequence. Returns false if the iterator
-	// is now past the end of the sequence.
+	// Next advances the iterator and returns the next item. Once the iterator is finished, the
+	// first return is meaningless and the second return is false. The final value of the iterator
+	// will have true in the second return.
 	Next() (T, bool)
 }
 
@@ -53,7 +54,7 @@ func Collect[T any](iter Iterator[T]) []T {
 	return out
 }
 
-// Map transforms the results of iter using the conversion f.
+// Map transforms the values of iter using the conversion f.
 func Map[T any, U any](iter Iterator[T], f func(t T) U) Iterator[U] {
 	return FromNext(func() (U, bool) {
 		var zero U
@@ -87,7 +88,7 @@ func Chunk[T any](iter Iterator[T], chunkSize int) Iterator[[]T] {
 	})
 }
 
-// Chain returns an Iterator that returns all elements of iters[0], then all elements of iters[1],
+// Chain returns an Iterator that yields all elements of iters[0], then all elements of iters[1],
 // and so on.
 func Chain[T any](iters ...Iterator[T]) Iterator[T] {
 	i := 0
@@ -159,7 +160,8 @@ func First[T any](iter Iterator[T], n int) Iterator[T] {
 	})
 }
 
-// While returns an iterator that terminates at the first item from iter for which f returns false.
+// While returns an iterator that terminates before the first item from iter for which f returns
+// false.
 func While[T any](iter Iterator[T], f func(T) bool) Iterator[T] {
 	done := false
 	return FromNext(func() (T, bool) {
@@ -176,5 +178,13 @@ func While[T any](iter Iterator[T], f func(T) bool) Iterator[T] {
 			return zero, false
 		}
 		return item, true
+	})
+}
+
+// Chan returns an Iterator that yields the values received on c.
+func Chan[T any](c <-chan T) Iterator[T] {
+	return FromNext(func() (T, bool) {
+		item, ok := <-c
+		return item, ok
 	})
 }
