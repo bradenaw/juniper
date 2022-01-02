@@ -211,16 +211,15 @@ func Filter[T any](s Stream[T], keep func(T) (bool, error)) Stream[T] {
 
 type firstStream[T any] struct {
 	inner Stream[T]
-	i     int
-	n     int
+	x     int
 }
 
 func (s *firstStream[T]) Next(ctx context.Context) (T, bool) {
-	if s.i >= s.n {
+	if s.x <= 0 {
 		var zero T
 		return zero, false
 	}
-	s.i++
+	s.x--
 	return s.inner.Next(ctx)
 }
 func (s *firstStream[T]) Close() error {
@@ -229,7 +228,7 @@ func (s *firstStream[T]) Close() error {
 
 // First returns an iterator that yields the first n items from s.
 func First[T any](s Stream[T], n int) Stream[T] {
-	return &firstStream[T]{inner: s, i: 0, n: n}
+	return &firstStream[T]{inner: s, x: n}
 }
 
 type whileStream[T any] struct {

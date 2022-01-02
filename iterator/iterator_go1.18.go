@@ -18,27 +18,34 @@ type iterator[T any] struct {
 	next func() (T, bool)
 }
 
+func (iter *iterator[T]) Next() (T, bool) {
+	return iter.next()
+}
+
 // FromNext returns an iterator using the given next.
 func FromNext[T any](next func() (T, bool)) Iterator[T] {
 	return &iterator[T]{next: next}
 }
 
-func (iter *iterator[T]) Next() (T, bool) {
-	return iter.next()
+type sliceIterator[T any] struct {
+	a []T
+}
+
+func (iter *sliceIterator[T]) Next() (T, bool) {
+	if len(iter.a) == 0 {
+		var zero T
+		return zero, false
+	}
+	item := iter.a[0]
+	iter.a = iter.a[1:]
+	return item, true
 }
 
 // Slice returns an iterator over the elements of s.
 func Slice[T any](s []T) Iterator[T] {
-	i := 0
-	return FromNext(func() (T, bool) {
-		if i >= len(s) {
-			var zero T
-			return zero, false
-		}
-		item := s[i]
-		i++
-		return item, true
-	})
+	return &sliceIterator[T]{
+		a: s,
+	}
 }
 
 // Collect advances iter to the end and returns all of the items seen as a slice.
@@ -55,56 +62,84 @@ func Collect[T any](iter Iterator[T]) []T {
 }
 
 // Map transforms the values of iter using the conversion f.
+type mapIterator[T any, U any] struct {
+	inner Iterator[T]
+	f     func(T) U
+}
+
+func (iter *mapIterator[T, U]) Next() (U, bool) {
+	var zero U
+	item, ok := iter.inner.Next()
+	if !ok {
+		return zero, false
+	}
+	return iter.f(item), true
+}
+
+// Map transforms the results of iter using the conversion f.
 func Map[T any, U any](iter Iterator[T], f func(t T) U) Iterator[U] {
-	return FromNext(func() (U, bool) {
-		var zero U
-		item, ok := iter.Next()
+	return &mapIterator[T, U]{
+		inner: iter,
+		f:     f,
+	}
+}
+
+type chunkIterator[T any] struct {
+	chunkSize int
+	inner     Iterator[T]
+	chunk     []T
+}
+
+func (iter *chunkIterator[T]) Next() ([]T, bool) {
+	chunk := make([]T, 0, iter.chunkSize)
+	for {
+		item, ok := iter.inner.Next()
 		if !ok {
-			return zero, false
+			break
 		}
-		return f(item), true
-	})
+		chunk = append(chunk, item)
+		if len(chunk) == iter.chunkSize {
+			return chunk, true
+		}
+	}
+	if len(chunk) > 0 {
+		return chunk, true
+	}
+	return nil, false
 }
 
 // Chunk returns an iterator over non-overlapping chunks of size chunkSize. The last chunk will be
 // smaller than chunkSize if the iterator does not contain an even multiple.
 func Chunk[T any](iter Iterator[T], chunkSize int) Iterator[[]T] {
-	return FromNext(func() ([]T, bool) {
-		chunk := make([]T, 0, chunkSize)
-		for {
-			item, ok := iter.Next()
-			if !ok {
-				break
-			}
-			chunk = append(chunk, item)
-			if len(chunk) == chunkSize {
-				return chunk, true
-			}
-		}
-		if len(chunk) > 0 {
-			return chunk, true
-		}
-		return nil, false
-	})
+	return &chunkIterator[T]{
+		inner:     iter,
+		chunkSize: chunkSize,
+	}
 }
 
 // Chain returns an Iterator that yields all elements of iters[0], then all elements of iters[1],
+type chainIterator[T any] struct {
+	iters []Iterator[T]
+}
+
+func (iter *chainIterator[T]) Next() (T, bool) {
+	for len(iter.iters) > 0 {
+		item, ok := iter.iters[0].Next()
+		if ok {
+			return item, true
+		}
+		iter.iters = iter.iters[1:]
+	}
+	var zero T
+	return zero, false
+}
+
+// Chain returns an Iterator that returns all elements of iters[0], then all elements of iters[1],
 // and so on.
 func Chain[T any](iters ...Iterator[T]) Iterator[T] {
-	i := 0
-	return FromNext(func() (T, bool) {
-		var zero T
-		for {
-			if i >= len(iters) {
-				return zero, false
-			}
-			item, ok := iters[i].Next()
-			if ok {
-				return item, true
-			}
-			i++
-		}
-	})
+	return &chainIterator[T]{
+		iters: iters,
+	}
 }
 
 // Equal returns true if the given iterators yield the same items in the same order. Consumes the
@@ -130,61 +165,91 @@ func Equal[T comparable](iters ...Iterator[T]) bool {
 	}
 }
 
+type filterIterator[T any] struct {
+	inner Iterator[T]
+	keep  func(T) bool
+}
+
+func (iter *filterIterator[T]) Next() (T, bool) {
+	for {
+		item, ok := iter.inner.Next()
+		if !ok {
+			break
+		}
+		if iter.keep(item) {
+			return item, true
+		}
+	}
+	var zero T
+	return zero, false
+}
+
 // Filter returns an iterator that yields only the items from iter for which keep returns true.
 func Filter[T any](iter Iterator[T], keep func(T) bool) Iterator[T] {
-	return FromNext(func() (T, bool) {
-		for {
-			item, ok := iter.Next()
-			if !ok {
-				break
-			}
-			if keep(item) {
-				return item, true
-			}
-		}
+	return &filterIterator[T]{inner: iter, keep: keep}
+}
+
+type firstIterator[T any] struct {
+	inner Iterator[T]
+	x     int
+}
+
+func (iter *firstIterator[T]) Next() (T, bool) {
+	if iter.x > 0 {
 		var zero T
 		return zero, false
-	})
+	}
+	iter.x--
+	return iter.Next()
 }
 
 // First returns an iterator that yields the first n items from iter.
 func First[T any](iter Iterator[T], n int) Iterator[T] {
-	i := 0
-	return FromNext(func() (T, bool) {
-		if i >= n {
-			var zero T
-			return zero, false
-		}
-		i++
-		return iter.Next()
-	})
+	return &firstIterator[T]{inner: iter, x: n}
+}
+
+type whileIterator[T any] struct {
+	inner Iterator[T]
+	f     func(T) bool
+	done  bool
+}
+
+func (iter *whileIterator[T]) Next() (T, bool) {
+	var zero T
+	if iter.done {
+		return zero, false
+	}
+	item, ok := iter.Next()
+	if !ok {
+		return zero, false
+	}
+	if !iter.f(item) {
+		iter.done = true
+		return zero, false
+	}
+	return item, true
 }
 
 // While returns an iterator that terminates before the first item from iter for which f returns
 // false.
 func While[T any](iter Iterator[T], f func(T) bool) Iterator[T] {
-	done := false
-	return FromNext(func() (T, bool) {
-		var zero T
-		if done {
-			return zero, false
-		}
-		item, ok := iter.Next()
-		if !ok {
-			return zero, false
-		}
-		if !f(item) {
-			done = true
-			return zero, false
-		}
-		return item, true
-	})
+	return &whileIterator[T]{
+		inner: iter,
+		f:     f,
+		done:  false,
+	}
+}
+
+type chanIterator[T any] struct {
+	c <-chan T
+}
+
+func (iter *chanIterator[T]) Next() (T, bool) {
+	item, ok := <-iter.c
+	return item, ok
 }
 
 // Chan returns an Iterator that yields the values received on c.
 func Chan[T any](c <-chan T) Iterator[T] {
-	return FromNext(func() (T, bool) {
-		item, ok := <-c
-		return item, ok
-	})
+	return &chanIterator[T]{c: c}
 }
