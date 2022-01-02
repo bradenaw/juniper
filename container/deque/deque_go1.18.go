@@ -37,7 +37,7 @@ type Deque[T any] struct {
 
 // Len returns the number of items in the deque.
 func (r *Deque[T]) Len() int {
-	if len(r.a) == 0 {
+	if r.a == nil || r.back == -1 {
 		return 0
 	}
 
@@ -57,9 +57,10 @@ func (r *Deque[T]) Grow(n int) {
 
 // PushFront adds item to the front of the deque.
 func (r *Deque[T]) PushFront(item T) {
-	if len(r.a) == 0 {
+	if r.Len() == 0 {
 		r.a = make([]T, minSize)
 		r.a[0] = item
+		r.back = 0
 		return
 	}
 	r.maybeExpand()
@@ -70,9 +71,10 @@ func (r *Deque[T]) PushFront(item T) {
 
 // PushFront adds item to the back of the deque.
 func (r *Deque[T]) PushBack(item T) {
-	if len(r.a) == 0 {
+	if r.Len() == 0 {
 		r.a = make([]T, minSize)
 		r.a[0] = item
+		r.back = 0
 		return
 	}
 	r.maybeExpand()
@@ -98,8 +100,14 @@ func (r *Deque[T]) maybeShrink() {
 func (r *Deque[T]) resize(n int) {
 	oldLen := r.Len()
 	newA := make([]T, n)
-	copy(newA[0:], r.a[r.front:])
-	copy(newA[len(r.a)-r.front:], r.a[:r.front])
+	if !(r.a == nil || r.back == -1) {
+		if r.front <= r.back {
+			copy(newA, r.a[r.front:r.back+1])
+		} else {
+			copy(newA, r.a[r.front:])
+			copy(newA[len(r.a)-r.front:], r.a[:r.back+1])
+		}
+	}
 	r.a = newA
 	r.front = 0
 	r.back = oldLen - 1
@@ -115,7 +123,7 @@ func (r *Deque[T]) PopFront() T {
 	if l == 1 {
 		r.a = nil
 		r.front = 0
-		r.back = 0
+		r.back = -1
 		return item
 	}
 	var zero T
@@ -136,7 +144,7 @@ func (r *Deque[T]) PopBack() T {
 	if l == 1 {
 		r.a = nil
 		r.front = 0
-		r.back = 0
+		r.back = -1
 		return item
 	}
 	var zero T
