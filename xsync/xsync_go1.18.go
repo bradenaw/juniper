@@ -48,14 +48,13 @@ func (m *Map[K, V]) Store(key K, value V) {
 
 // Pool is a typesafe wrapper over sync.Pool.
 type Pool[T any] struct {
-	New func() T
-	p sync.Pool
+	sync.Pool
 }
 
 func (p *Pool[T]) Get() T {
-	return p.p.Get().(T)
+	return p.Pool.Get().(T)
 }
 
 func (p *Pool[T]) Put(x T) {
-	p.p.Put(x)
+	p.Pool.Put(x)
 }
