@@ -2,7 +2,10 @@
 
 package xsync
 
-import "sync"
+import (
+	"context"
+	"sync"
+)
 
 // Lazy makes a lazily-initialized value. On first access, it uses f to create the value. Later
 // accesses all receive the same value.
@@ -67,4 +70,39 @@ func (p *Pool[T]) Get() T {
 
 func (p *Pool[T]) Put(x T) {
 	p.p.Put(x)
+}
+
+// Future can be filled with a value exactly once. Many goroutines can concurrently wait for it to
+// be filled. After filling, Wait() immediately returns the value it was filled with.
+type Future[T any] struct {
+	c chan struct{}
+	x T
+}
+
+// Fill fills f with value x. All active calls to Wait return x, and all future calls to Wait return
+// x immediately.
+//
+// Panics if f has already been filled.
+func (f *Future[T]) Fill(x T) {
+	f.x = x
+	close(f.c)
+}
+
+// Wait waits for f to be filled with a value and returns it. Returns immediately if f is already
+// filled.
+func (f *Future[T]) Wait() T {
+	<-f.c
+	return f.x
+}
+
+// Wait waits for f to be filled with a value and returns it, or returns ctx.Err() if ctx expires
+// before this happens. Returns immediately if f is already filled.
+func (f *Future[T]) WaitContext(ctx context.Context) (T, error) {
+	select {
+	case <-ctx.Done():
+		var zero T
+		return zero, ctx.Err()
+	case <-f.c:
+	}
+	return f.x, nil
 }
