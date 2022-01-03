@@ -59,7 +59,7 @@ func (h *Heap[T]) Pop() T {
 	return h.inner.Pop()
 }
 
-// Pop returns the minimum item in the heap. It panics if h.Len()==0.
+// Peek returns the minimum item in the heap. It panics if h.Len()==0.
 func (h *Heap[T]) Peek() T {
 	return h.inner.Peek()
 }
@@ -151,7 +151,7 @@ func (h *PriorityQueue[K, P]) Pop() K {
 	return item.K
 }
 
-// Pop returns the key of the lowest-P item in the priority queue. It panics if h.Len()==0.
+// Peek returns the key of the lowest-P item in the priority queue. It panics if h.Len()==0.
 func (h *PriorityQueue[K, P]) Peek() K {
 	return h.inner.Peek().K
 }
@@ -182,9 +182,9 @@ func (h *PriorityQueue[K, P]) Remove(k K) {
 	delete(h.m, k)
 }
 
-// Iterate iterates over the elements of the heap.
+// Iterate iterates over the elements of the priority queue.
 //
-// The iterator panics if the heap has been modified since iteration started.
+// The iterator panics if the priority queue has been modified since iteration started.
 func (h *PriorityQueue[K, P]) Iterate() iterator.Iterator[K] {
 	return iterator.Map(h.inner.Iterate(), func(kp KP[K, P]) K { return kp.K })
 }
