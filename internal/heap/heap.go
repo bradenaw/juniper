@@ -11,6 +11,8 @@ import (
 
 var ErrHeapModified = errors.New("heap modified during iteration")
 
+const shrinkFactor = 16
+
 // Duplicated from xsort to avoid dependency cycle.
 type Less[T any] func(a, b T) bool
 
@@ -64,6 +66,7 @@ func (h *Heap[T]) Pop() T {
 		h.notifyIndexChanged(0)
 	}
 	h.percolateDown(0)
+	h.maybeShrink()
 	h.gen++
 	return item
 }
@@ -82,6 +85,7 @@ func (h *Heap[T]) RemoveAt(i int) {
 		h.percolateUp(i)
 		h.percolateDown(i)
 	}
+	h.maybeShrink()
 	h.gen++
 }
 
@@ -94,6 +98,14 @@ func (h *Heap[T]) UpdateAt(i int, item T) {
 	h.notifyIndexChanged(i)
 	h.percolateUp(i)
 	h.percolateDown(i)
+}
+
+func (h *Heap[T]) maybeShrink() {
+	if cap(h.a)/len(h.a) >= shrinkFactor {
+		newA := make([]T, len(h.a))
+		copy(newA, h.a)
+		h.a = newA
+	}
 }
 
 func (h *Heap[T]) percolateUp(i int) {
