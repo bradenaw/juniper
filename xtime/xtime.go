@@ -21,7 +21,7 @@ func (err DeadlineTooSoonError) Error() string {
 // SleepContext pauses the current goroutine for at least the duration d and returns nil, unless ctx
 // expires in the mean time in which case it returns ctx.Err().
 //
-// A negative or zero duration causes SleepContext to return immediately.
+// A negative or zero duration causes SleepContext to return nil immediately.
 //
 // If there is less than d left until ctx's deadline, returns DeadlineTooSoonError immediately.
 func SleepContext(ctx context.Context, d time.Duration) error {
