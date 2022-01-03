@@ -2,6 +2,7 @@ package xtime
 
 import (
 	"context"
+	"fmt"
 	"time"
 )
 
@@ -28,7 +29,7 @@ func SleepContext(ctx context.Context, d time.Duration) error {
 	if d <= 0 {
 		return nil
 	}
-	dealine, ok := ctx.Deadline()
+	deadline, ok := ctx.Deadline()
 	if ok {
 		remaining := time.Until(deadline)
 		if remaining > d {
