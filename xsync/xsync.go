@@ -190,11 +190,18 @@ func (g *Group) PeriodicOrTrigger(
 	}
 }
 
-// Stop cancels the context passed to any of the spawned goroutines and waits for all spawned
+// Stop cancels the context passed to spawned goroutines.
+//
+// It is not safe to call Stop concurrently with any other method on g.
+func (g *Group) Stop() {
+	g.cancel()
+}
+
+// Wait cancels the context passed to any of the spawned goroutines and waits for all spawned
 // goroutines to exit.
 //
-// It is not safe to call this concurrently with any other method on g.
-func (g *Group) Stop() {
+// It is not safe to call Wait concurrently with any other method on g.
+func (g *Group) Wait() {
 	g.cancel()
 	g.wg.Wait()
 	g.ctx, g.cancel = context.WithCancel(context.Background())
