@@ -67,17 +67,20 @@ func (c *ContextCond) Wait(ctx context.Context) error {
 
 // Group manages a group of goroutines.
 type Group struct {
-	ctx    context.Context
-	cancel context.CancelFunc
-	wg     sync.WaitGroup
+	baseCtx context.Context
+	ctx     context.Context
+	cancel  context.CancelFunc
+	wg      sync.WaitGroup
 }
 
-// NewGroup returns a Group ready for use.
-func NewGroup() *Group {
-	ctx, cancel := context.WithCancel(context.Background())
+// NewGroup returns a Group ready for use. The context passed to any of the f functions will be a
+// descendant of ctx.
+func NewGroup(ctx context.Context) *Group {
+	bgCtx, cancel := context.WithCancel(baseCtx)
 	return &Group{
-		ctx:    ctx,
-		cancel: cancel,
+		baseCtx: ctx,
+		ctx:     bgCtx,
+		cancel:  cancel,
 	}
 }
 
@@ -204,5 +207,5 @@ func (g *Group) Stop() {
 func (g *Group) Wait() {
 	g.cancel()
 	g.wg.Wait()
-	g.ctx, g.cancel = context.WithCancel(context.Background())
+	g.ctx, g.cancel = context.WithCancel(g.baseCtx)
 }
