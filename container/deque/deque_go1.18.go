@@ -155,14 +155,26 @@ func (r *Deque[T]) PopBack() T {
 	return item
 }
 
-// PeekFront returns the item at the front of the deque. It panics if the deque is empty.
-func (r *Deque[T]) PeekFront() T {
+// Front returns the item at the front of the deque. It panics if the deque is empty.
+func (r *Deque[T]) Front() T {
+	if r.back == -1 {
+		panic("deque index out of range")
+	}
 	return r.a[r.front]
 }
 
-// PeekBack returns the item at the back of the deque. It panics if the deque is empty.
-func (r *Deque[T]) PeekBack() T {
+// Back returns the item at the back of the deque. It panics if the deque is empty.
+func (r *Deque[T]) Back() T {
 	return r.a[r.back]
+}
+
+// Item returns the ith item in the deque. 0 is the front and r.Len()-1 is the back.
+func (r *Deque[T]) Item(i int) T {
+	if i < 0 || i >= r.Len() {
+		panic("deque index out of range")
+	}
+	idx := (r.front + i) % len(r.a)
+	return r.a[idx]
 }
 
 func positiveMod(l, r int) int {

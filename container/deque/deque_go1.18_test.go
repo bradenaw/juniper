@@ -57,20 +57,38 @@ func FuzzDeque(f *testing.F) {
 			},
 			func() {
 				if len(oracle) == 0 {
-					return
+					t.Log("Front() should panic")
+					defer func() { recover() }()
+					deque.Front()
+					t.FailNow()
 				}
 				oracleItem := oracle[0]
-				t.Logf("PeekFront() -> %#v", oracleItem)
-				dequeItem := deque.PeekFront()
+				t.Logf("Front() -> %#v", oracleItem)
+				dequeItem := deque.Front()
 				require.Equal(t, oracleItem, dequeItem)
 			},
 			func() {
 				if len(oracle) == 0 {
-					return
+					t.Log("Back() should panic")
+					defer func() { recover() }()
+					deque.Back()
+					t.FailNow()
 				}
 				oracleItem := oracle[len(oracle)-1]
-				t.Logf("PeekBack() -> %#v", oracleItem)
-				dequeItem := deque.PeekBack()
+				t.Logf("Back() -> %#v", oracleItem)
+				dequeItem := deque.Back()
+				require.Equal(t, oracleItem, dequeItem)
+			},
+			func(i int) {
+				if i < 0 || i > len(oracle) {
+					t.Logf("Item(%d) should panic", i)
+					defer func() { recover() }()
+					deque.Item(i)
+					t.FailNow()
+				}
+				oracleItem := oracle[i]
+				t.Logf("Item(%d) -> %#v", i, oracleItem)
+				dequeItem := deque.Item(i)
 				require.Equal(t, oracleItem, dequeItem)
 			},
 			func() {
