@@ -72,6 +72,37 @@ var sizes = []int{10, 100, 1_000, 10_000, 100_000, 1_000_000}
 // MapIterate/Size=10000-16                78.6µs ± 1%   161.0µs ± 1%  +104.80%  (p=0.004 n=6+5)
 // MapIterate/Size=100000-16                742µs ± 1%    1967µs ± 0%  +165.06%  (p=0.002 n=6+6)
 // MapIterate/Size=1000000-16              9.23ms ± 1%   83.15ms ± 2%  +800.98%  (p=0.002 n=6+6)
+//
+//
+// tree.Map appears to use a little less memory than the builtin map:
+//
+// name                                  old alloc/op   new alloc/op   delta
+// MapPut/Size=10-16                        48.0B ± 0%     51.0B ± 0%    +6.25%  (p=0.002 n=6+6)
+// MapPut/Size=100-16                       55.0B ± 0%     48.0B ± 0%   -12.73%  (p=0.002 n=6+6)
+// MapPut/Size=1000-16                      86.0B ± 0%     48.0B ± 0%   -44.19%  (p=0.002 n=6+6)
+// MapPut/Size=10000-16                     68.0B ± 0%     48.0B ± 0%   -29.41%  (p=0.002 n=6+6)
+// MapPut/Size=100000-16                    57.0B ± 0%     48.0B ± 0%   -15.79%  (p=0.002 n=6+6)
+// MapPut/Size=1000000-16                   87.0B ± 0%     48.0B ± 0%   -44.83%  (p=0.026 n=5+6)
+//
+// name                      old alloc/op   new alloc/op   delta
+// MapBuild/Size=10-16           292B ± 0%      480B ± 0%    +64.38%  (p=0.004 n=6+5)
+// MapBuild/Size=100-16        5.36kB ± 0%    4.80kB ± 0%    -10.53%  (p=0.002 n=6+6)
+// MapBuild/Size=1000-16       86.5kB ± 0%    48.0kB ± 0%    -44.55%  (p=0.002 n=6+6)
+// MapBuild/Size=10000-16       687kB ± 0%     479kB ± 0%    -30.22%  (p=0.002 n=6+6)
+// MapBuild/Size=100000-16     5.74MB ± 0%    4.75MB ± 0%    -17.16%  (p=0.002 n=6+6)
+// MapBuild/Size=1000000-16    86.7MB ± 0%    47.5MB ± 0%    -45.22%  (p=0.010 n=4+6)
+//
+//
+// Although tree.Map requires a _lot_ more allocations, so is likely more costly for the GC to keep
+// track of:
+//
+// name                      old allocs/op  new allocs/op  delta
+// MapBuild/Size=10-16           1.00 ± 0%      9.50 ± 5%   +850.00%  (p=0.002 n=6+6)
+// MapBuild/Size=100-16          16.0 ± 0%      99.0 ± 0%   +518.75%  (p=0.002 n=6+6)
+// MapBuild/Size=1000-16         64.0 ± 0%     999.0 ± 0%  +1460.94%  (p=0.002 n=6+6)
+// MapBuild/Size=10000-16         275 ± 0%      9984 ± 0%  +3526.15%  (p=0.002 n=6+6)
+// MapBuild/Size=100000-16      3.99k ± 0%    99.00k ± 0%  +2379.66%  (p=0.002 n=6+6)
+// MapBuild/Size=1000000-16     38.0k ± 0%    990.0k ± 0%  +2503.11%  (p=0.004 n=5+6)
 
 func BenchmarkTreeMapGet(b *testing.B) {
 	for _, size := range sizes {
@@ -206,6 +237,46 @@ func BenchmarkBuiltinMapIterate(b *testing.B) {
 		b.Run(fmt.Sprintf("Size=%d", size), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				for _, _ = range m {
+				}
+			}
+		})
+	}
+}
+
+func BenchmarkTreeMapBuild(b *testing.B) {
+	for _, size := range sizes {
+		keys := iterator.Collect(iterator.Count(size))
+
+		b.Run(fmt.Sprintf("Size=%d", size), func(b *testing.B) {
+			b.ReportAllocs()
+			for i := 1; i < b.N; i++ {
+				b.StopTimer()
+				xrand.Shuffle(keys)
+				m := NewMap[int, int](xsort.OrderedLess[int])
+				b.StartTimer()
+
+				for j := 0; j < size; j++ {
+					m.Put(keys[j], j)
+				}
+			}
+		})
+	}
+}
+
+func BenchmarkBuiltinMapBuild(b *testing.B) {
+	for _, size := range sizes {
+		keys := iterator.Collect(iterator.Count(size))
+
+		b.Run(fmt.Sprintf("Size=%d", size), func(b *testing.B) {
+			b.ReportAllocs()
+			for i := 1; i < b.N; i++ {
+				b.StopTimer()
+				xrand.Shuffle(keys)
+				m := make(map[int]int)
+				b.StartTimer()
+
+				for j := 0; j < size; j++ {
+					m[keys[j]] = j
 				}
 			}
 		})
