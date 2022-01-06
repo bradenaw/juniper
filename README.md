@@ -26,3 +26,172 @@ from source](https://go.dev/doc/install/source) as Go 1.18 is not yet released.
 
 A few functions do not require generics, and so this library still builds with Go 1.17 and below but
 with a significantly smaller API.
+
+# Notes on Generics So Far
+
+## `interface` can't refer to itself in method definitions
+
+`xsort` allows defining ordering for arbitrary types.
+
+This would've been nice to be able to do:
+
+```
+package xsort
+
+type Ordered interface {
+    Less(other X) bool
+}
+```
+
+What should `X` be? It could be `Ordered`, but then implementations of `Less` need to add a
+type-cast.
+
+Here's an example. This is how we'd like to be able to implement `Less` for types that can use `<`.
+```
+type OrderedByLessOperator[T constraints.Ordered] struct {
+    T
+}
+
+func (o OrderedByLessOperator[T]) Less(other OrderedByLess[T]) {
+    return o.T < other.T
+}
+```
+
+Unfortunately, the only thing we can pick for `X` that makes it so `OrderedByLessOperator[T]`
+implements `xsort.Ordered` is `OrderedByLessOperator[T]`, but then we can't use `xsort.Ordered` for
+anything else.
+
+We could do this instead:
+
+```
+package xsort
+
+type Ordered interface {
+    Less(other Ordered) bool 
+}
+
+type OrderedByLessOperator[T constraints.Ordered] struct {
+    T
+}
+
+func (o OrderedByLessOperator[T]) Less(other Ordered) {
+    return o.T < other.(OrderedByLess[T]).T
+}
+```
+
+This has a nasty typecast and thus a panic that the type system can't save us from.
+
+We really want `X` to be "the same type" like Rust's `Self`, but Go has no such feature.
+
+Thus, I landed at the current implementation instead:
+
+```
+type Less[T] func(a, b T) bool
+
+func OrderedLess[T constraints.Ordered](a, b T) bool {
+	return a < b
+}
+```
+
+This requires passing a `Less[T]` function pointer everywhere that it's needed - see `xsort.Slice`
+and `container/tree.NewMap`. This removes the interface boxing and unboxing from the above solution,
+so the type system works nicely, but it also means that `less` can't get inlined. (Would it anyway?
+Not sure.)
+
+There is an alternative which may perform better but is a little more awkward.
+
+```
+type Lesser[T any] interface {
+    Less(a, b T) bool
+}
+
+type OrderedLesser[T constraints.Ordered] struct{}
+
+func (OrderedLesser[T]) Less(a, b T) bool {
+	return a < b
+}
+
+func SortSlice[T any, L Lesser[T]](a []T) {
+    // ...
+}
+
+a := []int{5, 3, 4}
+SortSlice[int, OrderedLesser[int]](a)
+```
+
+This works, and I like that the method of ordering becomes a part of the type signature (e.g.
+`tree.Set[int, OrderedLesser[int]]` tells you both that the set elements are `int` but also they're
+in order by `<`). However, it feels odd to have this extra `struct{}` type definition to hang `Less`
+off of.
+
+## Methods can't be type-parameterized
+
+This would've made combinators on `Iterator` and `Stream` a lot more ergonomic.
+
+Here's an example that doesn't work:
+
+```
+type SimpleIterator[T any] interface {
+    Next() (T, bool)
+}
+
+type Iterator[T any] struct {
+    SimpleIterator[T]
+}
+
+func (iter Iterator[T]) Filter(keep func(T) bool) Iterator[T] {
+    // ...
+}
+
+func (iter Iterator[T]) Map[U any](transform func(T) U) Iterator[U] {
+    // ...
+}
+```
+
+This would allow more natural chaining:
+
+```
+intIterator.Filter(func(x int) bool {
+    return x % 2 == 0
+}).Map(func(x int) float64{
+    return float64(x) / 2
+})
+```
+
+Unfortunately, this is disallowed because methods cannot be parametric. This line:
+```
+func (iter Iterator[T]) Map[U any](transform func(T) U) Iterator[U] {
+```
+
+fails with:
+```
+./prog.go:23:28: methods cannot have type parameters
+./prog.go:23:29: invalid AST: method must have no type parameters
+```
+
+This requires slightly awkward reordering, which is the implementation I've landed on for now.
+```
+type Iterator[T any] interface {
+	Next() (T, bool)
+}
+
+func Filter[T any](iter Iterator[T], keep func(T) bool) Iterator[T] {
+    // ...
+}
+
+func Map[T any, U any](iter Iterator[T], f func(t T) U) Iterator[U] {
+    // ...
+}
+```
+
+In this model, the above example looks like this, which unfortunately reads inside-out rather than
+left-to-right:
+```
+iterator.Map(
+    iterator.Filter(
+        intIterator,
+        func(x int) bool { return x % 2 == 0 },
+    ),
+    func(x int) float64{ return float64(x) / 2 },
+}
+```
