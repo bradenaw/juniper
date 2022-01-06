@@ -253,9 +253,11 @@ func checkNode[K any, V any](t *testing.T, tree *tree[K, V], curr *node[K, V]) i
 	}
 	if curr.left != nil {
 		require.True(t, tree.less(curr.left.key, curr.key))
+		require.Equal(t, curr, curr.left.parent)
 	}
 	if curr.right != nil {
 		require.True(t, tree.less(curr.key, curr.right.key))
+		require.Equal(t, curr, curr.right.parent)
 	}
 	if curr.left == nil && curr.right == nil {
 		require.Equalf(t, 0, curr.height, "%#v is a leaf and should have height 0", curr.key)
@@ -279,6 +281,9 @@ func checkNode[K any, V any](t *testing.T, tree *tree[K, V], curr *node[K, V]) i
 func checkTree[K any, V any](t *testing.T, tree *tree[K, V]) {
 	size := checkNode(t, tree, tree.root)
 	require.Equal(t, size, tree.size)
+	if tree.root != nil {
+		require.Nil(t, tree.root.parent)
+	}
 }
 
 func treeToString[K any, V any](t *tree[K, V]) string {
@@ -289,7 +294,7 @@ func treeToString[K any, V any](t *tree[K, V]) string {
 	visit = func(x *node[K, V], prefix string, descPrefix string) {
 		_, ok := seen[x]
 		if ok {
-			panic(fmt.Sprintf("cycle detected: already saw %#v", x.value))
+			panic(fmt.Sprintf("%s\ncycle detected: already saw %#v", sb.String(), x.key))
 		}
 		seen[x] = struct{}{}
 		fmt.Fprintf(&sb, "%s%#v h:%d\n", prefix, x.key, x.height)
