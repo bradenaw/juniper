@@ -76,7 +76,7 @@ type Group struct {
 // NewGroup returns a Group ready for use. The context passed to any of the f functions will be a
 // descendant of ctx.
 func NewGroup(ctx context.Context) *Group {
-	bgCtx, cancel := context.WithCancel(baseCtx)
+	bgCtx, cancel := context.WithCancel(ctx)
 	return &Group{
 		baseCtx: ctx,
 		ctx:     bgCtx,
@@ -194,8 +194,6 @@ func (g *Group) PeriodicOrTrigger(
 }
 
 // Stop cancels the context passed to spawned goroutines.
-//
-// It is not safe to call Stop concurrently with any other method on g.
 func (g *Group) Stop() {
 	g.cancel()
 }

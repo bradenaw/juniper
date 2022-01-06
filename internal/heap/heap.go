@@ -101,7 +101,7 @@ func (h *Heap[T]) UpdateAt(i int, item T) {
 }
 
 func (h *Heap[T]) maybeShrink() {
-	if cap(h.a)/len(h.a) >= shrinkFactor {
+	if len(h.a) > 0 && cap(h.a)/len(h.a) >= shrinkFactor {
 		newA := make([]T, len(h.a))
 		copy(newA, h.a)
 		h.a = newA
