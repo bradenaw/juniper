@@ -15,13 +15,13 @@ func FuzzHeap(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b1 []byte, b2 []byte) {
 		t.Logf("initial: %#v", b1)
 		t.Logf("pushed:  %#v", b2)
-		h := New[byte, xsort.NaturalOrder[byte]](append([]byte{}, b1...))
+		h := New[xsort.NaturalOrder[byte]](append([]byte{}, b1...))
 		for i := range b2 {
 			h.Push(b2[i])
 		}
 
 		outByIterate := iterator.Collect(h.Iterate())
-		xsort.Slice[byte, xsort.NaturalOrder[byte]](outByIterate)
+		xsort.Slice[xsort.NaturalOrder[byte]](outByIterate)
 		if outByIterate == nil {
 			outByIterate = []byte{}
 		}
@@ -34,7 +34,7 @@ func FuzzHeap(f *testing.F) {
 
 		expected := append(append([]byte{}, b1...), b2...)
 		t.Logf("expected:        %#v", expected)
-		xsort.Slice[byte, xsort.NaturalOrder[byte]](expected)
+		xsort.Slice[xsort.NaturalOrder[byte]](expected)
 		t.Logf("expected sorted: %#v", expected)
 
 		require.Equal(t, expected, outByPop)
@@ -70,7 +70,7 @@ func FuzzPriorityQueue(f *testing.F) {
 		t.Logf("initial:        %#v", initial)
 		t.Logf("initial oracle: %#v", oracle)
 
-		h := NewPriorityQueue[int, float32, xsort.NaturalOrder[float32]](initial)
+		h := NewPriorityQueue[int, xsort.NaturalOrder[float32]](initial)
 
 		oracleLowestP := func() float32 {
 			first := true

@@ -16,9 +16,9 @@ import (
 // Push and Pop take amoritized O(log(n)) time where n is the number of items in the heap.
 //
 // Len and Peek take O(1) time.
-type Heap[T any, O xsort.Ordering[T]] struct {
+type Heap[O xsort.Ordering[T], T any] struct {
 	// Indirect here so that Heap behaves as a reference type, like the map builtin.
-	inner *heap.Heap[T, O]
+	inner *heap.Heap[O, T]
 }
 
 // New returns a new Heap which uses less to determine the minimum element.
@@ -26,45 +26,45 @@ type Heap[T any, O xsort.Ordering[T]] struct {
 // The elements from initial are added to the heap. initial is modified by New and utilized by the
 // Heap, so it should not be used after passing to New(). Passing initial is faster (O(n)) than
 // creating an empty heap and pushing each item (O(n * log(n))).
-func New[T any, O xsort.Ordering[T]](initial []T) Heap[T, O] {
-	inner := heap.New[T, O](
+func New[O xsort.Ordering[T], T any](initial []T) Heap[O, T] {
+	inner := heap.New[O, T](
 		func(a T, i int) {},
 		initial,
 	)
-	return Heap[T, O]{
+	return Heap[O, T]{
 		inner: &inner,
 	}
 }
 
 // Len returns the current number of elements in the heap.
-func (h *Heap[T, O]) Len() int {
+func (h *Heap[O, T]) Len() int {
 	return h.inner.Len()
 }
 
 // Grow allocates sufficient space to add n more elements without needing to reallocate.
-func (h *Heap[T, O]) Grow(n int) {
+func (h *Heap[O, T]) Grow(n int) {
 	h.inner.Grow(n)
 }
 
 // Push adds item to the heap.
-func (h *Heap[T, O]) Push(item T) {
+func (h *Heap[O, T]) Push(item T) {
 	h.inner.Push(item)
 }
 
 // Pop removes and returns the minimum item in the heap. It panics if h.Len()==0.
-func (h *Heap[T, O]) Pop() T {
+func (h *Heap[O, T]) Pop() T {
 	return h.inner.Pop()
 }
 
 // Peek returns the minimum item in the heap. It panics if h.Len()==0.
-func (h *Heap[T, O]) Peek() T {
+func (h *Heap[O, T]) Peek() T {
 	return h.inner.Peek()
 }
 
 // Iterate iterates over the elements of the heap.
 //
 // The iterator panics if the heap has been modified since iteration started.
-func (h *Heap[T, O]) Iterate() iterator.Iterator[T] {
+func (h *Heap[O, T]) Iterate() iterator.Iterator[T] {
 	return h.inner.Iterate()
 }
 
@@ -74,17 +74,17 @@ type KP[K any, P any] struct {
 	P P
 }
 
-type kpOrdering[K any, P any, O xsort.Ordering[P]] struct{}
+type kpOrdering[K any, O xsort.Ordering[P], P any] struct{}
 
-func (kpOrdering[K, P, O]) Less(a, b KP[K, P]) bool {
+func (kpOrdering[K, O, P]) Less(a, b KP[K, P]) bool {
 	var pOrdering O
 	return pOrdering.Less(a.P, b.P)
 }
 
 // PriorityQueue is a queue that yields items in increasing order of priority.
-type PriorityQueue[K comparable, P any, O xsort.Ordering[P]] struct {
+type PriorityQueue[K comparable, O xsort.Ordering[P], P any] struct {
 	// Indirect here so that Heap behaves as a reference type, like the map builtin.
-	inner *heap.Heap[KP[K, P], kpOrdering[K, P, O]]
+	inner *heap.Heap[kpOrdering[K, O, P], KP[K, P]]
 	m     map[K]int
 }
 
@@ -99,10 +99,10 @@ type PriorityQueue[K comparable, P any, O xsort.Ordering[P]] struct {
 // queue.
 //
 // Len, Peek, Contains, and Priority take O(1) time.
-func NewPriorityQueue[K comparable, P any, O xsort.Ordering[P]](
+func NewPriorityQueue[K comparable, O xsort.Ordering[P], P any](
 	initial []KP[K, P],
-) PriorityQueue[K, P, O] {
-	h := PriorityQueue[K, P, O]{
+) PriorityQueue[K, O, P] {
+	h := PriorityQueue[K, O, P]{
 		m: make(map[K]int),
 	}
 	filtered := initial[:0]
@@ -115,7 +115,7 @@ func NewPriorityQueue[K comparable, P any, O xsort.Ordering[P]](
 		filtered = append(filtered, kp)
 	}
 	initial = filtered
-	inner := heap.New[KP[K, P], kpOrdering[K, P, O]](
+	inner := heap.New[kpOrdering[K, O, P]](
 		func(x KP[K, P], i int) {
 			h.m[x.K] = i
 		},
@@ -126,17 +126,17 @@ func NewPriorityQueue[K comparable, P any, O xsort.Ordering[P]](
 }
 
 // Len returns the current number of elements in the priority queue.
-func (h *PriorityQueue[K, P, O]) Len() int {
+func (h *PriorityQueue[K, O, P]) Len() int {
 	return h.inner.Len()
 }
 
 // Grow allocates sufficient space to add n more elements without needing to reallocate.
-func (h *PriorityQueue[K, P, O]) Grow(n int) {
+func (h *PriorityQueue[K, O, P]) Grow(n int) {
 	h.inner.Grow(n)
 }
 
 // Update updates the priority of k to p, or adds it to the priority queue if not present.
-func (h *PriorityQueue[K, P, O]) Update(k K, p P) {
+func (h *PriorityQueue[K, O, P]) Update(k K, p P) {
 	idx, ok := h.m[k]
 	if ok {
 		h.inner.UpdateAt(idx, KP[K, P]{k, p})
@@ -146,25 +146,25 @@ func (h *PriorityQueue[K, P, O]) Update(k K, p P) {
 }
 
 // Pop removes and returns the lowest-P item in the priority queue. It panics if h.Len()==0.
-func (h *PriorityQueue[K, P, O]) Pop() K {
+func (h *PriorityQueue[K, O, P]) Pop() K {
 	item := h.inner.Pop()
 	delete(h.m, item.K)
 	return item.K
 }
 
 // Peek returns the key of the lowest-P item in the priority queue. It panics if h.Len()==0.
-func (h *PriorityQueue[K, P, O]) Peek() K {
+func (h *PriorityQueue[K, O, P]) Peek() K {
 	return h.inner.Peek().K
 }
 
 // Contains returns true if the given key is present in the priority queue.
-func (h *PriorityQueue[K, P, O]) Contains(k K) bool {
+func (h *PriorityQueue[K, O, P]) Contains(k K) bool {
 	_, ok := h.m[k]
 	return ok
 }
 
 // Priority returns the priority of k, or the zero value of P if k is not present.
-func (h *PriorityQueue[K, P, O]) Priority(k K) P {
+func (h *PriorityQueue[K, O, P]) Priority(k K) P {
 	idx, ok := h.m[k]
 	if ok {
 		return h.inner.Item(idx).P
@@ -174,7 +174,7 @@ func (h *PriorityQueue[K, P, O]) Priority(k K) P {
 }
 
 // Remove removes the item with the given key if present.
-func (h *PriorityQueue[K, P, O]) Remove(k K) {
+func (h *PriorityQueue[K, O, P]) Remove(k K) {
 	i, ok := h.m[k]
 	if !ok {
 		return
@@ -186,6 +186,6 @@ func (h *PriorityQueue[K, P, O]) Remove(k K) {
 // Iterate iterates over the elements of the priority queue.
 //
 // The iterator panics if the priority queue has been modified since iteration started.
-func (h *PriorityQueue[K, P, O]) Iterate() iterator.Iterator[K] {
+func (h *PriorityQueue[K, O, P]) Iterate() iterator.Iterator[K] {
 	return iterator.Map(h.inner.Iterate(), func(kp KP[K, P]) K { return kp.K })
 }

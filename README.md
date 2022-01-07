@@ -110,31 +110,32 @@ func (NaturalOrder[T]) Less(a, b T) bool {
 	return a < b
 }
 
-func SortSlice[T any, L Ordering[T]](a []T) {
+func SortSlice[O Ordering[T], T any](a []T) {
     // ...
 }
 
 a := []int{5, 3, 4}
-SortSlice[int, NaturalOrder[int]](a)
+SortSlice[NaturalOrder[int]](a)
 ```
 
 This works, and I like that the method of ordering becomes a part of the type signature (e.g.
-`tree.Set[int, xsort.Reverse[int, xsort.NaturalOrder[int]]]` tells you both that the set elements
+`tree.Set[xsort.Reverse[xsort.NaturalOrder[int]]]` tells you both that the set elements
 are `int` but also they're in reverse order by `<`).
 
 However, it feels odd to have this extra `struct{}` type definition to hang `Less` off of which we
-always call on the zero value. It also is unfortunate that this mucks up type inference - Go likes
-inferring all of the types or none of them, and so moving `Ordering` into the type parameter list
-means type parameters can't ever get inferred. Also note it causes an explosion in type parameters,
-because in order to name `Ordering[T]` you also must separately define `T any` - see how
-`tree.Set[int, xsort.Reverse[int, xsort.NaturalOrder[int]]]` had to name `int` three times.
-Theoretically, `tree.Set[xsort.Reverse[xsort.NaturalOrder[int]]]` should be sufficient, since the
-inner `int` would imply `T=int` to `tree.Set`.
+always call on the zero value. It also is unfortunate that this mucks a bit with the type
+definitions, requiring some redundancy to say `[O Ordering[T], T any]`. Since Go is willing to infer
+suffixes of missing type parameters when calling a function, this is not as verbose as it could have
+been. e.g. `xsort.Slice[xsort.NaturalOrder[int]](x)` - `T` is inferred from `O`, so it can be left
+off.
 
 The one advantage of this solution is that `Less`'s concrete implementation is known at
-specialization time, so it should be possible for the compiler to inline it.
+specialization time, so it should be possible for the compiler to inline it. `-gcflags=-m` does seem
+to suggest that it's trying to do this.
 
 ## Methods can't be type-parameterized
+
+This is [discussed in the proposal](https://go.googlesource.com/proposal/+/refs/heads/master/design/43651-type-parameters.md#No-parameterized-methods).
 
 This would've made combinators on `Iterator` and `Stream` a lot more ergonomic.
 
