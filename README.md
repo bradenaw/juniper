@@ -89,8 +89,7 @@ Pros:
 Cons:
 - It feels odd to have this extra `struct{}` type definition to hang `Less` off of which we always
   call on the zero value.
-- Defining an `Ordering` is more cumbersome than Option A. Anonymous, single-use `Ordering`s aren't
-  possible.
+- Defining an `Ordering` is more cumbersome than Option A.
 - Type definitions feel a little verbose or clumsy, requiring some redundancy to say `[O
   Ordering[T], T any]`. Since Go is willing to infer suffixes of missing type parameters when
   calling a function, this is not as verbose as it could have been. e.g.
