@@ -27,78 +27,39 @@ from source](https://go.dev/doc/install/source) as Go 1.18 is not yet released.
 A few functions do not require generics, and so this library still builds with Go 1.17 and below but
 with a significantly smaller API.
 
-# Notes on Generics So Far
+# Notes on Challenges with Generics So Far
 
-## `interface` can't refer to itself in method definitions
+## Ordering
 
-`xsort` allows defining ordering for arbitrary types.
+`xsort` allows defining ordering for arbitrary types. This is used for sorting, searching, and
+ordered data structures like `container/tree` and `container/xheap`. Every available option for
+doing this is a little awkward.
 
-This would've been nice to be able to do:
-
-```
-package xsort
-
-type Ordered interface {
-    Less(other X) bool
-}
-```
-
-What should `X` be? It could be `Ordered`, but then implementations of `Less` need to add a
-type-cast.
-
-Here's an example. This is how we'd like to be able to implement `Less` for types that can use `<`.
-```
-type OrderedByLessOperator[T constraints.Ordered] struct {
-    T
-}
-
-func (o OrderedByLessOperator[T]) Less(other OrderedByLess[T]) {
-    return o.T < other.T
-}
-```
-
-Unfortunately, the only thing we can pick for `X` that makes it so `OrderedByLessOperator[T]`
-implements `xsort.Ordered` is `OrderedByLessOperator[T]`, but then we can't use `xsort.Ordered` for
-anything else.
-
-We could do this instead:
-
-```
-package xsort
-
-type Ordered interface {
-    Less(other Ordered) bool 
-}
-
-type OrderedByLessOperator[T constraints.Ordered] struct {
-    T
-}
-
-func (o OrderedByLessOperator[T]) Less(other Ordered) {
-    return o.T < other.(OrderedByLess[T]).T
-}
-```
-
-This has a nasty typecast and thus a panic that the type system can't save us from.
-
-We really want `X` to be "the same type" like Rust's `Self`, but Go has no such feature.
-
-This implementation works:
-
+### Option A: Less function type
 ```
 type Less[T] func(a, b T) bool
 
 func OrderedLess[T constraints.Ordered](a, b T) bool {
 	return a < b
 }
+
+func SortByLen[T any](x [][]T) {
+    xsort.Slice(x, func(a, b []T) bool {
+        return len(a) < len(b)
+    })
+}
 ```
 
-This requires passing a `Less[T]` function pointer everywhere that it's needed. This removes the
-interface boxing and unboxing from the above solution, so the type system works nicely, but it also
-means that `less` can't get inlined because it isn't known at specialization time.
+Pros:
+- Easy to understand. Already the way the standard library `sort` does it.
+- Allows short ad-hoc definitions for `Less`.
 
-There is an alternative which is a little more awkward to work with.
+Cons:
+- Ordering is not expressed in the type system.
+- Requires passing a `Less[T]` function pointer everywhere that it's needed.
+- `less` can't get inlined because its implementation isn't known at compile time.
 
+### Option B: Ordering interface
 ```
 type Ordering[T any] interface {
     Less(a, b T) bool
@@ -118,22 +79,57 @@ a := []int{5, 3, 4}
 SortSlice[NaturalOrder[int]](a)
 ```
 
-This works, and I like that the method of ordering becomes a part of the type signature (e.g.
-`tree.Set[xsort.Reverse[xsort.NaturalOrder[int]]]` tells you both that the set elements
-are `int` but also they're in reverse order by `<`).
+Pros:
+- Ordering is a part of the type signature for an ordered container (e.g.
+  `tree.Set[xsort.Reverse[xsort.NaturalOrder[int]]]` tells you both that the set elements are `int`
+  but also they're in reverse order by `<`).
+- `Less`'s concrete implementation is known at specialization time, so it should be possible for the
+  compiler to inline it. `-gcflags=-m` does seem to suggest that it's trying to do this.
 
-However, it feels odd to have this extra `struct{}` type definition to hang `Less` off of which we
-always call on the zero value. It also is unfortunate that this mucks a bit with the type
-definitions, requiring some redundancy to say `[O Ordering[T], T any]`. Since Go is willing to infer
-suffixes of missing type parameters when calling a function, this is not as verbose as it could have
-been. e.g. `xsort.Slice[xsort.NaturalOrder[int]](x)` - `T` is inferred from `O`, so it can be left
-off.
+Cons:
+- It feels odd to have this extra `struct{}` type definition to hang `Less` off of which we always
+  call on the zero value.
+- Defining an `Ordering` is more cumbersome than Option A. Anonymous, single-use `Ordering`s aren't
+  possible.
+- Type definitions feel a little verbose or clumsy, requiring some redundancy to say `[O
+  Ordering[T], T any]`. Since Go is willing to infer suffixes of missing type parameters when
+  calling a function, this is not as verbose as it could have been. e.g.
+  `xsort.Slice[xsort.NaturalOrder[int]](x)` - `T` is inferred from `O`, so it can be left off.
+  The type signatures still look confusing, and this inference is only done for functions, not
+  types.
+- Awkwardness abound when there are several type parameters, like for `tree.Map`. Naturally, the
+  proper order is `[K, V]`. If we're adding `Ordering[K]`, then `[O Ordering[K], K any, V any]`.
+  However, because `K` is inferrable from `O`, `[O, V, K]` would give us the proper shorthand. This
+  allows `tree.NewMap[xsort.NaturalOrder[int], string]`, but `V` and `K` appearing in that order in
+  the type parameter list is uncomfortable.
 
-The one advantage of this solution is that `Less`'s concrete implementation is known at
-specialization time, so it should be possible for the compiler to inline it. `-gcflags=-m` does seem
-to suggest that it's trying to do this.
 
-## Methods can't be type-parameterized
+### Option C: Ordered interface
+```
+package xsort
+
+type Ordered[T] interface {
+    Less(other T) bool
+}
+
+type OrderedByLessOperator[T constraints.Ordered] struct {
+    T
+}
+
+func (o OrderedByLessOperator[T]) Less(other T) {
+    return o.T < other.T
+}
+```
+
+Pros:
+- This feels a little more Go-ish than option B, since there isn't this extra `struct{}` type to hold
+the ordering function.
+
+Cons:
+- It has the same awkwardness as option B with having to pass both `Ordered[T]` and `T` in type
+  parameters lists. Further, it requires an extra boxing/unboxing for usage.
+
+## Chaining and Method Parameterization
 
 This is [discussed in the proposal](https://go.googlesource.com/proposal/+/refs/heads/master/design/43651-type-parameters.md#No-parameterized-methods).
 
