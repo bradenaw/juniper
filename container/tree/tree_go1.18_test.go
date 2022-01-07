@@ -19,7 +19,7 @@ import (
 
 func FuzzTree(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte) {
-		tree := newTree[byte, int](xsort.OrderedLess[byte])
+		tree := newTree[byte, int, xsort.NaturalOrder[byte]]()
 		oracle := make(map[byte]int)
 		cursor := tree.Cursor()
 		var oracleCursor *KVPair[byte, int]
@@ -59,9 +59,7 @@ func FuzzTree(f *testing.F) {
 		}
 
 		sortKVs := func(kvs []KVPair[byte, int]) {
-			xsort.Slice(kvs, func(a, b KVPair[byte, int]) bool {
-				return a.K < b.K
-			})
+			xsort.Slice[KVPair[byte, int], KeyOrder[byte, int, xsort.NaturalOrder[byte]]](kvs)
 		}
 
 		fuzz.Operations(
@@ -247,16 +245,20 @@ func FuzzTree(f *testing.F) {
 	})
 }
 
-func checkNode[K any, V any](t *testing.T, tree *tree[K, V], curr *node[K, V]) int {
+func checkNode[K any, V any, O xsort.Ordering[K]](
+	t *testing.T,
+	tree *tree[K, V, O],
+	curr *node[K, V],
+) int {
 	if curr == nil {
 		return 0
 	}
 	if curr.left != nil {
-		require.True(t, tree.less(curr.left.key, curr.key))
+		require.True(t, tree.ordering.Less(curr.left.key, curr.key))
 		require.Equal(t, curr, curr.left.parent)
 	}
 	if curr.right != nil {
-		require.True(t, tree.less(curr.key, curr.right.key))
+		require.True(t, tree.ordering.Less(curr.key, curr.right.key))
 		require.Equal(t, curr, curr.right.parent)
 	}
 	if curr.left == nil && curr.right == nil {
@@ -278,7 +280,7 @@ func checkNode[K any, V any](t *testing.T, tree *tree[K, V], curr *node[K, V]) i
 	rightSize := checkNode(t, tree, curr.right)
 	return leftSize + rightSize + 1
 }
-func checkTree[K any, V any](t *testing.T, tree *tree[K, V]) {
+func checkTree[K any, V any, O xsort.Ordering[K]](t *testing.T, tree *tree[K, V, O]) {
 	size := checkNode(t, tree, tree.root)
 	require.Equal(t, size, tree.size)
 	if tree.root != nil {
@@ -286,7 +288,7 @@ func checkTree[K any, V any](t *testing.T, tree *tree[K, V]) {
 	}
 }
 
-func treeToString[K any, V any](t *tree[K, V]) string {
+func treeToString[K any, V any, O xsort.Ordering[K]](t *tree[K, V, O]) string {
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "tree ====\n")
 	var visit func(x *node[K, V], prefix string, descPrefix string)

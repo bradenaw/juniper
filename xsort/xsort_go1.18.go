@@ -12,81 +12,98 @@ import (
 	"github.com/bradenaw/juniper/slices"
 )
 
-// Returns true if a is less than b. Must follow the same rules as sort.Interface.Less.
-type Less[T any] func(a, b T) bool
+// Ordering defines a total ordering of T.
+//
+// Only the zero-value of Orderings are used. Thus Orderings usually have an underlying type of
+// struct{}.
+type Ordering[T any] interface {
+	// Returns true if a is less than b. Must follow the same rules as sort.Interface.Less.
+	Less(a, b T) bool
+}
 
-// OrderedLess is an implementation of Less for constraints.Ordered types by using the < operator.
-func OrderedLess[T constraints.Ordered](a, b T) bool {
+// NaturalOrder is the Ordering of the < operator.
+type NaturalOrder[T constraints.Ordered] struct{}
+
+func (NaturalOrder[T]) Less(a, b T) bool {
 	return a < b
 }
 
 // Compile-time assert the types match.
-var _ Less[int] = OrderedLess[int]
+var _ Ordering[int] = NaturalOrder[int]{}
 
-// Greater returns true if a > b according to less.
-func Greater[T any](less Less[T], a T, b T) bool {
-	return less(b, a)
+// Greater returns true if a > b according to O.
+func Greater[T any, O Ordering[T]](a T, b T) bool {
+	var ordering O
+	return ordering.Less(b, a)
 }
 
-// LessOrEqual returns true if a <= b according to less.
-func LessOrEqual[T any](less Less[T], a T, b T) bool {
+// LessOrEqual returns true if a <= b according to O.
+func LessOrEqual[T any, O Ordering[T]](a T, b T) bool {
+	var ordering O
 	// a <= b
 	// !(a > b)
 	// !(b < a)
-	return !less(b, a)
+	return !ordering.Less(b, a)
 }
 
-// LessOrEqual returns true if a >= b according to less.
-func GreaterOrEqual[T any](less Less[T], a T, b T) bool {
+// LessOrEqual returns true if a >= b according to O.
+func GreaterOrEqual[T any, O Ordering[T]](a T, b T) bool {
+	var ordering O
 	// a >= b
 	// !(a < b)
-	return !less(a, b)
+	return !ordering.Less(a, b)
 }
 
-// Equal returns true if a == b according to less.
-func Equal[T any](less Less[T], a T, b T) bool {
-	return !less(a, b) && !less(b, a)
+// Equal returns true if a == b according to O.
+func Equal[T any, O Ordering[T]](a T, b T) bool {
+	var ordering O
+	return !ordering.Less(a, b) && !ordering.Less(b, a)
 }
 
-// Reverse returns a Less that orders elements in the opposite order of the provided less.
-func Reverse[T any](less Less[T]) Less[T] {
-	return func(a, b T) bool {
-		return less(b, a)
-	}
+// Reverse returns an Ordering that orders elements in the opposite order of the provided less.
+type Reverse[T any, O Ordering[T]] struct{}
+
+func (Reverse[T, O]) Less(a, b T) bool {
+	var ordering O
+	return ordering.Less(b, a)
 }
 
-// Slice sorts x in-place using the given less function to compare items.
+// Slice sorts x in-place using the ordering O.
 //
 // Follows the same rules as sort.Slice.
-func Slice[T any](x []T, less Less[T]) {
+func Slice[T any, O Ordering[T]](x []T) {
+	var ordering O
 	sort.Slice(x, func(i, j int) bool {
-		return less(x[i], x[j])
+		return ordering.Less(x[i], x[j])
 	})
 }
 
-// SliceStable stably sorts x in-place using the given less function to compare items.
+// SliceStable stably sorts x in-place using O to compare items.
 //
 // Follows the same rules as sort.SliceStable.
-func SliceStable[T any](x []T, less Less[T]) {
+func SliceStable[T any, O Ordering[T]](x []T) {
+	var ordering O
 	sort.SliceStable(x, func(i, j int) bool {
-		return less(x[i], x[j])
+		return ordering.Less(x[i], x[j])
 	})
 }
 
-// SliceIsSorted returns true if x is in sorted order according to the given less function.
+// SliceIsSorted returns true if x is in sorted order according to O.
 //
 // Follows the same rules as sort.SliceIsSorted.
-func SliceIsSorted[T any](x []T, less Less[T]) bool {
+func SliceIsSorted[T any, O Ordering[T]](x []T) bool {
+	var ordering O
 	return sort.SliceIsSorted(x, func(i, j int) bool {
-		return less(x[i], x[j])
+		return ordering.Less(x[i], x[j])
 	})
 }
 
-// Search searches for item in x, assumed sorted according to less, and returns the index. The
-// return value is the index to insert item at if it is not present (it could be len(a)).
-func Search[T any](x []T, less Less[T], item T) int {
+// Search searches for item in x, assumed sorted according to O, and returns the index. The return
+// value is the index to insert item at if it is not present (it could be len(a)).
+func Search[T any, O Ordering[T]](x []T, item T) int {
+	var ordering O
 	return sort.Search(len(x), func(i int) bool {
-		return less(item, x[i]) || !less(x[i], item)
+		return ordering.Less(item, x[i]) || !ordering.Less(x[i], item)
 	})
 }
 
@@ -95,12 +112,19 @@ type valueAndSource[T any] struct {
 	source int
 }
 
-type mergeIterator[T any] struct {
-	in []iterator.Iterator[T]
-	h  heap.Heap[valueAndSource[T]]
+type valueAndSourceOrdering[T any, O Ordering[T]] struct{}
+
+func (valueAndSourceOrdering[T, O]) Less(a, b valueAndSource[T]) bool {
+	var valueOrdering O
+	return valueOrdering.Less(a.value, b.value)
 }
 
-func (iter *mergeIterator[T]) Next() (T, bool) {
+type mergeIterator[T any, O Ordering[T]] struct {
+	in []iterator.Iterator[T]
+	h  heap.Heap[valueAndSource[T], valueAndSourceOrdering[T, O]]
+}
+
+func (iter *mergeIterator[T, O]) Next() (T, bool) {
 	if iter.h.Len() == 0 {
 		var zero T
 		return zero, false
@@ -116,10 +140,10 @@ func (iter *mergeIterator[T]) Next() (T, bool) {
 // Merge returns an iterator that yields all items from in in sorted order.
 //
 // The results are undefined if the in iterators do not yield items in sorted order according to
-// less.
+// O.
 //
 // The time complexity of Next() is O(log(k)) where k is len(in).
-func Merge[T any](less Less[T], in ...iterator.Iterator[T]) iterator.Iterator[T] {
+func Merge[T any, O Ordering[T]](in ...iterator.Iterator[T]) iterator.Iterator[T] {
 	initial := make([]valueAndSource[T], 0, len(in))
 	for i := range in {
 		item, ok := in[i].Next()
@@ -128,14 +152,11 @@ func Merge[T any](less Less[T], in ...iterator.Iterator[T]) iterator.Iterator[T]
 		}
 		initial = append(initial, valueAndSource[T]{item, i})
 	}
-	h := heap.New(
-		func(a, b valueAndSource[T]) bool {
-			return less(a.value, b.value)
-		},
+	h := heap.New[valueAndSource[T], valueAndSourceOrdering[T, O]](
 		func(a valueAndSource[T], i int) {},
 		initial,
 	)
-	return &mergeIterator[T]{
+	return &mergeIterator[T, O]{
 		in: in,
 		h:  h,
 	}
@@ -147,7 +168,7 @@ func Merge[T any](less Less[T], in ...iterator.Iterator[T]) iterator.Iterator[T]
 // The results are undefined if the in slices are not already sorted.
 //
 // The time complexity is O(n * log(k)) where n is the total number of items and k is len(in).
-func MergeSlices[T any](less Less[T], out []T, in ...[]T) []T {
+func MergeSlices[T any, O Ordering[T]](out []T, in ...[]T) []T {
 	n := 0
 	for i := range in {
 		n += len(in[i])
@@ -157,7 +178,7 @@ func MergeSlices[T any](less Less[T], out []T, in ...[]T) []T {
 	for i := range in {
 		inIters[i] = iterator.Slice(in[i])
 	}
-	iter := Merge(less, inIters...)
+	iter := Merge[T, O](inIters...)
 	for {
 		item, ok := iter.Next()
 		if !ok {

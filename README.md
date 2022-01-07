@@ -83,7 +83,7 @@ This has a nasty typecast and thus a panic that the type system can't save us fr
 
 We really want `X` to be "the same type" like Rust's `Self`, but Go has no such feature.
 
-Thus, I landed at the current implementation instead:
+This implementation works:
 
 ```
 type Less[T] func(a, b T) bool
@@ -93,36 +93,46 @@ func OrderedLess[T constraints.Ordered](a, b T) bool {
 }
 ```
 
-This requires passing a `Less[T]` function pointer everywhere that it's needed - see `xsort.Slice`
-and `container/tree.NewMap`. This removes the interface boxing and unboxing from the above solution,
-so the type system works nicely, but it also means that `less` can't get inlined. (Would it anyway?
-Not sure.)
+This requires passing a `Less[T]` function pointer everywhere that it's needed. This removes the
+interface boxing and unboxing from the above solution, so the type system works nicely, but it also
+means that `less` can't get inlined because it isn't known at specialization time.
 
-There is an alternative which may perform better but is a little more awkward.
+There is an alternative which is a little more awkward to work with.
 
 ```
-type Lesser[T any] interface {
+type Ordering[T any] interface {
     Less(a, b T) bool
 }
 
-type OrderedLesser[T constraints.Ordered] struct{}
+type NaturalOrder[T constraints.Ordered] struct{}
 
-func (OrderedLesser[T]) Less(a, b T) bool {
+func (NaturalOrder[T]) Less(a, b T) bool {
 	return a < b
 }
 
-func SortSlice[T any, L Lesser[T]](a []T) {
+func SortSlice[T any, L Ordering[T]](a []T) {
     // ...
 }
 
 a := []int{5, 3, 4}
-SortSlice[int, OrderedLesser[int]](a)
+SortSlice[int, NaturalOrder[int]](a)
 ```
 
 This works, and I like that the method of ordering becomes a part of the type signature (e.g.
-`tree.Set[int, OrderedLesser[int]]` tells you both that the set elements are `int` but also they're
-in order by `<`). However, it feels odd to have this extra `struct{}` type definition to hang `Less`
-off of.
+`tree.Set[int, xsort.Reverse[int, xsort.NaturalOrder[int]]]` tells you both that the set elements
+are `int` but also they're in reverse order by `<`).
+
+However, it feels odd to have this extra `struct{}` type definition to hang `Less` off of which we
+always call on the zero value. It also is unfortunate that this mucks up type inference - Go likes
+inferring all of the types or none of them, and so moving `Ordering` into the type parameter list
+means type parameters can't ever get inferred. Also note it causes an explosion in type parameters,
+because in order to name `Ordering[T]` you also must separately define `T any` - see how
+`tree.Set[int, xsort.Reverse[int, xsort.NaturalOrder[int]]]` had to name `int` three times.
+Theoretically, `tree.Set[xsort.Reverse[xsort.NaturalOrder[int]]]` should be sufficient, since the
+inner `int` would imply `T=int` to `tree.Set`.
+
+The one advantage of this solution is that `Less`'s concrete implementation is known at
+specialization time, so it should be possible for the compiler to inline it.
 
 ## Methods can't be type-parameterized
 
