@@ -356,7 +356,7 @@ func (iter *runsInnerIterator[T]) Next() (T, bool) {
 }
 
 // Runs returns an iterator of iterators. The inner iterators yield contiguous elements from iter
-// such that same(a, b) returns true.
+// such that same(a, b) returns true for any a and b in the run.
 //
 // same(a, a) must return true. If same(a, b) and same(b, c) both return true, then same(a, c) must
 // also.
