@@ -17,13 +17,6 @@ import (
 	"github.com/bradenaw/juniper/xsort"
 )
 
-type keyOrder[K any, V any, O xsort.Ordering[K]] struct{}
-
-func (keyOrder[K, V, O]) Less(a, b KVPair[K, V]) bool {
-	var ordering O
-	return ordering.Less(a.K, b.K)
-}
-
 func FuzzTree(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte) {
 		tree := newTree[byte, int, xsort.NaturalOrder[byte]]()
@@ -66,7 +59,7 @@ func FuzzTree(f *testing.F) {
 		}
 
 		sortKVs := func(kvs []KVPair[byte, int]) {
-			xsort.Slice[keyOrder[byte, int, xsort.NaturalOrder[byte]]](kvs)
+			xsort.Slice[KVPair[byte, int], KeyOrder[byte, int, xsort.NaturalOrder[byte]]](kvs)
 		}
 
 		fuzz.Operations(

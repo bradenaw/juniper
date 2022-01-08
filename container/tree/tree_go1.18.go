@@ -470,7 +470,7 @@ func (c *cursor[K, V, O]) SeekLastLess(k K) {
 	if !c.seek(k) {
 		return
 	}
-	if xsort.LessOrEqual[O](k, c.curr.key) {
+	if xsort.LessOrEqual[K, O](k, c.curr.key) {
 		c.Prev()
 	}
 }
@@ -488,7 +488,7 @@ func (c *cursor[K, V, O]) SeekFirstGreaterOrEqual(k K) {
 	if !c.seek(k) {
 		return
 	}
-	if xsort.Greater[O](k, c.curr.key) {
+	if xsort.Greater[K, O](k, c.curr.key) {
 		c.Next()
 	}
 }
@@ -497,7 +497,7 @@ func (c *cursor[K, V, O]) SeekFirstGreater(k K) {
 	if !c.seek(k) {
 		return
 	}
-	if xsort.GreaterOrEqual[O](k, c.curr.key) {
+	if xsort.GreaterOrEqual[K, O](k, c.curr.key) {
 		c.Next()
 	}
 }

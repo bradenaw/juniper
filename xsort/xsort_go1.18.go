@@ -32,13 +32,13 @@ func (NaturalOrder[T]) Less(a, b T) bool {
 var _ Ordering[int] = NaturalOrder[int]{}
 
 // Greater returns true if a > b according to O.
-func Greater[O Ordering[T], T any](a T, b T) bool {
+func Greater[T any, O Ordering[T]](a T, b T) bool {
 	var ordering O
 	return ordering.Less(b, a)
 }
 
 // LessOrEqual returns true if a <= b according to O.
-func LessOrEqual[O Ordering[T], T any](a T, b T) bool {
+func LessOrEqual[T any, O Ordering[T]](a T, b T) bool {
 	var ordering O
 	// a <= b
 	// !(a > b)
@@ -47,7 +47,7 @@ func LessOrEqual[O Ordering[T], T any](a T, b T) bool {
 }
 
 // LessOrEqual returns true if a >= b according to O.
-func GreaterOrEqual[O Ordering[T], T any](a T, b T) bool {
+func GreaterOrEqual[T any, O Ordering[T]](a T, b T) bool {
 	var ordering O
 	// a >= b
 	// !(a < b)
@@ -55,15 +55,15 @@ func GreaterOrEqual[O Ordering[T], T any](a T, b T) bool {
 }
 
 // Equal returns true if a == b according to O.
-func Equal[O Ordering[T], T any](a T, b T) bool {
+func Equal[T any, O Ordering[T]](a T, b T) bool {
 	var ordering O
 	return !ordering.Less(a, b) && !ordering.Less(b, a)
 }
 
 // Reverse returns an Ordering that orders elements in the opposite order of the provided less.
-type Reverse[O Ordering[T], T any] struct{}
+type Reverse[T any, O Ordering[T]] struct{}
 
-func (Reverse[O, T]) Less(a, b T) bool {
+func (Reverse[T, O]) Less(a, b T) bool {
 	var ordering O
 	return ordering.Less(b, a)
 }
@@ -71,7 +71,7 @@ func (Reverse[O, T]) Less(a, b T) bool {
 // Slice sorts x in-place using the ordering O.
 //
 // Follows the same rules as sort.Slice.
-func Slice[O Ordering[T], T any](x []T) {
+func Slice[T any, O Ordering[T]](x []T) {
 	var ordering O
 	sort.Slice(x, func(i, j int) bool {
 		return ordering.Less(x[i], x[j])
@@ -81,7 +81,7 @@ func Slice[O Ordering[T], T any](x []T) {
 // SliceStable stably sorts x in-place using O to compare items.
 //
 // Follows the same rules as sort.SliceStable.
-func SliceStable[O Ordering[T], T any](x []T) {
+func SliceStable[T any, O Ordering[T]](x []T) {
 	var ordering O
 	sort.SliceStable(x, func(i, j int) bool {
 		return ordering.Less(x[i], x[j])
@@ -91,7 +91,7 @@ func SliceStable[O Ordering[T], T any](x []T) {
 // SliceIsSorted returns true if x is in sorted order according to O.
 //
 // Follows the same rules as sort.SliceIsSorted.
-func SliceIsSorted[O Ordering[T], T any](x []T) bool {
+func SliceIsSorted[T any, O Ordering[T]](x []T) bool {
 	var ordering O
 	return sort.SliceIsSorted(x, func(i, j int) bool {
 		return ordering.Less(x[i], x[j])
@@ -100,7 +100,7 @@ func SliceIsSorted[O Ordering[T], T any](x []T) bool {
 
 // Search searches for item in x, assumed sorted according to O, and returns the index. The return
 // value is the index to insert item at if it is not present (it could be len(a)).
-func Search[O Ordering[T], T any](x []T, item T) int {
+func Search[T any, O Ordering[T]](x []T, item T) int {
 	var ordering O
 	return sort.Search(len(x), func(i int) bool {
 		return ordering.Less(item, x[i]) || !ordering.Less(x[i], item)
@@ -112,19 +112,19 @@ type valueAndSource[T any] struct {
 	source int
 }
 
-type valueAndSourceOrdering[O Ordering[T], T any] struct{}
+type valueAndSourceOrdering[T any, O Ordering[T]] struct{}
 
-func (valueAndSourceOrdering[O, T]) Less(a, b valueAndSource[T]) bool {
+func (valueAndSourceOrdering[T, O]) Less(a, b valueAndSource[T]) bool {
 	var valueOrdering O
 	return valueOrdering.Less(a.value, b.value)
 }
 
-type mergeIterator[O Ordering[T], T any] struct {
+type mergeIterator[T any, O Ordering[T]] struct {
 	in []iterator.Iterator[T]
-	h  heap.Heap[valueAndSourceOrdering[O, T], valueAndSource[T]]
+	h  heap.Heap[valueAndSource[T], valueAndSourceOrdering[T, O]]
 }
 
-func (iter *mergeIterator[O, T]) Next() (T, bool) {
+func (iter *mergeIterator[T, O]) Next() (T, bool) {
 	if iter.h.Len() == 0 {
 		var zero T
 		return zero, false
@@ -143,7 +143,7 @@ func (iter *mergeIterator[O, T]) Next() (T, bool) {
 // O.
 //
 // The time complexity of Next() is O(log(k)) where k is len(in).
-func Merge[O Ordering[T], T any](in ...iterator.Iterator[T]) iterator.Iterator[T] {
+func Merge[T any, O Ordering[T]](in ...iterator.Iterator[T]) iterator.Iterator[T] {
 	initial := make([]valueAndSource[T], 0, len(in))
 	for i := range in {
 		item, ok := in[i].Next()
@@ -152,11 +152,11 @@ func Merge[O Ordering[T], T any](in ...iterator.Iterator[T]) iterator.Iterator[T
 		}
 		initial = append(initial, valueAndSource[T]{item, i})
 	}
-	h := heap.New[valueAndSourceOrdering[O, T]](
+	h := heap.New[valueAndSource[T], valueAndSourceOrdering[T, O]](
 		func(a valueAndSource[T], i int) {},
 		initial,
 	)
-	return &mergeIterator[O, T]{
+	return &mergeIterator[T, O]{
 		in: in,
 		h:  h,
 	}
@@ -168,7 +168,7 @@ func Merge[O Ordering[T], T any](in ...iterator.Iterator[T]) iterator.Iterator[T
 // The results are undefined if the in slices are not already sorted.
 //
 // The time complexity is O(n * log(k)) where n is the total number of items and k is len(in).
-func MergeSlices[O Ordering[T], T any](out []T, in ...[]T) []T {
+func MergeSlices[T any, O Ordering[T]](out []T, in ...[]T) []T {
 	n := 0
 	for i := range in {
 		n += len(in[i])
@@ -178,7 +178,7 @@ func MergeSlices[O Ordering[T], T any](out []T, in ...[]T) []T {
 	for i := range in {
 		inIters[i] = iterator.Slice(in[i])
 	}
-	iter := Merge[O](inIters...)
+	iter := Merge[T, O](inIters...)
 	for {
 		item, ok := iter.Next()
 		if !ok {

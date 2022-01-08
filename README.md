@@ -71,12 +71,12 @@ func (NaturalOrder[T]) Less(a, b T) bool {
 	return a < b
 }
 
-func SortSlice[O Ordering[T], T any](a []T) {
+func SortSlice[T any, L Ordering[T]](a []T) {
     // ...
 }
 
 a := []int{5, 3, 4}
-SortSlice[NaturalOrder[int]](a)
+SortSlice[int, NaturalOrder[int]](a)
 ```
 
 Pros:
@@ -132,8 +132,6 @@ Cons:
   parameters lists. Further, it requires an extra boxing/unboxing for usage.
 
 ## Chaining and Method Parameterization
-
-This is [discussed in the proposal](https://go.googlesource.com/proposal/+/refs/heads/master/design/43651-type-parameters.md#No-parameterized-methods).
 
 This would've made combinators on `Iterator` and `Stream` a lot more ergonomic.
 
