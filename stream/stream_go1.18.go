@@ -6,6 +6,9 @@ package stream
 import (
 	"context"
 	"errors"
+	"time"
+
+	"golang.org/x/sync/errgroup"
 
 	"github.com/bradenaw/juniper/iterator"
 )
@@ -162,7 +165,7 @@ func (s *chainStream[T]) Close() error {
 	return s.err
 }
 
-// Chain returns an Iterator that yields all elements of streams[0], then all elements of
+// Chain returns a Stream that yields all elements from streams[0], then all elements from
 // streams[1], and so on.
 func Chain[T any](streams ...Stream[T]) Stream[T] {
 	return &chainStream[T]{remaining: streams}
@@ -226,7 +229,7 @@ func (s *firstStream[T]) Close() error {
 	return s.inner.Close()
 }
 
-// First returns an iterator that yields the first n items from s.
+// First returns a Stream that yields the first n items from s.
 func First[T any](s Stream[T], n int) Stream[T] {
 	return &firstStream[T]{inner: s, x: n}
 }
@@ -263,12 +266,48 @@ func (s *whileStream[T]) Close() error {
 	return closeErr
 }
 
-// While returns an iterator that terminates before the first item from iter for which f returns
-// false. If f returns an error, terminates the stream early.
+// While returns a Stream that terminates before the first item from s for which f returns false.
+// If f returns an error, terminates the stream early.
 func While[T any](s Stream[T], f func(T) (bool, error)) Stream[T] {
 	return &whileStream[T]{
 		inner: s,
 		f:     f,
+	}
+}
+
+type chunkStream[T any] struct {
+	inner     Stream[T]
+	chunkSize int
+}
+
+func (s *chunkStream[T]) Next(ctx context.Context) ([]T, bool) {
+	chunk := make([]T, 0, s.chunkSize)
+	for {
+		item, ok := s.inner.Next(ctx)
+		if !ok {
+			break
+		}
+		chunk = append(chunk, item)
+		if len(chunk) == s.chunkSize {
+			return chunk, true
+		}
+	}
+	if len(chunk) > 0 {
+		return chunk, true
+	}
+	return nil, false
+}
+
+func (s *chunkStream[T]) Close() error {
+	return s.inner.Close()
+}
+
+// Chunk returns a stream of non-overlapping chunks from s of size chunkSize. The last chunk will be
+// smaller than chunkSize if the stream does not contain an even multiple.
+func Chunk[T any](s Stream[T], chunkSize int) Stream[[]T] {
+	return &chunkStream[T]{
+		inner:     s,
+		chunkSize: chunkSize,
 	}
 }
 
@@ -368,4 +407,175 @@ func Pipe[T any](bufferSize int) (*Sender[T], Stream[T]) {
 	}
 
 	return sender, receiver
+}
+
+type batchStream[T any] struct {
+	bgCancel context.CancelFunc
+	batchC   chan []T
+	waiting  chan struct{}
+	err      error
+	eg       errgroup.Group
+}
+
+func (iter *batchStream[T]) Next(ctx context.Context) ([]T, bool) {
+	select {
+	// There might be a batch already ready because it filled before we even asked.
+	case batch, ok := <-iter.batchC:
+		return batch, ok
+	// Otherwise, we need to let the sender know we're waiting so that they can flush an underfilled
+	// batch at interval.
+	case iter.waiting <- struct{}{}:
+		select {
+		case batch, ok := <-iter.batchC:
+			return batch, ok
+		case <-ctx.Done():
+			iter.err = ctx.Err()
+			return nil, false
+		}
+	case <-ctx.Done():
+		iter.err = ctx.Err()
+		return nil, false
+	}
+}
+
+func (iter *batchStream[T]) Close() error {
+	iter.bgCancel()
+	err := iter.eg.Wait()
+	if iter.err != nil {
+		return iter.err
+	}
+	return err
+}
+
+// Batch returns a stream of non-overlapping batches from s of size batchSize. Batch is similar to
+// Chunk with the added feature that an underfilled batch will be delivered to the output stream if
+// any item has been in the batch for more than maxWait.
+func Batch[T any](s Stream[T], batchSize int, maxWait time.Duration) Stream[[]T] {
+	bgCtx, bgCancel := context.WithCancel(context.Background())
+
+	out := &batchStream[T]{
+		batchC:   make(chan []T),
+		waiting:  make(chan struct{}),
+		bgCancel: bgCancel,
+	}
+
+	c := make(chan T)
+
+	out.eg.Go(func() error {
+		for {
+			item, ok := s.Next(bgCtx)
+			if !ok {
+				break
+			}
+			c <- item
+		}
+		close(c)
+		return s.Close()
+	})
+
+	// Build up batches and flush them when either:
+	// A) The batch is full.
+	// B) It's been at least maxWait since the first item arrived _and_ there is somebody waiting.
+	// No sense in underfilling a batch if nobody's actually asking for it yet.
+	// C) There aren't any more items.
+	out.eg.Go(func() error {
+		batch := make([]T, 0, batchSize)
+		var batchStart time.Time
+		var timer *time.Timer
+		// Starts off as nil so that the timerC select arm isn't chosen until populated.  Also set
+		// to nil when we've already stopped or received from timer to know when it needs to be
+		// drained.
+		var timerC <-chan time.Time
+		waitingAtEmpty := false
+
+		defer func() {
+			if timer != nil {
+				timer.Stop()
+			}
+			close(out.batchC)
+		}()
+
+		flush := func() error {
+			select {
+			case <-bgCtx.Done():
+				return bgCtx.Err()
+			case out.batchC <- batch:
+			}
+			batch = make([]T, 0, batchSize)
+			waitingAtEmpty = false
+			return nil
+		}
+
+		stopTimer := func() {
+			if timer == nil {
+				return
+			}
+			stopped := timer.Stop()
+			if !stopped && timerC != nil {
+				<-timerC
+			}
+			timerC = nil
+		}
+
+		startTimer := func() {
+			stopTimer()
+			if timer == nil {
+				timer = time.NewTimer(maxWait - time.Since(batchStart))
+			} else {
+				timer.Reset(maxWait - time.Since(batchStart))
+			}
+			timerC = timer.C
+		}
+
+		for {
+			select {
+			case item, ok := <-c:
+				if !ok { // Case (C): we're done.
+					// Flush what we have so far, if any.
+					if len(batch) > 0 {
+						return flush()
+					}
+					return nil
+				}
+				batch = append(batch, item)
+				if len(batch) == batchSize { // Case (A): the batch is full.
+					stopTimer()
+					err := flush()
+					if err != nil {
+						return err
+					}
+				} else if len(batch) == 1 { // Bookkeeping for case (B).
+					batchStart = time.Now()
+					if waitingAtEmpty {
+						startTimer()
+					}
+				}
+			case <-timerC: // Case (B).
+				timerC = nil
+				// Being here already implies the conditions are true, since the timer is only
+				// running while the batch is non-empty and there's somebody waiting.
+				err := flush()
+				if err != nil {
+					return err
+				}
+			case <-out.waiting: // Bookkeeping for case (B).
+				if len(batch) > 0 {
+					// Time already elapsed, just deliver the batch now.
+					if time.Since(batchStart) > maxWait {
+						err := flush()
+						if err != nil {
+							return err
+						}
+					} else {
+						startTimer()
+					}
+				} else {
+					// Timer will start when the first item shows up.
+					waitingAtEmpty = true
+				}
+			}
+		}
+	})
+
+	return out
 }

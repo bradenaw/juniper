@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/stream"
@@ -39,7 +40,7 @@ func ExamplePipe() {
 	// <nil>
 }
 
-func ExamplePipe_Error() {
+func ExamplePipe_error() {
 	ctx := context.Background()
 	sender, receiver := stream.Pipe[int](0)
 
@@ -76,4 +77,45 @@ func ExampleCollect() {
 	// Output:
 	// <nil>
 	// [a b c]
+}
+
+func ExampleBatch() {
+	ctx := context.Background()
+
+	sender, receiver := stream.Pipe[string](0)
+
+	batchStream := stream.Batch(receiver, 3, 50*time.Millisecond)
+
+	wait := make(chan struct{}, 3)
+	go func() {
+		_ = sender.Send(ctx, "a")
+		_ = sender.Send(ctx, "b")
+		// Wait here before sending any more to show that the first batch will flush early because
+		// of maxTime=50*time.Millisecond.
+		<-wait
+		_ = sender.Send(ctx, "c")
+		_ = sender.Send(ctx, "d")
+		_ = sender.Send(ctx, "e")
+		_ = sender.Send(ctx, "f")
+		sender.Close(nil)
+	}()
+
+	var batches [][]string
+	for {
+		batch, ok := batchStream.Next(ctx)
+		if !ok {
+			break
+		}
+		batches = append(batches, batch)
+		wait <- struct{}{}
+	}
+	err := batchStream.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(batches)
+
+	// Output:
+	// [[a b] [c d e] [f]]
 }

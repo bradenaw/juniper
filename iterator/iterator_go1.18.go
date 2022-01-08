@@ -72,9 +72,8 @@ func Map[T any, U any](iter Iterator[T], f func(t T) U) Iterator[U] {
 }
 
 type chunkIterator[T any] struct {
-	chunkSize int
 	inner     Iterator[T]
-	chunk     []T
+	chunkSize int
 }
 
 func (iter *chunkIterator[T]) Next() ([]T, bool) {
