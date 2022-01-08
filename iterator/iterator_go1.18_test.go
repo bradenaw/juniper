@@ -4,8 +4,10 @@ package iterator_test
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/bradenaw/juniper/iterator"
+	"github.com/bradenaw/juniper/xmath"
 )
 
 func ExampleIterator() {
@@ -94,4 +96,20 @@ func ExampleRuns() {
 
 	// Output:
 	// [[2 4 0] [7 1 3 9] [2 8]]
+}
+
+func ExampleReduce() {
+	x := []int{3, 1, 2}
+
+	iter := iterator.Slice(x)
+	sum := iterator.Reduce(iter, 0, func(x, y int) int { return x + y })
+	fmt.Println(sum)
+
+	iter = iterator.Slice(x)
+	min := iterator.Reduce(iter, math.MaxInt, xmath.Min[int])
+	fmt.Println(min)
+
+	// Output:
+	// 6
+	// 1
 }

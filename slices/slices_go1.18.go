@@ -246,11 +246,11 @@ func Runs[T any](x []T, same func(a, b T) bool) [][]T {
 	end := 0
 	for i := 1; i < len(x); i++ {
 		if same(x[i-1], x[i]) {
-			end = i+1
+			end = i + 1
 		} else {
 			runs = append(runs, x[start:end])
 			start = i
-			end = i+1
+			end = i + 1
 		}
 	}
 	if end > 0 {

@@ -277,7 +277,7 @@ func Count(n int) Iterator[int] {
 }
 
 // Peekable allows viewing the next item from an iterator without consuming it.
-type Peekable[T any] interface{
+type Peekable[T any] interface {
 	Iterator[T]
 	// Peek returns the next item of the iterator if there is one without consuming it.
 	//
@@ -287,8 +287,8 @@ type Peekable[T any] interface{
 
 type peekable[T any] struct {
 	inner Iterator[T]
-	curr T
-	has bool
+	curr  T
+	has   bool
 }
 
 func (iter *peekable[T]) Next() (T, bool) {
@@ -310,13 +310,13 @@ func (iter *peekable[T]) Peek() (T, bool) {
 
 // WithPeek returns iter with a Peek() method attached.
 func WithPeek[T any](iter Iterator[T]) Peekable[T] {
-	return &peekable[T]{inner: iter, has:false}
+	return &peekable[T]{inner: iter, has: false}
 }
 
 type runsIterator[T any] struct {
 	inner Peekable[T]
-	same func(a, b T) bool
-	curr *runsInnerIterator[T]
+	same  func(a, b T) bool
+	curr  *runsInnerIterator[T]
 }
 
 func (iter *runsIterator[T]) Next() (Iterator[T], bool) {
@@ -339,7 +339,7 @@ func (iter *runsIterator[T]) Next() (Iterator[T], bool) {
 
 type runsInnerIterator[T any] struct {
 	parent *runsIterator[T]
-	prev T
+	prev   T
 }
 
 func (iter *runsInnerIterator[T]) Next() (T, bool) {
@@ -363,7 +363,19 @@ func (iter *runsInnerIterator[T]) Next() (T, bool) {
 func Runs[T any](iter Iterator[T], same func(a, b T) bool) Iterator[Iterator[T]] {
 	return &runsIterator[T]{
 		inner: WithPeek(iter),
-		same: same,
-		curr: nil,
+		same:  same,
+		curr:  nil,
+	}
+}
+
+// Reduce reduces iter to a single value using the reduction function reduce.
+func Reduce[T any, U any](iter Iterator[T], start U, reduce func(u U, t T) U) U {
+	acc := start
+	for {
+		item, ok := iter.Next()
+		if !ok {
+			return acc
+		}
+		acc = reduce(acc, item)
 	}
 }
