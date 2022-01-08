@@ -247,3 +247,16 @@ func ExampleMap() {
 	// Output:
 	// [0.5 1 1.5]
 }
+
+func ExampleRuns() {
+	x := []int{2, 4, 0, 7, 1, 3, 9, 2, 8}
+
+	parityRuns := slices.Runs(x, func(a, b int) bool {
+		return a%2 == b%2
+	})
+
+	fmt.Println(parityRuns)
+
+	// Output:
+	// [[2 4 0] [7 1 3 9] [2 8]]
+}

@@ -275,3 +275,95 @@ func (iter *countIterator) Next() (int, bool) {
 func Count(n int) Iterator[int] {
 	return &countIterator{i: 0, n: n}
 }
+
+// Peekable allows viewing the next item from an iterator without consuming it.
+type Peekable[T any] interface{
+	Iterator[T]
+	// Peek returns the next item of the iterator if there is one without consuming it.
+	//
+	// If Peek returns a value, the next call to Next will return the same value.
+	Peek() (T, bool)
+}
+
+type peekable[T any] struct {
+	inner Iterator[T]
+	curr T
+	has bool
+}
+
+func (iter *peekable[T]) Next() (T, bool) {
+	if iter.has {
+		item := iter.curr
+		iter.has = false
+		var zero T
+		iter.curr = zero
+		return item, true
+	}
+	return iter.inner.Next()
+}
+func (iter *peekable[T]) Peek() (T, bool) {
+	if !iter.has {
+		iter.curr, iter.has = iter.inner.Next()
+	}
+	return iter.curr, iter.has
+}
+
+// WithPeek returns iter with a Peek() method attached.
+func WithPeek[T any](iter Iterator[T]) Peekable[T] {
+	return &peekable[T]{inner: iter, has:false}
+}
+
+type runsIterator[T any] struct {
+	inner Peekable[T]
+	same func(a, b T) bool
+	curr *runsInnerIterator[T]
+}
+
+func (iter *runsIterator[T]) Next() (Iterator[T], bool) {
+	if iter.curr != nil {
+		for {
+			_, ok := iter.curr.Next()
+			if !ok {
+				break
+			}
+		}
+		iter.curr = nil
+	}
+	item, ok := iter.inner.Peek()
+	if !ok {
+		return nil, false
+	}
+	iter.curr = &runsInnerIterator[T]{parent: iter, prev: item}
+	return iter.curr, true
+}
+
+type runsInnerIterator[T any] struct {
+	parent *runsIterator[T]
+	prev T
+}
+
+func (iter *runsInnerIterator[T]) Next() (T, bool) {
+	var zero T
+	if iter.parent == nil {
+		return zero, false
+	}
+	item, ok := iter.parent.inner.Peek()
+	if !ok || !iter.parent.same(iter.prev, item) {
+		iter.parent = nil
+		return zero, false
+	}
+	return iter.parent.inner.Next()
+}
+
+// Runs returns an iterator of iterators. The inner iterators yield contiguous elements from iter
+// such that same(a, b) returns true.
+//
+// same(a, a) must return true. If same(a, b) and same(b, c) both return true, then same(a, c) must
+// also.
+func Runs[T any](iter Iterator[T], same func(a, b T) bool) Iterator[Iterator[T]] {
+	return &runsIterator[T]{
+		inner: WithPeek(iter),
+		same: same,
+		curr: nil,
+	}
+}

@@ -83,3 +83,15 @@ func ExampleFilter() {
 	// Output:
 	// [2 4 6]
 }
+
+func ExampleRuns() {
+	iter := iterator.Slice([]int{2, 4, 0, 7, 1, 3, 9, 2, 8})
+
+	parityRuns := iterator.Runs(iter, func(a, b int) bool {
+		return a%2 == b%2
+	})
+	fmt.Println(iterator.Collect(iterator.Map(parityRuns, iterator.Collect[int])))
+
+	// Output:
+	// [[2 4 0] [7 1 3 9] [2 8]]
+}

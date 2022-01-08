@@ -234,3 +234,27 @@ func Map[T any, U any](x []T, f func(T) U) []U {
 	}
 	return out
 }
+
+// Runs returns a slice of slices. The inner slices are contiguous runs of elements from x such
+// that same(a, b) returns true.
+//
+// same(a, a) must return true. If same(a, b) and same(b, c) both return true, then same(a, c) must
+// also.
+func Runs[T any](x []T, same func(a, b T) bool) [][]T {
+	var runs [][]T
+	start := 0
+	end := 0
+	for i := 1; i < len(x); i++ {
+		if same(x[i-1], x[i]) {
+			end = i+1
+		} else {
+			runs = append(runs, x[start:end])
+			start = i
+			end = i+1
+		}
+	}
+	if end > 0 {
+		runs = append(runs, x[start:])
+	}
+	return runs
+}
