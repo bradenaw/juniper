@@ -101,7 +101,9 @@ Cons:
   However, because `K` is inferrable from `O`, `[O, V, K]` would give us the proper shorthand. This
   allows `tree.NewMap[xsort.NaturalOrder[int], string]`, but `V` and `K` appearing in that order in
   the type parameter list is uncomfortable.
-
+- Because ordering follows the types around, there are more hoops to jump through when order is
+  irrelevant. For example, it is possible to do union or intersection of ordered sets without
+  care for the order of any.
 
 ### Option C: Ordered interface
 ```

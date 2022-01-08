@@ -31,7 +31,7 @@ func (s Set[O, T]) Add(item T) {
 	s.t.Put(item, struct{}{})
 }
 
-// Delete removes item from the set if it is present, and does nothing otherwise.
+// Remove removes item from the set if it is present, and does nothing otherwise.
 func (s Set[O, T]) Remove(item T) {
 	s.t.Delete(item)
 }
