@@ -11,7 +11,7 @@ import (
 )
 
 func ExampleIterator() {
-	iter := iterator.Count(5)
+	iter := iterator.Counter(5)
 
 	for {
 		item, ok := iter.Next()

@@ -241,12 +241,12 @@ func Chan[T any](c <-chan T) Iterator[T] {
 	return &chanIterator[T]{c: c}
 }
 
-type countIterator struct {
+type counterIterator struct {
 	i int
 	n int
 }
 
-func (iter *countIterator) Next() (int, bool) {
+func (iter *counterIterator) Next() (int, bool) {
 	if iter.i >= iter.n {
 		return 0, false
 	}
@@ -255,7 +255,7 @@ func (iter *countIterator) Next() (int, bool) {
 	return item, true
 }
 
-// Count returns an iterator that counts up from 0, yielding n items.
+// Counter returns an iterator that counts up from 0, yielding n items.
 //
 // The following are equivalent:
 //
@@ -264,7 +264,7 @@ func (iter *countIterator) Next() (int, bool) {
 //   }
 //
 //
-//   iter := iterator.Count(n)
+//   iter := iterator.Counter(n)
 //   for {
 //     item, ok := iter.Next()
 //     if !ok {
@@ -272,8 +272,8 @@ func (iter *countIterator) Next() (int, bool) {
 //     }
 //     fmt.Println(item)
 //   }
-func Count(n int) Iterator[int] {
-	return &countIterator{i: 0, n: n}
+func Counter(n int) Iterator[int] {
+	return &counterIterator{i: 0, n: n}
 }
 
 // Peekable allows viewing the next item from an iterator without consuming it.

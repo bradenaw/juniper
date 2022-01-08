@@ -99,9 +99,14 @@ func Equal[T comparable](a, b []T) bool {
 
 // Count returns the number of times item appears in a.
 func Count[T comparable](a []T, item T) int {
+	return CountFunc(a, func(x T) bool { return item == x })
+}
+
+// Count returns the number of items in a for which f returns true.
+func CountFunc[T any](a []T, f func(T) bool) int {
 	n := 0
-	for i := range a {
-		if a[i] == item {
+	for _, x := range a {
+		if f(x) {
 			n++
 		}
 	}

@@ -133,7 +133,7 @@ func BenchmarkBuiltinMapGet(b *testing.B) {
 func BenchmarkTreeMapPut(b *testing.B) {
 	for _, size := range sizes {
 		m := NewMap[int, int](xsort.OrderedLess[int])
-		keys := iterator.Collect(iterator.Count(size))
+		keys := iterator.Collect(iterator.Counter(size))
 		xrand.Shuffle(keys)
 
 		b.Run(fmt.Sprintf("Size=%d", size), func(b *testing.B) {
@@ -151,7 +151,7 @@ func BenchmarkTreeMapPut(b *testing.B) {
 func BenchmarkBuiltinMapPut(b *testing.B) {
 	for _, size := range sizes {
 		m := make(map[int]int)
-		keys := iterator.Collect(iterator.Count(size))
+		keys := iterator.Collect(iterator.Counter(size))
 		xrand.Shuffle(keys)
 
 		b.Run(fmt.Sprintf("Size=%d", size), func(b *testing.B) {
@@ -169,7 +169,7 @@ func BenchmarkBuiltinMapPut(b *testing.B) {
 func BenchmarkTreeMapPutAlreadyPresent(b *testing.B) {
 	for _, size := range sizes {
 		m := NewMap[int, int](xsort.OrderedLess[int])
-		keys := iterator.Collect(iterator.Count(size))
+		keys := iterator.Collect(iterator.Counter(size))
 		xrand.Shuffle(keys)
 		for _, k := range keys {
 			m.Put(k, 0)
@@ -186,7 +186,7 @@ func BenchmarkTreeMapPutAlreadyPresent(b *testing.B) {
 func BenchmarkBuiltinMapPutAlreadyPresent(b *testing.B) {
 	for _, size := range sizes {
 		m := make(map[int]int)
-		keys := iterator.Collect(iterator.Count(size))
+		keys := iterator.Collect(iterator.Counter(size))
 		xrand.Shuffle(keys)
 		for _, k := range keys {
 			m[k] = 0
@@ -203,7 +203,7 @@ func BenchmarkBuiltinMapPutAlreadyPresent(b *testing.B) {
 func BenchmarkTreeMapIterate(b *testing.B) {
 	for _, size := range sizes {
 		m := NewMap[int, int](xsort.OrderedLess[int])
-		keys := iterator.Collect(iterator.Count(size))
+		keys := iterator.Collect(iterator.Counter(size))
 		xrand.Shuffle(keys)
 		for i, k := range keys {
 			m.Put(k, i)
@@ -226,7 +226,7 @@ func BenchmarkTreeMapIterate(b *testing.B) {
 func BenchmarkBuiltinMapIterate(b *testing.B) {
 	for _, size := range sizes {
 		m := make(map[int]int)
-		keys := iterator.Collect(iterator.Count(size))
+		keys := iterator.Collect(iterator.Counter(size))
 		xrand.Shuffle(keys)
 		for i, k := range keys {
 			m[k] = i
@@ -243,7 +243,7 @@ func BenchmarkBuiltinMapIterate(b *testing.B) {
 
 func BenchmarkTreeMapBuild(b *testing.B) {
 	for _, size := range sizes {
-		keys := iterator.Collect(iterator.Count(size))
+		keys := iterator.Collect(iterator.Counter(size))
 
 		b.Run(fmt.Sprintf("Size=%d", size), func(b *testing.B) {
 			b.ReportAllocs()
@@ -263,7 +263,7 @@ func BenchmarkTreeMapBuild(b *testing.B) {
 
 func BenchmarkBuiltinMapBuild(b *testing.B) {
 	for _, size := range sizes {
-		keys := iterator.Collect(iterator.Count(size))
+		keys := iterator.Collect(iterator.Counter(size))
 
 		b.Run(fmt.Sprintf("Size=%d", size), func(b *testing.B) {
 			b.ReportAllocs()
