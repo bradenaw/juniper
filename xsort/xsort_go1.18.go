@@ -17,7 +17,7 @@ import (
 // Only the zero-value of Orderings are used. Thus Orderings usually have an underlying type of
 // struct{}.
 type Ordering[T any] interface {
-	// Less returns true if a is less than b. Must follow the same rules as sort.Interface.Less.
+	// Returns true if a is less than b. Must follow the same rules as sort.Interface.Less.
 	Less(a, b T) bool
 }
 
@@ -46,7 +46,7 @@ func LessOrEqual[O Ordering[T], T any](a T, b T) bool {
 	return !ordering.Less(b, a)
 }
 
-// GreaterOrEqual returns true if a >= b according to O.
+// LessOrEqual returns true if a >= b according to O.
 func GreaterOrEqual[O Ordering[T], T any](a T, b T) bool {
 	var ordering O
 	// a >= b
@@ -68,41 +68,6 @@ func (Reverse[O, T]) Less(a, b T) bool {
 	return ordering.Less(b, a)
 }
 
-// Less returns true if a is less than b. Must follow the same rules as sort.Interface.Less.
-type Less[T any] func(a, b T) bool
-
-// ReverseFunc returns a Less that orders elements in the opposite order as the provided less.
-func ReverseFunc[T any](less Less[T]) Less[T] {
-	return func(a, b T) bool {
-		return less(b, a)
-	}
-}
-
-// GreaterFunc returns true if a > b according to less.
-func GreaterFunc[T any](less Less[T], a T, b T) bool {
-	return less(b, a)
-}
-
-// LessOrEqualFunc returns true if a <= b according to less.
-func LessOrEqualFunc[T any](less Less[T], a T, b T) bool {
-	// a <= b
-	// !(a > b)
-	// !(b < a)
-	return !less(b, a)
-}
-
-// GreaterOrEqualFunc returns true if a >= b according to less.
-func GreaterOrEqualFunc[T any](less Less[T], a T, b T) bool {
-	// a >= b
-	// !(a < b)
-	return !less(a, b)
-}
-
-// EqualFunc returns true if a == b according to less.
-func EqualFunc[T any](less Less[T], a T, b T) bool {
-	return !less(a, b) && !less(b, a)
-}
-
 // Slice sorts x in-place using the ordering O.
 //
 // Follows the same rules as sort.Slice.
@@ -110,15 +75,6 @@ func Slice[O Ordering[T], T any](x []T) {
 	var ordering O
 	sort.Slice(x, func(i, j int) bool {
 		return ordering.Less(x[i], x[j])
-	})
-}
-
-// SliceFunc sorts x in-place using the given less function.
-//
-// Follows the same rules as sort.Slice.
-func SliceFunc[T any](x []T, less Less[T]) {
-	sort.Slice(x, func(i, j int) bool {
-		return less(x[i], x[j])
 	})
 }
 
@@ -132,15 +88,6 @@ func SliceStable[O Ordering[T], T any](x []T) {
 	})
 }
 
-// SliceStableFunc stably sorts x in-place using the given less function.
-//
-// Follows the same rules as sort.SliceStable.
-func SliceStableFunc[T any](x []T, less Less[T]) {
-	sort.SliceStable(x, func(i, j int) bool {
-		return less(x[i], x[j])
-	})
-}
-
 // SliceIsSorted returns true if x is in sorted order according to O.
 //
 // Follows the same rules as sort.SliceIsSorted.
@@ -151,28 +98,12 @@ func SliceIsSorted[O Ordering[T], T any](x []T) bool {
 	})
 }
 
-// SliceIsSortedFunc returns true if x is in sorted order according to less.
-//
-// Follows the same rules as sort.SliceIsSorted.
-func SliceIsSortedFunc[T any](x []T, less Less[T]) {
-	sort.SliceStable(x, func(i, j int) bool {
-		return less(x[i], x[j])
-	})
-}
-
 // Search searches for item in x, assumed sorted according to O, and returns the index. The return
-// value is the index to insert item at if it is not present (it could be len(x)).
+// value is the index to insert item at if it is not present (it could be len(a)).
 func Search[O Ordering[T], T any](x []T, item T) int {
+	var ordering O
 	return sort.Search(len(x), func(i int) bool {
-		return LessOrEqual[O](item, x[i])
-	})
-}
-
-// SearchFunc searches for item in x, assumed sorted according to less, and returns the index. The
-// return value is the index to insert item at if it is not present (it could be len(x)).
-func SearchFunc[T any](x []T, item T, less Less[T]) int {
-	return sort.Search(len(x), func(i int) bool {
-		return less(item, x[i]) || !less(x[i], item)
+		return ordering.Less(item, x[i]) || !ordering.Less(x[i], item)
 	})
 }
 
