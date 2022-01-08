@@ -17,14 +17,15 @@ func TestMergeSlices(t *testing.T) {
 	check := func(in ...[]int) {
 		var all []int
 		for i := range in {
-			require.True(t, xsort.SliceIsSorted[int, xsort.NaturalOrder[int]](in[i]))
+			require.True(t, xsort.SliceIsSorted(in[i], xsort.OrderedLess[int]))
 			all = append(all, in[i]...)
 		}
-		merged := xsort.MergeSlices[int, xsort.NaturalOrder[int]](
+		merged := xsort.MergeSlices(
+			xsort.OrderedLess[int],
 			nil,
 			in...,
 		)
-		require.True(t, xsort.SliceIsSorted[int, xsort.NaturalOrder[int]](merged))
+		require.True(t, xsort.SliceIsSorted(merged, xsort.OrderedLess[int]))
 		require.ElementsMatch(t, all, merged)
 	}
 
@@ -60,13 +61,14 @@ func FuzzMerge(f *testing.F) {
 			bs[j] = append(bs[j], b[i])
 		}
 		for i := range bs {
-			xsort.Slice[byte, xsort.NaturalOrder[byte]](bs[i])
+			xsort.Slice(bs[i], xsort.OrderedLess[byte])
 		}
 
 		expected := append([]byte{}, b...)
-		xsort.Slice[byte, xsort.NaturalOrder[byte]](expected)
+		xsort.Slice(expected, xsort.OrderedLess[byte])
 
-		merged := xsort.Merge[byte, xsort.NaturalOrder[byte]](
+		merged := xsort.Merge(
+			xsort.OrderedLess[byte],
 			iterator.Collect(
 				iterator.Map(
 					iterator.Slice(bs),
@@ -82,21 +84,12 @@ func FuzzMerge(f *testing.F) {
 func ExampleSearch() {
 	x := []string{"a", "f", "h", "i", "p", "z"}
 
-	fmt.Println(xsort.Search[string, xsort.NaturalOrder[string]](x, "h"))
-	fmt.Println(xsort.Search[string, xsort.NaturalOrder[string]](x, "k"))
+	fmt.Println(xsort.Search(x, xsort.OrderedLess[string], "h"))
+	fmt.Println(xsort.Search(x, xsort.OrderedLess[string], "k"))
 
 	// Output:
 	// 2
 	// 4
-}
-
-func ExampleSlice() {
-	x := []int{3, 5, 1, 4, 2}
-	xsort.Slice[int, xsort.NaturalOrder[int]](x)
-	fmt.Println(x)
-
-	// Output:
-	// [1 2 3 4 5]
 }
 
 func ExampleMerge() {
@@ -104,7 +97,8 @@ func ExampleMerge() {
 	listTwo := []string{"b", "e", "o", "v"}
 	listThree := []string{"s", "z"}
 
-	merged := xsort.Merge[string, xsort.NaturalOrder[string]](
+	merged := xsort.Merge(
+		xsort.OrderedLess[string],
 		iterator.Slice(listOne),
 		iterator.Slice(listTwo),
 		iterator.Slice(listThree),
@@ -121,7 +115,8 @@ func ExampleMergeSlices() {
 	listTwo := []string{"b", "e", "o", "v"}
 	listThree := []string{"s", "z"}
 
-	merged := xsort.MergeSlices[string, xsort.NaturalOrder[string]](
+	merged := xsort.MergeSlices(
+		xsort.OrderedLess[string],
 		nil,
 		listOne,
 		listTwo,

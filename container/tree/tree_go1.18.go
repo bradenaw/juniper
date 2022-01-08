@@ -9,10 +9,10 @@ import (
 )
 
 // tree is an AVL tree: https://en.wikipedia.org/wiki/AVL_tree
-type tree[K any, V any, O xsort.Ordering[K]] struct {
-	root     *node[K, V]
-	size     int
-	ordering O
+type tree[K any, V any] struct {
+	root *node[K, V]
+	less xsort.Less[K]
+	size int
 	// Incremented whenever the tree structure changes, so that iterators know to reset.
 	gen int
 }
@@ -29,15 +29,16 @@ type node[K any, V any] struct {
 	value V
 }
 
-func newTree[K any, V any, O xsort.Ordering[K]]() *tree[K, V, O] {
-	return &tree[K, V, O]{
+func newTree[K any, V any](less xsort.Less[K]) *tree[K, V] {
+	return &tree[K, V]{
 		root: nil,
+		less: less,
 		size: 0,
 		gen:  1,
 	}
 }
 
-func (t *tree[K, V, O]) Put(k K, v V) {
+func (t *tree[K, V]) Put(k K, v V) {
 	if t.root == nil {
 		t.root = &node[K, V]{
 			key:   k,
@@ -50,7 +51,7 @@ func (t *tree[K, V, O]) Put(k K, v V) {
 
 	curr := t.root
 	for {
-		if t.ordering.Less(k, curr.key) {
+		if t.less(k, curr.key) {
 			if curr.left == nil {
 				curr.left = &node[K, V]{
 					parent: curr,
@@ -61,7 +62,7 @@ func (t *tree[K, V, O]) Put(k K, v V) {
 				break
 			}
 			curr = curr.left
-		} else if t.ordering.Less(curr.key, k) {
+		} else if t.less(curr.key, k) {
 			if curr.right == nil {
 				curr.right = &node[K, V]{
 					parent: curr,
@@ -91,7 +92,7 @@ func (t *tree[K, V, O]) Put(k K, v V) {
 	t.gen++
 }
 
-func (t *tree[K, V, O]) Delete(k K) {
+func (t *tree[K, V]) Delete(k K) {
 	in := &t.root
 	var last *node[K, V]
 	for {
@@ -100,9 +101,9 @@ func (t *tree[K, V, O]) Delete(k K) {
 			return
 		}
 		curr := *in
-		if t.ordering.Less(k, curr.key) {
+		if t.less(k, curr.key) {
 			in = &curr.left
-		} else if t.ordering.Less(curr.key, k) {
+		} else if t.less(curr.key, k) {
 			in = &curr.right
 		} else {
 			// curr contains k
@@ -152,7 +153,7 @@ func (t *tree[K, V, O]) Delete(k K) {
 	t.gen++
 }
 
-func (t *tree[K, V, O]) removeLeftmost(
+func (t *tree[K, V]) removeLeftmost(
 	parent *node[K, V],
 	in **node[K, V],
 ) *node[K, V] {
@@ -184,12 +185,12 @@ func (t *tree[K, V, O]) removeLeftmost(
 	return leftmost
 }
 
-func (t *tree[K, V, O]) Get(k K) V {
+func (t *tree[K, V]) Get(k K) V {
 	curr := t.root
 	for curr != nil {
-		if t.ordering.Less(k, curr.key) {
+		if t.less(k, curr.key) {
 			curr = curr.left
-		} else if t.ordering.Less(curr.key, k) {
+		} else if t.less(curr.key, k) {
 			curr = curr.right
 		} else {
 			return curr.value
@@ -199,12 +200,12 @@ func (t *tree[K, V, O]) Get(k K) V {
 	return zero
 }
 
-func (t *tree[K, V, O]) Contains(k K) bool {
+func (t *tree[K, V]) Contains(k K) bool {
 	curr := t.root
 	for curr != nil {
-		if t.ordering.Less(k, curr.key) {
+		if t.less(k, curr.key) {
 			curr = curr.left
-		} else if t.ordering.Less(curr.key, k) {
+		} else if t.less(curr.key, k) {
 			curr = curr.right
 		} else {
 			return true
@@ -213,7 +214,7 @@ func (t *tree[K, V, O]) Contains(k K) bool {
 	return false
 }
 
-func (t *tree[K, V, O]) First() (K, V) {
+func (t *tree[K, V]) First() (K, V) {
 	curr := t.root
 	for curr != nil {
 		if curr.left == nil {
@@ -226,7 +227,7 @@ func (t *tree[K, V, O]) First() (K, V) {
 	return zeroK, zeroV
 }
 
-func (t *tree[K, V, O]) Last() (K, V) {
+func (t *tree[K, V]) Last() (K, V) {
 	curr := t.root
 	for curr != nil {
 		if curr.right == nil {
@@ -239,7 +240,7 @@ func (t *tree[K, V, O]) Last() (K, V) {
 	return zeroK, zeroV
 }
 
-func (t *tree[K, V, O]) rebalance(curr *node[K, V]) *node[K, V] {
+func (t *tree[K, V]) rebalance(curr *node[K, V]) *node[K, V] {
 	imbalance := t.imbalance(curr)
 	newSubtreeRoot := curr
 	if imbalance > 1 {
@@ -267,7 +268,7 @@ func (t *tree[K, V, O]) rebalance(curr *node[K, V]) *node[K, V] {
 //   a         d        ╶──>         b           e
 //          ┌──┴──┐               ┌──┴──┐
 //          c     e               a     c
-func (t *tree[K, V, O]) rotateLeft(b *node[K, V]) *node[K, V] {
+func (t *tree[K, V]) rotateLeft(b *node[K, V]) *node[K, V] {
 	parent := b.parent
 	d := b.right
 	c := d.left
@@ -302,7 +303,7 @@ func (t *tree[K, V, O]) rotateLeft(b *node[K, V]) *node[K, V] {
 //      b           e      ╶──>      a         d
 //   ┌──┴──┐                                ┌──┴──┐
 //   a     c                                c     e
-func (t *tree[K, V, O]) rotateRight(d *node[K, V]) *node[K, V] {
+func (t *tree[K, V]) rotateRight(d *node[K, V]) *node[K, V] {
 	parent := d.parent
 	b := d.left
 	c := b.right
@@ -331,7 +332,7 @@ func (t *tree[K, V, O]) rotateRight(d *node[K, V]) *node[K, V] {
 }
 
 // The height of x's left node, or -1 if no child.
-func (t *tree[K, V, O]) leftHeight(x *node[K, V]) int {
+func (t *tree[K, V]) leftHeight(x *node[K, V]) int {
 	if x.left != nil {
 		return x.left.height
 	}
@@ -339,7 +340,7 @@ func (t *tree[K, V, O]) leftHeight(x *node[K, V]) int {
 }
 
 // The height of x's right node, or -1 if no child.
-func (t *tree[K, V, O]) rightHeight(x *node[K, V]) int {
+func (t *tree[K, V]) rightHeight(x *node[K, V]) int {
 	if x.right != nil {
 		return x.right.height
 	}
@@ -350,30 +351,30 @@ func (t *tree[K, V, O]) rightHeight(x *node[K, V]) int {
 // 0 means perfectly balanced.
 // >0 means the left tree is higher.
 // <0 means the right tree is higher.
-func (t *tree[K, V, O]) imbalance(x *node[K, V]) int {
+func (t *tree[K, V]) imbalance(x *node[K, V]) int {
 	return t.leftHeight(x) - t.rightHeight(x)
 }
 
-func (t *tree[K, V, O]) setHeight(x *node[K, V]) {
+func (t *tree[K, V]) setHeight(x *node[K, V]) {
 	x.height = xmath.Max(t.leftHeight(x), t.rightHeight(x)) + 1
 }
 
-type cursor[K any, V any, O xsort.Ordering[K]] struct {
-	t *tree[K, V, O]
+type cursor[K any, V any] struct {
+	t *tree[K, V]
 	// Should be manipulated via reset(), up(), left(), and right().
 	curr *node[K, V]
 	gen  int
 }
 
-func (c *cursor[K, V, O]) clone() cursor[K, V, O] {
-	return cursor[K, V, O]{
+func (c *cursor[K, V]) clone() cursor[K, V] {
+	return cursor[K, V]{
 		t:    c.t,
 		curr: c.curr,
 		gen:  c.gen,
 	}
 }
 
-func (c *cursor[K, V, O]) Next() {
+func (c *cursor[K, V]) Next() {
 	if !c.Ok() {
 		return
 	}
@@ -390,12 +391,12 @@ func (c *cursor[K, V, O]) Next() {
 	} else {
 		prev := c.curr
 		c.up()
-		for c.curr != nil && c.t.ordering.Less(c.curr.key, prev.key) {
+		for c.curr != nil && c.t.less(c.curr.key, prev.key) {
 			c.up()
 		}
 	}
 }
-func (c *cursor[K, V, O]) Prev() {
+func (c *cursor[K, V]) Prev() {
 	if !c.Ok() {
 		return
 	}
@@ -411,32 +412,32 @@ func (c *cursor[K, V, O]) Prev() {
 	} else {
 		prev := c.curr
 		c.up()
-		for c.curr != nil && c.t.ordering.Less(prev.key, c.curr.key) {
+		for c.curr != nil && c.t.less(prev.key, c.curr.key) {
 			c.up()
 		}
 	}
 }
 
-func (c *cursor[K, V, O]) Ok() bool {
+func (c *cursor[K, V]) Ok() bool {
 	return c.curr != nil
 }
 
-func (c *cursor[K, V, O]) Key() K {
+func (c *cursor[K, V]) Key() K {
 	return c.curr.key
 }
 
-func (c *cursor[K, V, O]) Value() V {
+func (c *cursor[K, V]) Value() V {
 	return c.curr.value
 }
 
-func (c *cursor[K, V, O]) seek(k K) bool {
+func (c *cursor[K, V]) seek(k K) bool {
 	if !c.reset() {
 		return false
 	}
 	for {
-		if c.curr.left != nil && c.t.ordering.Less(k, c.curr.key) {
+		if c.curr.left != nil && c.t.less(k, c.curr.key) {
 			c.left()
-		} else if c.curr.right != nil && c.t.ordering.Less(c.curr.key, k) {
+		} else if c.curr.right != nil && c.t.less(c.curr.key, k) {
 			c.right()
 		} else {
 			break
@@ -446,7 +447,7 @@ func (c *cursor[K, V, O]) seek(k K) bool {
 	return true
 }
 
-func (c *cursor[K, V, O]) SeekFirst() {
+func (c *cursor[K, V]) SeekFirst() {
 	if !c.reset() {
 		return
 	}
@@ -456,7 +457,7 @@ func (c *cursor[K, V, O]) SeekFirst() {
 	c.gen = c.t.gen
 }
 
-func (c *cursor[K, V, O]) SeekLast() {
+func (c *cursor[K, V]) SeekLast() {
 	if !c.reset() {
 		return
 	}
@@ -466,47 +467,47 @@ func (c *cursor[K, V, O]) SeekLast() {
 	c.gen = c.t.gen
 }
 
-func (c *cursor[K, V, O]) SeekLastLess(k K) {
+func (c *cursor[K, V]) SeekLastLess(k K) {
 	if !c.seek(k) {
 		return
 	}
-	if xsort.LessOrEqual[K, O](k, c.curr.key) {
+	if xsort.LessOrEqual(c.t.less, k, c.curr.key) {
 		c.Prev()
 	}
 }
 
-func (c *cursor[K, V, O]) SeekLastLessOrEqual(k K) {
+func (c *cursor[K, V]) SeekLastLessOrEqual(k K) {
 	if !c.seek(k) {
 		return
 	}
-	if c.t.ordering.Less(k, c.curr.key) {
+	if c.t.less(k, c.curr.key) {
 		c.Prev()
 	}
 }
 
-func (c *cursor[K, V, O]) SeekFirstGreaterOrEqual(k K) {
+func (c *cursor[K, V]) SeekFirstGreaterOrEqual(k K) {
 	if !c.seek(k) {
 		return
 	}
-	if xsort.Greater[K, O](k, c.curr.key) {
+	if xsort.Greater(c.t.less, k, c.curr.key) {
 		c.Next()
 	}
 }
 
-func (c *cursor[K, V, O]) SeekFirstGreater(k K) {
+func (c *cursor[K, V]) SeekFirstGreater(k K) {
 	if !c.seek(k) {
 		return
 	}
-	if xsort.GreaterOrEqual[K, O](k, c.curr.key) {
+	if xsort.GreaterOrEqual(c.t.less, k, c.curr.key) {
 		c.Next()
 	}
 }
 
-type forwardIterator[K any, V any, O xsort.Ordering[K]] struct {
-	c cursor[K, V, O]
+type forwardIterator[K any, V any] struct {
+	c cursor[K, V]
 }
 
-func (iter *forwardIterator[K, V, O]) Next() (KVPair[K, V], bool) {
+func (iter *forwardIterator[K, V]) Next() (KVPair[K, V], bool) {
 	if !iter.c.Ok() {
 		var zero KVPair[K, V]
 		return zero, false
@@ -517,19 +518,19 @@ func (iter *forwardIterator[K, V, O]) Next() (KVPair[K, V], bool) {
 	return KVPair[K, V]{k, v}, true
 }
 
-func (c *cursor[K, V, O]) Forward() iterator.Iterator[KVPair[K, V]] {
+func (c *cursor[K, V]) Forward() iterator.Iterator[KVPair[K, V]] {
 	c2 := c.clone()
 	if c2.gen != c2.t.gen && c2.Ok() {
 		c2.SeekFirstGreaterOrEqual(c2.Key())
 	}
-	return &forwardIterator[K, V, O]{c: c2}
+	return &forwardIterator[K, V]{c: c2}
 }
 
-type backwardIterator[K any, V any, O xsort.Ordering[K]] struct {
-	c cursor[K, V, O]
+type backwardIterator[K any, V any] struct {
+	c cursor[K, V]
 }
 
-func (iter *backwardIterator[K, V, O]) Next() (KVPair[K, V], bool) {
+func (iter *backwardIterator[K, V]) Next() (KVPair[K, V], bool) {
 	if !iter.c.Ok() {
 		var zero KVPair[K, V]
 		return zero, false
@@ -540,30 +541,30 @@ func (iter *backwardIterator[K, V, O]) Next() (KVPair[K, V], bool) {
 	return KVPair[K, V]{k, v}, true
 }
 
-func (c *cursor[K, V, O]) Backward() iterator.Iterator[KVPair[K, V]] {
+func (c *cursor[K, V]) Backward() iterator.Iterator[KVPair[K, V]] {
 	c2 := c.clone()
 	if c2.gen != c2.t.gen && c2.Ok() {
 		c2.SeekLastLessOrEqual(c2.Key())
 	}
-	return &backwardIterator[K, V, O]{c: c2}
+	return &backwardIterator[K, V]{c: c2}
 }
 
-func (c *cursor[K, V, O]) reset() bool {
+func (c *cursor[K, V]) reset() bool {
 	c.curr = c.t.root
 	return c.curr != nil
 }
-func (c *cursor[K, V, O]) up() {
+func (c *cursor[K, V]) up() {
 	c.curr = c.curr.parent
 }
-func (c *cursor[K, V, O]) left() {
+func (c *cursor[K, V]) left() {
 	c.curr = c.curr.left
 }
-func (c *cursor[K, V, O]) right() {
+func (c *cursor[K, V]) right() {
 	c.curr = c.curr.right
 }
 
-func (t *tree[K, V, O]) Cursor() cursor[K, V, O] {
-	c := cursor[K, V, O]{t: t}
+func (t *tree[K, V]) Cursor() cursor[K, V] {
+	c := cursor[K, V]{t: t}
 	c.SeekFirst()
 	return c
 }

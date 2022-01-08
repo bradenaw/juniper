@@ -61,22 +61,22 @@ Cons:
 
 ### Option B: Ordering interface
 ```
-type Ordering[T any] interface {
+type Lesser[T any] interface {
     Less(a, b T) bool
 }
 
-type NaturalOrder[T constraints.Ordered] struct{}
+type OrderedLesser[T constraints.Ordered] struct{}
 
-func (NaturalOrder[T]) Less(a, b T) bool {
+func (OrderedLesser[T]) Less(a, b T) bool {
 	return a < b
 }
 
-func SortSlice[T any, L Ordering[T]](a []T) {
+func SortSlice[T any, L Lesser[T]](a []T) {
     // ...
 }
 
 a := []int{5, 3, 4}
-SortSlice[int, NaturalOrder[int]](a)
+SortSlice[int, OrderedLesser[int]](a)
 ```
 
 Pros:
