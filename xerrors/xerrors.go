@@ -45,6 +45,9 @@ func (err withStack) Unwrap() error {
 // WithStack returns an error that wraps err and adds the call stack of the call to WithStack to
 // Error().
 func WithStack(err error) error {
+	if err == nil {
+		return nil
+	}
 	var buf [64]uintptr
 	var ptrs []uintptr
 	skip := 2
