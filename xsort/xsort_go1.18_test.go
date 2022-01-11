@@ -128,3 +128,19 @@ func ExampleMergeSlices() {
 	// Output:
 	// [a b e f o p s v x z]
 }
+
+func ExampleMinK() {
+	a := []int{7, 4, 3, 8, 2, 1, 6, 9, 0, 5}
+
+	iter := iterator.Slice(a)
+	min3 := xsort.MinK(xsort.OrderedLess[int], iter, 3)
+	fmt.Println(min3)
+
+	iter = iterator.Slice(a)
+	max3 := xsort.MinK(xsort.Reverse(xsort.OrderedLess[int]), iter, 3)
+	fmt.Println(max3)
+
+	// Output:
+	// [0 1 2]
+	// [9 8 7]
+}

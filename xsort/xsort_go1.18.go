@@ -153,17 +153,34 @@ func MergeSlices[T any](less Less[T], out []T, in ...[]T) []T {
 		n += len(in[i])
 	}
 	out = slices.Grow(out[:0], n)
-	inIters := make([]iterator.Iterator[T], len(in))
-	for i := range in {
-		inIters[i] = iterator.Slice(in[i])
-	}
-	iter := Merge(less, inIters...)
+	iter := Merge(less, slices.Map(in, iterator.Slice[T])...)
 	for {
 		item, ok := iter.Next()
 		if !ok {
 			break
 		}
 		out = append(out, item)
+	}
+	return out
+}
+
+// MinK returns the k minimum items according to less from iter in sorted order. If iter yields
+// fewer than k items, MinK returns all of them.
+func MinK[T any](less Less[T], iter iterator.Iterator[T], k int) []T {
+	h := heap.New[T](heap.Less[T](Reverse(less)), func(a T, i int) {}, nil)
+	for {
+		item, ok := iter.Next()
+		if !ok {
+			break
+		}
+		h.Push(item)
+		if h.Len() > k {
+			h.Pop()
+		}
+	}
+	out := make([]T, h.Len())
+	for i := len(out) - 1; i >= 0; i-- {
+		out[i] = h.Pop()
 	}
 	return out
 }
