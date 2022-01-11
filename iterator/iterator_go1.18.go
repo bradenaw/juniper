@@ -133,15 +133,9 @@ func (iter *peekable[T]) Peek() (T, bool) {
 
 // Collect advances iter to the end and returns all of the items seen as a slice.
 func Collect[T any](iter Iterator[T]) []T {
-	var out []T
-	for {
-		item, ok := iter.Next()
-		if !ok {
-			break
-		}
-		out = append(out, item)
-	}
-	return out
+	return Reduce(iter, nil, func(out []T, item T) []T {
+		return append(out, item)
+	})
 }
 
 // Equal returns true if the given iterators yield the same items in the same order. Consumes the

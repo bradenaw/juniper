@@ -205,6 +205,29 @@ func Collect[T any](ctx context.Context, s Stream[T]) ([]T, error) {
 	return out, nil
 }
 
+// Reduce reduces s to a single value using the reduction function f.
+func Reduce[T any, U any](
+	ctx context.Context,
+	s Stream[T],
+	initial U,
+	f func(U, T) (U, error),
+) (U, error) {
+	acc := initial
+	for {
+		item, ok := s.Next(ctx)
+		if !ok {
+			break
+		}
+		var err error
+		acc, err = f(acc, item)
+		if err != nil {
+			var zero U
+			return zero, err
+		}
+	}
+	return acc, s.Close()
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Combinators                                                                                    //
 // Functions that take and return iterators, transforming the output somehow.                     //
