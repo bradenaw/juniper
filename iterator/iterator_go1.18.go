@@ -12,8 +12,9 @@ package iterator
 // returns false.
 type Iterator[T any] interface {
 	// Next advances the iterator and returns the next item. Once the iterator is finished, the
-	// first return is meaningless and the second return is false. The final value of the iterator
-	// will have true in the second return.
+	// first return is meaningless and the second return is false. Note that the final value of the
+	// iterator has true in the second return, and it's the following call that returns false in the
+	// second return.
 	Next() (T, bool)
 }
 

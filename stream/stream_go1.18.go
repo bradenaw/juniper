@@ -6,15 +6,19 @@ package stream
 import (
 	"context"
 	"errors"
+	"sync"
 	"time"
-
-	"golang.org/x/sync/errgroup"
 
 	"github.com/bradenaw/juniper/iterator"
 )
 
-// Returned from Sender.Send() when the associated stream has already been closed.
-var ErrClosedPipe = errors.New("closed pipe")
+var (
+	// ErrClosedPipe is returned from Sender.Send() when the associated stream has already been
+	// closed.
+	ErrClosedPipe = errors.New("closed pipe")
+	// End is returned from Stream.Next when iteration ends successfully.
+	End = errors.New("end of stream")
+)
 
 // Stream is used to iterate over a sequence of values. It is similar to Iterator, except intended
 // for use when iteration may fail for some reason, usually because the sequence requires I/O to
@@ -26,17 +30,12 @@ var ErrClosedPipe = errors.New("closed pipe")
 // that are passed streams expect to be the sole user of that stream going forward, and so will
 // handle closing on your behalf so long as all streams they return are closed appropriately.
 type Stream[T any] interface {
-	// Next advances the stream and returns the next item. Once the stream is finished, the first
-	// return is meaningless and the second return is false. The final value of the stream will have
-	// true in the second return.
-	//
-	// If an error is encountered during Next(), it should return false immediately and surface the
-	// error from Close().
-	Next(ctx context.Context) (T, bool)
-	// Close ends receiving from the stream and returns any error encountered in the course of Next.
-	//
-	// If Close is called before a false return from Next, it must return nil.
-	Close() error
+	// Next advances the stream and returns the next item. If the stream is already over, Next
+	// returns stream.End in the second return. Note that the final item of the stream has nil in
+	// the second return, and it's the following call that returns stream.End.
+	Next(ctx context.Context) (T, error)
+	// Close ends receiving from the stream. It is invalid to call Next after calling Close.
+	Close()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -54,20 +53,20 @@ type chanStream[T any] struct {
 	err error
 }
 
-func (s *chanStream[T]) Next(ctx context.Context) (T, bool) {
+func (s *chanStream[T]) Next(ctx context.Context) (T, error) {
 	var zero T
 	select {
 	case item, ok := <-s.c:
-		return item, ok
+		if !ok {
+			return zero, End
+		}
+		return item, nil
 	case <-ctx.Done():
-		s.err = ctx.Err()
-		return zero, false
+		return zero, ctx.Err()
 	}
 }
 
-func (s *chanStream[T]) Close() error {
-	return s.err
-}
+func (s *chanStream[T]) Close() {}
 
 // FromIterator returns a Stream that yields the values from iter. This stream ignores the context
 // passed to Next during the call to iter.Next.
@@ -77,21 +76,21 @@ func FromIterator[T any](iter iterator.Iterator[T]) Stream[T] {
 
 type iteratorStream[T any] struct {
 	iter iterator.Iterator[T]
-	err  error
 }
 
-func (s *iteratorStream[T]) Next(ctx context.Context) (T, bool) {
+func (s *iteratorStream[T]) Next(ctx context.Context) (T, error) {
+	var zero T
 	if ctx.Err() != nil {
-		s.err = ctx.Err()
-		var zero T
-		return zero, false
+		return zero, ctx.Err()
 	}
-	return s.iter.Next()
+	item, ok := s.iter.Next()
+	if !ok {
+		return zero, End
+	}
+	return item, nil
 }
 
-func (s *iteratorStream[T]) Close() error {
-	return s.err
-}
+func (s *iteratorStream[T]) Close() {}
 
 // Pipe returns a linked sender and receiver pair. Values sent using sender.Send will be delivered
 // to the given Stream. The Stream will terminate when the sender is closed.
@@ -151,42 +150,26 @@ type pipeStream[T any] struct {
 	c          <-chan T
 	senderDone <-chan error
 	streamDone chan<- struct{}
-	err        error
 }
 
-// sentinel to early-exit from pipeStream.Next.
-var errPipeDone = errors.New("pipe done")
-
-func (s *pipeStream[T]) Next(ctx context.Context) (T, bool) {
+func (s *pipeStream[T]) Next(ctx context.Context) (T, error) {
 	var zero T
-	if s.err != nil {
-		return zero, false
-	}
 	select {
 	case <-ctx.Done():
-		s.err = ctx.Err()
-		return zero, false
+		return zero, ctx.Err()
 	case item, ok := <-s.c:
 		if !ok {
-			s.err = errPipeDone
-			return zero, false
+			err := <-s.senderDone
+			if err != nil {
+				return zero, err
+			}
+			return zero, End
 		}
-		return item, true
+		return item, nil
 	}
 }
 
-func (s *pipeStream[T]) Close() error {
-	close(s.streamDone)
-	select {
-	case err := <-s.senderDone:
-		return err
-	default:
-		if s.err == errPipeDone {
-			return nil
-		}
-		return s.err
-	}
-}
+func (s *pipeStream[T]) Close() { close(s.streamDone) }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Reducers                                                                                       //
@@ -195,19 +178,18 @@ func (s *pipeStream[T]) Close() error {
 
 // Collect advances s to the end and returns all of the items seen as a slice.
 func Collect[T any](ctx context.Context, s Stream[T]) ([]T, error) {
+	defer s.Close()
+
 	var out []T
 	for {
-		item, ok := s.Next(ctx)
-		if !ok {
-			break
+		item, err := s.Next(ctx)
+		if err == End {
+			return out, nil
+		} else if err != nil {
+			return nil, err
 		}
 		out = append(out, item)
 	}
-	err := s.Close()
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 // Reduce reduces s to a single value using the reduction function f.
@@ -217,20 +199,21 @@ func Reduce[T any, U any](
 	initial U,
 	f func(U, T) (U, error),
 ) (U, error) {
+	defer s.Close()
+
 	acc := initial
 	for {
-		item, ok := s.Next(ctx)
-		if !ok {
-			break
+		item, err := s.Next(ctx)
+		if err == End {
+			return acc, nil
+		} else if err != nil {
+			return acc, err
 		}
-		var err error
 		acc, err = f(acc, item)
 		if err != nil {
-			var zero U
-			return zero, err
+			return acc, err
 		}
 	}
-	return acc, s.Close()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -252,29 +235,35 @@ func Batch[T any](s Stream[T], batchSize int, maxWait time.Duration) Stream[[]T]
 
 	c := make(chan T)
 
-	out.eg.Go(func() error {
+	out.wg.Add(2)
+
+	go func() {
+		defer out.wg.Done()
+		defer s.Close()
+		defer close(c)
+
 		for {
-			item, ok := s.Next(bgCtx)
-			if !ok {
+			item, err := s.Next(bgCtx)
+			if err == End {
 				break
+			} else if err == context.Canceled && bgCtx.Err() == context.Canceled {
+				break
+			} else if err != nil {
+				out.err = err
+				return
 			}
 			c <- item
 		}
-		err := s.Close()
-		close(c)
-		if err == context.Canceled && bgCtx.Err() == context.Canceled {
-			// Implies the caller Close()d without finishing. That's not meant to be an error.
-			return nil
-		}
-		return err
-	})
+	}()
 
 	// Build up batches and flush them when either:
 	// A) The batch is full.
 	// B) It's been at least maxWait since the first item arrived _and_ there is somebody waiting.
 	// No sense in underfilling a batch if nobody's actually asking for it yet.
 	// C) There aren't any more items.
-	out.eg.Go(func() error {
+	go func() {
+		defer out.wg.Done()
+
 		batch := make([]T, 0, batchSize)
 		var batchStart time.Time
 		var timer *time.Timer
@@ -291,15 +280,15 @@ func Batch[T any](s Stream[T], batchSize int, maxWait time.Duration) Stream[[]T]
 			close(out.batchC)
 		}()
 
-		flush := func() error {
+		flush := func() bool {
 			select {
 			case <-bgCtx.Done():
-				return nil
+				return false
 			case out.batchC <- batch:
 			}
 			batch = make([]T, 0, batchSize)
 			waitingAtEmpty = false
-			return nil
+			return true
 		}
 
 		stopTimer := func() {
@@ -329,16 +318,15 @@ func Batch[T any](s Stream[T], batchSize int, maxWait time.Duration) Stream[[]T]
 				if !ok { // Case (C): we're done.
 					// Flush what we have so far, if any.
 					if len(batch) > 0 {
-						return flush()
+						_ = flush()
 					}
-					return nil
+					return
 				}
 				batch = append(batch, item)
 				if len(batch) == batchSize { // Case (A): the batch is full.
 					stopTimer()
-					err := flush()
-					if err != nil {
-						return err
+					if !flush() {
+						return
 					}
 				} else if len(batch) == 1 { // Bookkeeping for case (B).
 					batchStart = time.Now()
@@ -350,17 +338,15 @@ func Batch[T any](s Stream[T], batchSize int, maxWait time.Duration) Stream[[]T]
 				timerC = nil
 				// Being here already implies the conditions are true, since the timer is only
 				// running while the batch is non-empty and there's somebody waiting.
-				err := flush()
-				if err != nil {
-					return err
+				if !flush() {
+					return
 				}
 			case <-out.waiting: // Bookkeeping for case (B).
 				if len(batch) > 0 {
 					// Time already elapsed, just deliver the batch now.
 					if time.Since(batchStart) > maxWait {
-						err := flush()
-						if err != nil {
-							return err
+						if !flush() {
+							return
 						}
 					} else {
 						startTimer()
@@ -371,47 +357,54 @@ func Batch[T any](s Stream[T], batchSize int, maxWait time.Duration) Stream[[]T]
 				}
 			}
 		}
-	})
+	}()
 
 	return out
 }
 
 type batchStream[T any] struct {
 	bgCancel context.CancelFunc
+	wg       sync.WaitGroup
 	batchC   chan []T
-	waiting  chan struct{}
-	err      error
-	eg       errgroup.Group
+	// populated at most once and always before batchC closes
+	err     error
+	waiting chan struct{}
 }
 
-func (iter *batchStream[T]) Next(ctx context.Context) ([]T, bool) {
+func (iter *batchStream[T]) Next(ctx context.Context) ([]T, error) {
 	select {
 	// There might be a batch already ready because it filled before we even asked.
 	case batch, ok := <-iter.batchC:
-		return batch, ok
+		if !ok {
+			if iter.err != nil {
+				return nil, iter.err
+			}
+			return nil, End
+		}
+		return batch, nil
 	// Otherwise, we need to let the sender know we're waiting so that they can flush an underfilled
 	// batch at interval.
 	case iter.waiting <- struct{}{}:
 		select {
 		case batch, ok := <-iter.batchC:
-			return batch, ok
+			if !ok {
+				if iter.err != nil {
+					return nil, iter.err
+				}
+				return nil, End
+			}
+			return batch, nil
 		case <-ctx.Done():
-			iter.err = ctx.Err()
-			return nil, false
+			return nil, ctx.Err()
 		}
 	case <-ctx.Done():
-		iter.err = ctx.Err()
-		return nil, false
+		return nil, ctx.Err()
 	}
 }
 
-func (iter *batchStream[T]) Close() error {
+func (iter *batchStream[T]) Close() {
 	iter.bgCancel()
-	err := iter.eg.Wait()
-	if iter.err != nil {
-		return iter.err
-	}
-	return err
+	iter.wg.Wait()
 }
 
 // Chain returns a Stream that yields all elements from streams[0], then all elements from
@@ -422,37 +415,28 @@ func Chain[T any](streams ...Stream[T]) Stream[T] {
 
 type chainStream[T any] struct {
 	remaining []Stream[T]
-	err       error
 }
 
-func (s *chainStream[T]) Next(ctx context.Context) (T, bool) {
+func (s *chainStream[T]) Next(ctx context.Context) (T, error) {
 	var zero T
-	if s.err != nil {
-		return zero, false
-	}
 	for len(s.remaining) > 0 {
-		item, ok := s.remaining[0].Next(ctx)
-		if !ok {
-			err := s.remaining[0].Close()
+		item, err := s.remaining[0].Next(ctx)
+		if err == End {
+			s.remaining[0].Close()
 			s.remaining = s.remaining[1:]
-			if err != nil {
-				s.err = err
-				return zero, false
-			}
+			continue
+		} else if err != nil {
+			return zero, err
 		}
-		return item, true
+		return item, nil
 	}
-	return zero, false
+	return zero, End
 }
 
-func (s *chainStream[T]) Close() error {
+func (s *chainStream[T]) Close() {
 	for i := range s.remaining {
-		err := s.remaining[i].Close()
-		if err != nil && s.err == nil {
-			s.err = err
-		}
+		s.remaining[i].Close()
 	}
-	return s.err
 }
 
 // Chunk returns a stream of non-overlapping chunks from s of size chunkSize. The last chunk will be
@@ -469,26 +453,28 @@ type chunkStream[T any] struct {
 	chunkSize int
 }
 
-func (s *chunkStream[T]) Next(ctx context.Context) ([]T, bool) {
+func (s *chunkStream[T]) Next(ctx context.Context) ([]T, error) {
 	chunk := make([]T, 0, s.chunkSize)
 	for {
-		item, ok := s.inner.Next(ctx)
-		if !ok {
+		item, err := s.inner.Next(ctx)
+		if err == End {
 			break
+		} else if err != nil {
+			return nil, err
 		}
 		chunk = append(chunk, item)
 		if len(chunk) == s.chunkSize {
-			return chunk, true
+			return chunk, nil
 		}
 	}
 	if len(chunk) > 0 {
-		return chunk, true
+		return chunk, nil
 	}
-	return nil, false
+	return nil, End
 }
 
-func (s *chunkStream[T]) Close() error {
-	return s.inner.Close()
+func (s *chunkStream[T]) Close() {
+	s.inner.Close()
 }
 
 // Compact elides adjacent duplicates from s.
@@ -514,26 +500,26 @@ type compactStream[T any] struct {
 	eq    func(T, T) bool
 }
 
-func (s *compactStream[T]) Next(ctx context.Context) (T, bool) {
+func (s *compactStream[T]) Next(ctx context.Context) (T, error) {
 	for {
-		item, ok := s.inner.Next(ctx)
-		if !ok {
-			return item, false
+		item, err := s.inner.Next(ctx)
+		if err != nil {
+			return item, err
 		}
 
 		if s.first {
 			s.first = false
 			s.prev = item
-			return item, true
+			return item, nil
 		} else if !s.eq(s.prev, item) {
 			s.prev = item
-			return item, true
+			return item, nil
 		}
 	}
 }
 
-func (s *compactStream[T]) Close() error {
-	return s.inner.Close()
+func (s *compactStream[T]) Close() {
+	s.inner.Close()
 }
 
 // Filter returns a Stream that yields only the items from s for which keep returns true. If keep
@@ -545,36 +531,27 @@ func Filter[T any](s Stream[T], keep func(T) (bool, error)) Stream[T] {
 type filterStream[T any] struct {
 	inner Stream[T]
 	keep  func(T) (bool, error)
-	err   error
 }
 
-func (s *filterStream[T]) Next(ctx context.Context) (T, bool) {
+func (s *filterStream[T]) Next(ctx context.Context) (T, error) {
 	var zero T
-	if s.err != nil {
-		return zero, false
-	}
 	for {
-		item, ok := s.inner.Next(ctx)
-		if !ok {
-			return zero, false
+		item, err := s.inner.Next(ctx)
+		if err != nil {
+			return zero, err
 		}
 		ok, err := s.keep(item)
 		if err != nil {
-			s.err = err
-			return zero, false
+			return zero, err
 		}
 		if ok {
-			return item, true
+			return item, nil
 		}
 	}
 }
 
-func (s *filterStream[T]) Close() error {
-	closeErr := s.inner.Close()
-	if s.err != nil {
-		return s.err
-	}
-	return closeErr
+func (s *filterStream[T]) Close() {
+	s.inner.Close()
 }
 
 // First returns a Stream that yields the first n items from s.
@@ -587,17 +564,17 @@ type firstStream[T any] struct {
 	x     int
 }
 
-func (s *firstStream[T]) Next(ctx context.Context) (T, bool) {
+func (s *firstStream[T]) Next(ctx context.Context) (T, error) {
 	if s.x <= 0 {
 		var zero T
-		return zero, false
+		return zero, End
 	}
 	s.x--
 	return s.inner.Next(ctx)
 }
 
-func (s *firstStream[T]) Close() error {
-	return s.inner.Close()
+func (s *firstStream[T]) Close() {
+	s.inner.Close()
 }
 
 // Map transforms the values of s using the conversion f. If f returns an error, terminates the
@@ -609,32 +586,23 @@ func Map[T any, U any](s Stream[T], f func(t T) (U, error)) Stream[U] {
 type mapStream[T any, U any] struct {
 	inner Stream[T]
 	f     func(t T) (U, error)
-	err   error
 }
 
-func (s *mapStream[T, U]) Next(ctx context.Context) (U, bool) {
+func (s *mapStream[T, U]) Next(ctx context.Context) (U, error) {
 	var zero U
-	if s.err != nil {
-		return zero, false
-	}
-	item, ok := s.inner.Next(ctx)
-	if !ok {
-		return zero, false
+	item, err := s.inner.Next(ctx)
+	if err != nil {
+		return zero, err
 	}
 	mapped, err := s.f(item)
 	if err != nil {
-		s.err = err
-		return zero, false
+		return zero, err
 	}
-	return mapped, true
+	return mapped, nil
 }
 
-func (s *mapStream[T, U]) Close() error {
-	closeErr := s.inner.Close()
-	if s.err != nil {
-		return s.err
-	}
-	return closeErr
+func (s *mapStream[T, U]) Close() {
+	s.inner.Close()
 }
 
 // While returns a Stream that terminates before the first item from s for which f returns false.
@@ -650,31 +618,28 @@ type whileStream[T any] struct {
 	inner Stream[T]
 	f     func(T) (bool, error)
 	done  bool
-	err   error
 }
 
-func (s *whileStream[T]) Next(ctx context.Context) (T, bool) {
+func (s *whileStream[T]) Next(ctx context.Context) (T, error) {
 	var zero T
 	if s.done {
-		return zero, false
+		return zero, End
 	}
-	item, ok := s.inner.Next(ctx)
-	if !ok {
-		return zero, false
+	item, err := s.inner.Next(ctx)
+	if err != nil {
+		return zero, err
 	}
 	ok, err := s.f(item)
-	if !ok || err != nil {
-		s.done = true
-		s.err = err
-		return zero, false
+	if err != nil {
+		return zero, err
 	}
-	return item, true
+	if !ok {
+		s.done = true
+		return zero, End
+	}
+	return item, nil
 }
 
-func (s *whileStream[T]) Close() error {
-	closeErr := s.inner.Close()
-	if s.err != nil {
-		return s.err
-	}
-	return closeErr
+func (s *whileStream[T]) Close() {
+	s.inner.Close()
 }

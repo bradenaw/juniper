@@ -88,8 +88,12 @@ func FuzzBatch(f *testing.F) {
 				if len(oracle) == 0 {
 					if sendClosed {
 						t.Log("s.Next(ctx) at end")
-						_, ok := s.Next(context.Background())
-						require.False(t, ok)
+						_, err := s.Next(context.Background())
+						if sendClosedErr == nil {
+							require.Equal(t, End, err)
+						} else {
+							require.Equal(t, sendClosedErr, err)
+						}
 						return
 					} else {
 						// would block
@@ -99,24 +103,26 @@ func FuzzBatch(f *testing.F) {
 
 				t.Log("s.Next(ctx)")
 
-				batch, ok := s.Next(context.Background())
-				require.True(t, ok)
+				batch, err := s.Next(context.Background())
+				require.NoError(t, err)
 
-				expectedSize := xmath.Min(len(oracle), batchSize)
-				expectedBatch := oracle[:expectedSize]
+				// Unfortunately we can't actually tell if the receiver has received everything that
+				// we sent with Send().
+				require.Greater(t, len(batch), 0)
+				require.LessOrEqual(t, len(batch), batchSize)
+				expectedBatch := oracle[:len(batch)]
 				require.Equal(t, expectedBatch, batch)
 
 				t.Logf(" -> %#v", batch)
 
-				oracle = oracle[expectedSize:]
+				oracle = oracle[len(expectedBatch):]
 			},
 			func() {
 				if recvClosed {
 					return
 				}
 				t.Log("s.Close()")
-				err := s.Close()
-				require.Equalf(t, sendClosedErr, err, "%s", err)
+				s.Close()
 				recvClosed = true
 			},
 		)

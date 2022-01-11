@@ -23,21 +23,22 @@ func ExamplePipe() {
 		sender.Close(nil)
 	}()
 
+	defer receiver.Close()
 	for {
-		item, ok := receiver.Next(ctx)
-		if !ok {
+		item, err := receiver.Next(ctx)
+		if err == stream.End {
 			break
+		} else if err != nil {
+			fmt.Printf("stream ended with error: %s\n", err)
+			return
 		}
 		fmt.Println(item)
 	}
-	err := receiver.Close()
-	fmt.Println(err)
 
 	// Output:
 	// 1
 	// 2
 	// 3
-	// <nil>
 }
 
 func ExamplePipe_error() {
@@ -51,19 +52,22 @@ func ExamplePipe_error() {
 		sender.Close(oopsError)
 	}()
 
+	defer receiver.Close()
 	for {
-		item, ok := receiver.Next(ctx)
-		if !ok {
+		item, err := receiver.Next(ctx)
+		if err == stream.End {
+			fmt.Println("stream ended normally")
 			break
+		} else if err != nil {
+			fmt.Printf("stream ended with error: %s\n", err)
+			return
 		}
 		fmt.Println(item)
 	}
-	err := receiver.Close()
-	fmt.Println(err)
 
 	// Output:
 	// 1
-	// oops
+	// stream ended with error: oops
 }
 
 func ExampleCollect() {
@@ -83,7 +87,6 @@ func ExampleBatch() {
 	ctx := context.Background()
 
 	sender, receiver := stream.Pipe[string](0)
-
 	batchStream := stream.Batch(receiver, 3, 50*time.Millisecond)
 
 	wait := make(chan struct{}, 3)
@@ -100,20 +103,19 @@ func ExampleBatch() {
 		sender.Close(nil)
 	}()
 
+	defer batchStream.Close()
 	var batches [][]string
 	for {
-		batch, ok := batchStream.Next(ctx)
-		if !ok {
+		batch, err := batchStream.Next(ctx)
+		if err == stream.End {
 			break
+		} else if err != nil {
+			fmt.Printf("stream ended with error: %s\n", err)
+			return
 		}
 		batches = append(batches, batch)
 		wait <- struct{}{}
 	}
-	err := batchStream.Close()
-	if err != nil {
-		panic(err)
-	}
-
 	fmt.Println(batches)
 
 	// Output:
