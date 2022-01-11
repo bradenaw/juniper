@@ -123,10 +123,32 @@ func Index[T comparable](a []T, item T) int {
 	return -1
 }
 
-// Index returns the last index of item in a, or -1 if item is not in a.
+// LastIndex returns the last index of item in a, or -1 if item is not in a.
 func LastIndex[T comparable](a []T, item T) int {
 	for i := len(a) - 1; i >= 0; i-- {
 		if a[i] == item {
+			return i
+		}
+	}
+	return -1
+}
+
+// Index returns the first index in a for which f(a[i]) returns true, or -1 if there are no such
+// items.
+func IndexFunc[T any](a []T, f func(T) bool) int {
+	for i := range a {
+		if f(a[i]) {
+			return i
+		}
+	}
+	return -1
+}
+
+// LastIndexFunc returns the last index in a for which f(a[i]) returns true, or -1 if there are no
+// such items.
+func LastIndexFunc[T any](a []T, f func(T) bool ) int {
+	for i := len(a) - 1; i >= 0; i-- {
+		if f(a[i]) {
 			return i
 		}
 	}
