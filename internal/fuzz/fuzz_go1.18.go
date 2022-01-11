@@ -34,6 +34,10 @@ func Operations(b []byte, check func(), fns ...interface{}) {
 		b = b[8:]
 		return x, true
 	}
+	takeBool := func() (bool, bool) {
+		b, ok := takeByte()
+		return b != 0, ok
+	}
 
 Loop:
 	for {
@@ -57,6 +61,12 @@ Loop:
 				args[j] = reflect.ValueOf(x)
 			case reflect.Uint8:
 				x, ok := takeByte()
+				if !ok {
+					break Loop
+				}
+				args[j] = reflect.ValueOf(x)
+			case reflect.Bool:
+				x, ok := takeBool()
 				if !ok {
 					break Loop
 				}

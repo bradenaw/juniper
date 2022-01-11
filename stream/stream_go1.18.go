@@ -469,8 +469,13 @@ func Batch[T any](s Stream[T], batchSize int, maxWait time.Duration) Stream[[]T]
 			}
 			c <- item
 		}
+		err := s.Close()
 		close(c)
-		return s.Close()
+		if err == context.Canceled && bgCtx.Err() == context.Canceled {
+			// Implies the caller Close()d without finishing. That's not meant to be an error.
+			return nil
+		}
+		return err
 	})
 
 	// Build up batches and flush them when either:
@@ -498,7 +503,7 @@ func Batch[T any](s Stream[T], batchSize int, maxWait time.Duration) Stream[[]T]
 		flush := func() error {
 			select {
 			case <-bgCtx.Done():
-				return bgCtx.Err()
+				return nil
 			case out.batchC <- batch:
 			}
 			batch = make([]T, 0, batchSize)
