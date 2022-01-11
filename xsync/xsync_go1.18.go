@@ -83,7 +83,7 @@ type Future[T any] struct {
 
 // NewFuture returns a ready-to-use Future.
 func NewFuture[T any]() *Future[T] {
-	return &Future{
+	return &Future[T]{
 		c: make(chan struct{}),
 	}
 }
