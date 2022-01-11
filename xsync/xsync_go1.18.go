@@ -74,9 +74,18 @@ func (p *Pool[T]) Put(x T) {
 
 // Future can be filled with a value exactly once. Many goroutines can concurrently wait for it to
 // be filled. After filling, Wait() immediately returns the value it was filled with.
+//
+// Futures must be created by NewFuture and should not be copied after first use.
 type Future[T any] struct {
 	c chan struct{}
 	x T
+}
+
+// NewFuture returns a ready-to-use Future.
+func NewFuture[T any]() *Future[T] {
+	return &Future{
+		c: make(chan struct{}),
+	}
 }
 
 // Fill fills f with value x. All active calls to Wait return x, and all future calls to Wait return
