@@ -7,6 +7,9 @@ package iterator
 // Iterator is used to iterate over a sequence of values.
 //
 // Iterators are lazy, meaning they do no work until a call to Next().
+//
+// Iterators do not need to be fully consumed, callers may safely abandon an iterator before Next
+// returns false.
 type Iterator[T any] interface {
 	// Next advances the iterator and returns the next item. Once the iterator is finished, the
 	// first return is meaningless and the second return is false. The final value of the iterator

@@ -21,6 +21,10 @@ var ErrClosedPipe = errors.New("closed pipe")
 // produce.
 //
 // Streams and the combinator functions are lazy, meaning they do no work until a call to Next().
+//
+// Streams do not need to be fully consumed, but streams must be closed. Functions in this package
+// that are passed streams expect to be the sole user of that stream going forward, and so will
+// handle closing on your behalf so long as all streams they return are closed appropriately.
 type Stream[T any] interface {
 	// Next advances the stream and returns the next item. Once the stream is finished, the first
 	// return is meaningless and the second return is false. The final value of the stream will have
@@ -29,8 +33,9 @@ type Stream[T any] interface {
 	// If an error is encountered during Next(), it should return false immediately and surface the
 	// error from Close().
 	Next(ctx context.Context) (T, bool)
-	// Close ends receiving from the stream and returns any error encountered either in the course
-	// of Next or while cleaning up afterward.
+	// Close ends receiving from the stream and returns any error encountered in the course of Next.
+	//
+	// If Close is called before a false return from Next, it must return nil.
 	Close() error
 }
 
@@ -527,7 +532,7 @@ func (s *compactStream[T]) Next(ctx context.Context) (T, bool) {
 	}
 }
 
-func (s *compactStream[T]) Close() (error) {
+func (s *compactStream[T]) Close() error {
 	return s.inner.Close()
 }
 
