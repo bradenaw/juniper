@@ -14,6 +14,67 @@ type Iterator[T any] interface {
 	Next() (T, bool)
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Converters                                                                                     //
+// Functions that produce an Iterator from some other type.                                       //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Chan returns an Iterator that yields the values received on c.
+func Chan[T any](c <-chan T) Iterator[T] {
+	return &chanIterator[T]{c: c}
+}
+
+type chanIterator[T any] struct {
+	c <-chan T
+}
+
+func (iter *chanIterator[T]) Next() (T, bool) {
+	item, ok := <-iter.c
+	return item, ok
+}
+
+// Counter returns an iterator that counts up from 0, yielding n items.
+//
+// The following are equivalent:
+//
+//   for i := 0; i < n; i++ {
+//     fmt.Println(n)
+//   }
+//
+//
+//   iter := iterator.Counter(n)
+//   for {
+//     item, ok := iter.Next()
+//     if !ok {
+//       break
+//     }
+//     fmt.Println(item)
+//   }
+func Counter(n int) Iterator[int] {
+	return &counterIterator{i: 0, n: n}
+}
+
+type counterIterator struct {
+	i int
+	n int
+}
+
+func (iter *counterIterator) Next() (int, bool) {
+	if iter.i >= iter.n {
+		return 0, false
+	}
+	item := iter.i
+	iter.i++
+	return item, true
+}
+
+// Slice returns an iterator over the elements of s.
+func Slice[T any](s []T) Iterator[T] {
+	return &sliceIterator[T]{
+		a: s,
+	}
+}
+
 type sliceIterator[T any] struct {
 	a []T
 }
@@ -28,12 +89,47 @@ func (iter *sliceIterator[T]) Next() (T, bool) {
 	return item, true
 }
 
-// Slice returns an iterator over the elements of s.
-func Slice[T any](s []T) Iterator[T] {
-	return &sliceIterator[T]{
-		a: s,
-	}
+// Peekable allows viewing the next item from an iterator without consuming it.
+type Peekable[T any] interface {
+	Iterator[T]
+	// Peek returns the next item of the iterator if there is one without consuming it.
+	//
+	// If Peek returns a value, the next call to Next will return the same value.
+	Peek() (T, bool)
 }
+
+// WithPeek returns iter with a Peek() method attached.
+func WithPeek[T any](iter Iterator[T]) Peekable[T] {
+	return &peekable[T]{inner: iter, has: false}
+}
+
+type peekable[T any] struct {
+	inner Iterator[T]
+	curr  T
+	has   bool
+}
+
+func (iter *peekable[T]) Next() (T, bool) {
+	if iter.has {
+		item := iter.curr
+		iter.has = false
+		var zero T
+		iter.curr = zero
+		return item, true
+	}
+	return iter.inner.Next()
+}
+func (iter *peekable[T]) Peek() (T, bool) {
+	if !iter.has {
+		iter.curr, iter.has = iter.inner.Next()
+	}
+	return iter.curr, iter.has
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Reducers                                                                                       //
+// Functions that consume an iterator and produce some kind of final value.                       //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Collect advances iter to the end and returns all of the items seen as a slice.
 func Collect[T any](iter Iterator[T]) []T {
@@ -48,26 +144,76 @@ func Collect[T any](iter Iterator[T]) []T {
 	return out
 }
 
-// Map transforms the values of iter using the conversion f.
-type mapIterator[T any, U any] struct {
-	inner Iterator[T]
-	f     func(T) U
-}
-
-func (iter *mapIterator[T, U]) Next() (U, bool) {
-	var zero U
-	item, ok := iter.inner.Next()
-	if !ok {
-		return zero, false
+// Equal returns true if the given iterators yield the same items in the same order. Consumes the
+// iterators.
+func Equal[T comparable](iters ...Iterator[T]) bool {
+	if len(iters) == 0 {
+		return true
 	}
-	return iter.f(item), true
+	for {
+		item, ok := iters[0].Next()
+		for i := 1; i < len(iters); i++ {
+			iterIItem, iterIOk := iters[i].Next()
+			if ok != iterIOk {
+				return false
+			}
+			if item != iterIItem {
+				return false
+			}
+		}
+		if !ok {
+			return true
+		}
+	}
 }
 
-// Map transforms the results of iter using the conversion f.
-func Map[T any, U any](iter Iterator[T], f func(t T) U) Iterator[U] {
-	return &mapIterator[T, U]{
-		inner: iter,
-		f:     f,
+// Reduce reduces iter to a single value using the reduction function f.
+func Reduce[T any, U any](iter Iterator[T], initial U, f func(U, T) U) U {
+	acc := initial
+	for {
+		item, ok := iter.Next()
+		if !ok {
+			return acc
+		}
+		acc = f(acc, item)
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Combinators                                                                                    //
+// Functions that take and return iterators, transforming the output somehow.                     //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Chain returns an Iterator that returns all elements of iters[0], then all elements of iters[1],
+// and so on.
+func Chain[T any](iters ...Iterator[T]) Iterator[T] {
+	return &chainIterator[T]{
+		iters: iters,
+	}
+}
+
+type chainIterator[T any] struct {
+	iters []Iterator[T]
+}
+
+func (iter *chainIterator[T]) Next() (T, bool) {
+	for len(iter.iters) > 0 {
+		item, ok := iter.iters[0].Next()
+		if ok {
+			return item, true
+		}
+		iter.iters = iter.iters[1:]
+	}
+	var zero T
+	return zero, false
+}
+
+// Chunk returns an iterator over non-overlapping chunks of size chunkSize. The last chunk will be
+// smaller than chunkSize if the iterator does not contain an even multiple.
+func Chunk[T any](iter Iterator[T], chunkSize int) Iterator[[]T] {
+	return &chunkIterator[T]{
+		inner:     iter,
+		chunkSize: chunkSize,
 	}
 }
 
@@ -94,61 +240,50 @@ func (iter *chunkIterator[T]) Next() ([]T, bool) {
 	return nil, false
 }
 
-// Chunk returns an iterator over non-overlapping chunks of size chunkSize. The last chunk will be
-// smaller than chunkSize if the iterator does not contain an even multiple.
-func Chunk[T any](iter Iterator[T], chunkSize int) Iterator[[]T] {
-	return &chunkIterator[T]{
-		inner:     iter,
-		chunkSize: chunkSize,
+// Compact elides adjacent duplicates from iter.
+func Compact[T comparable](iter Iterator[T]) Iterator[T] {
+	return CompactFunc(iter, func(a, b T) bool {
+		return a == b
+	})
+}
+
+// CompactFunc elides adjacent duplicates from iter, using eq to determine duplicates.
+func CompactFunc[T any](iter Iterator[T], eq func(T, T) bool) Iterator[T] {
+	return &compactIterator[T]{
+		inner: iter,
+		first: true,
+		eq:    eq,
 	}
 }
 
-// Chain returns an Iterator that yields all elements of iters[0], then all elements of iters[1],
-type chainIterator[T any] struct {
-	iters []Iterator[T]
+type compactIterator[T any] struct {
+	inner Iterator[T]
+	prev  T
+	first bool
+	eq    func(T, T) bool
 }
 
-func (iter *chainIterator[T]) Next() (T, bool) {
-	for len(iter.iters) > 0 {
-		item, ok := iter.iters[0].Next()
-		if ok {
+func (iter *compactIterator[T]) Next() (T, bool) {
+	for {
+		item, ok := iter.inner.Next()
+		if !ok {
+			return item, false
+		}
+
+		if iter.first {
+			iter.first = false
+			iter.prev = item
+			return item, true
+		} else if !iter.eq(iter.prev, item) {
+			iter.prev = item
 			return item, true
 		}
-		iter.iters = iter.iters[1:]
-	}
-	var zero T
-	return zero, false
-}
-
-// Chain returns an Iterator that returns all elements of iters[0], then all elements of iters[1],
-// and so on.
-func Chain[T any](iters ...Iterator[T]) Iterator[T] {
-	return &chainIterator[T]{
-		iters: iters,
 	}
 }
 
-// Equal returns true if the given iterators yield the same items in the same order. Consumes the
-// iterators.
-func Equal[T comparable](iters ...Iterator[T]) bool {
-	if len(iters) == 0 {
-		return true
-	}
-	for {
-		item, ok := iters[0].Next()
-		for i := 1; i < len(iters); i++ {
-			iterIItem, iterIOk := iters[i].Next()
-			if ok != iterIOk {
-				return false
-			}
-			if item != iterIItem {
-				return false
-			}
-		}
-		if !ok {
-			return true
-		}
-	}
+// Filter returns an iterator that yields only the items from iter for which keep returns true.
+func Filter[T any](iter Iterator[T], keep func(T) bool) Iterator[T] {
+	return &filterIterator[T]{inner: iter, keep: keep}
 }
 
 type filterIterator[T any] struct {
@@ -170,9 +305,9 @@ func (iter *filterIterator[T]) Next() (T, bool) {
 	return zero, false
 }
 
-// Filter returns an iterator that yields only the items from iter for which keep returns true.
-func Filter[T any](iter Iterator[T], keep func(T) bool) Iterator[T] {
-	return &filterIterator[T]{inner: iter, keep: keep}
+// First returns an iterator that yields the first n items from iter.
+func First[T any](iter Iterator[T], n int) Iterator[T] {
+	return &firstIterator[T]{inner: iter, x: n}
 }
 
 type firstIterator[T any] struct {
@@ -189,127 +324,39 @@ func (iter *firstIterator[T]) Next() (T, bool) {
 	return iter.inner.Next()
 }
 
-// First returns an iterator that yields the first n items from iter.
-func First[T any](iter Iterator[T], n int) Iterator[T] {
-	return &firstIterator[T]{inner: iter, x: n}
-}
-
-type whileIterator[T any] struct {
-	inner Iterator[T]
-	f     func(T) bool
-	done  bool
-}
-
-func (iter *whileIterator[T]) Next() (T, bool) {
-	var zero T
-	if iter.done {
-		return zero, false
+// Map transforms the results of iter using the conversion f.
+func Map[T any, U any](iter Iterator[T], f func(t T) U) Iterator[U] {
+	return &mapIterator[T, U]{
+		inner: iter,
+		f:     f,
 	}
-	item, ok := iter.Next()
+}
+
+type mapIterator[T any, U any] struct {
+	inner Iterator[T]
+	f     func(T) U
+}
+
+func (iter *mapIterator[T, U]) Next() (U, bool) {
+	var zero U
+	item, ok := iter.inner.Next()
 	if !ok {
 		return zero, false
 	}
-	if !iter.f(item) {
-		iter.done = true
-		return zero, false
-	}
-	return item, true
+	return iter.f(item), true
 }
 
-// While returns an iterator that terminates before the first item from iter for which f returns
-// false.
-func While[T any](iter Iterator[T], f func(T) bool) Iterator[T] {
-	return &whileIterator[T]{
-		inner: iter,
-		f:     f,
-		done:  false,
-	}
-}
-
-type chanIterator[T any] struct {
-	c <-chan T
-}
-
-func (iter *chanIterator[T]) Next() (T, bool) {
-	item, ok := <-iter.c
-	return item, ok
-}
-
-// Chan returns an Iterator that yields the values received on c.
-func Chan[T any](c <-chan T) Iterator[T] {
-	return &chanIterator[T]{c: c}
-}
-
-type counterIterator struct {
-	i int
-	n int
-}
-
-func (iter *counterIterator) Next() (int, bool) {
-	if iter.i >= iter.n {
-		return 0, false
-	}
-	item := iter.i
-	iter.i++
-	return item, true
-}
-
-// Counter returns an iterator that counts up from 0, yielding n items.
+// Runs returns an iterator of iterators. The inner iterators yield contiguous elements from iter
+// such that same(a, b) returns true for any a and b in the run.
 //
-// The following are equivalent:
-//
-//   for i := 0; i < n; i++ {
-//     fmt.Println(n)
-//   }
-//
-//
-//   iter := iterator.Counter(n)
-//   for {
-//     item, ok := iter.Next()
-//     if !ok {
-//       break
-//     }
-//     fmt.Println(item)
-//   }
-func Counter(n int) Iterator[int] {
-	return &counterIterator{i: 0, n: n}
-}
-
-// Peekable allows viewing the next item from an iterator without consuming it.
-type Peekable[T any] interface {
-	Iterator[T]
-	// Peek returns the next item of the iterator if there is one without consuming it.
-	//
-	// If Peek returns a value, the next call to Next will return the same value.
-	Peek() (T, bool)
-}
-
-type peekable[T any] struct {
-	inner Iterator[T]
-	curr  T
-	has   bool
-}
-
-func (iter *peekable[T]) Next() (T, bool) {
-	if iter.has {
-		item := iter.curr
-		iter.has = false
-		var zero T
-		iter.curr = zero
-		return item, true
+// same(a, a) must return true. If same(a, b) and same(b, c) both return true, then same(a, c) must
+// also.
+func Runs[T any](iter Iterator[T], same func(a, b T) bool) Iterator[Iterator[T]] {
+	return &runsIterator[T]{
+		inner: WithPeek(iter),
+		same:  same,
+		curr:  nil,
 	}
-	return iter.inner.Next()
-}
-func (iter *peekable[T]) Peek() (T, bool) {
-	if !iter.has {
-		iter.curr, iter.has = iter.inner.Next()
-	}
-	return iter.curr, iter.has
-}
-
-// WithPeek returns iter with a Peek() method attached.
-func WithPeek[T any](iter Iterator[T]) Peekable[T] {
-	return &peekable[T]{inner: iter, has: false}
 }
 
 type runsIterator[T any] struct {
@@ -354,68 +401,34 @@ func (iter *runsInnerIterator[T]) Next() (T, bool) {
 	return iter.parent.inner.Next()
 }
 
-// Runs returns an iterator of iterators. The inner iterators yield contiguous elements from iter
-// such that same(a, b) returns true for any a and b in the run.
-//
-// same(a, a) must return true. If same(a, b) and same(b, c) both return true, then same(a, c) must
-// also.
-func Runs[T any](iter Iterator[T], same func(a, b T) bool) Iterator[Iterator[T]] {
-	return &runsIterator[T]{
-		inner: WithPeek(iter),
-		same:  same,
-		curr:  nil,
-	}
-}
-
-// Reduce reduces iter to a single value using the reduction function f.
-func Reduce[T any, U any](iter Iterator[T], initial U, f func(U, T) U) U {
-	acc := initial
-	for {
-		item, ok := iter.Next()
-		if !ok {
-			return acc
-		}
-		acc = f(acc, item)
-	}
-}
-
-type compactIterator[T any] struct {
-	inner Iterator[T]
-	prev  T
-	first bool
-	eq    func(T, T) bool
-}
-
-func (iter *compactIterator[T]) Next() (T, bool) {
-	for {
-		item, ok := iter.inner.Next()
-		if !ok {
-			return item, false
-		}
-
-		if iter.first {
-			iter.first = false
-			iter.prev = item
-			return item, true
-		} else if !iter.eq(iter.prev, item) {
-			iter.prev = item
-			return item, true
-		}
-	}
-}
-
-// Compact elides adjacent duplicates from iter.
-func Compact[T comparable](iter Iterator[T]) Iterator[T] {
-	return CompactFunc(iter, func(a, b T) bool {
-		return a == b
-	})
-}
-
-// CompactFunc elides adjacent duplicates from iter, using eq to determine duplicates.
-func CompactFunc[T any](iter Iterator[T], eq func(T, T) bool) Iterator[T] {
-	return &compactIterator[T]{
+// While returns an iterator that terminates before the first item from iter for which f returns
+// false.
+func While[T any](iter Iterator[T], f func(T) bool) Iterator[T] {
+	return &whileIterator[T]{
 		inner: iter,
-		first: true,
-		eq:    eq,
+		f:     f,
+		done:  false,
 	}
+}
+
+type whileIterator[T any] struct {
+	inner Iterator[T]
+	f     func(T) bool
+	done  bool
+}
+
+func (iter *whileIterator[T]) Next() (T, bool) {
+	var zero T
+	if iter.done {
+		return zero, false
+	}
+	item, ok := iter.Next()
+	if !ok {
+		return zero, false
+	}
+	if !iter.f(item) {
+		iter.done = true
+		return zero, false
+	}
+	return item, true
 }

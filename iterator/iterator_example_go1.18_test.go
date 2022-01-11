@@ -46,6 +46,34 @@ func ExampleChunk() {
 	// [g h]
 }
 
+func ExampleCompact() {
+	iter := iterator.Slice([]string{"a", "a", "b", "c", "c", "c", "a"})
+	compacted := iterator.Compact(iter)
+	fmt.Println(iterator.Collect(compacted))
+
+	// Output:
+	// [a b c a]
+}
+
+func ExampleCompactFunc() {
+	iter := iterator.Slice([]string{
+		"bank",
+		"beach",
+		"ghost",
+		"goat",
+		"group",
+		"yaw",
+		"yew",
+	})
+	compacted := iterator.CompactFunc(iter, func(a, b string) bool {
+		return a[0] == b[0]
+	})
+	fmt.Println(iterator.Collect(compacted))
+
+	// Output:
+	// [bank ghost yaw]
+}
+
 func ExampleEqual() {
 	fmt.Println(
 		iterator.Equal(
@@ -66,16 +94,6 @@ func ExampleEqual() {
 	// false
 }
 
-func ExampleFirst() {
-	iter := iterator.Slice([]string{"a", "b", "c", "d", "e"})
-
-	first3 := iterator.First(iter, 3)
-	fmt.Println(iterator.Collect(first3))
-
-	// Output:
-	// [a b c]
-}
-
 func ExampleFilter() {
 	iter := iterator.Slice([]int{1, 2, 3, 4, 5, 6})
 
@@ -84,6 +102,16 @@ func ExampleFilter() {
 
 	// Output:
 	// [2 4 6]
+}
+
+func ExampleFirst() {
+	iter := iterator.Slice([]string{"a", "b", "c", "d", "e"})
+
+	first3 := iterator.First(iter, 3)
+	fmt.Println(iterator.Collect(first3))
+
+	// Output:
+	// [a b c]
 }
 
 func ExampleRuns() {
@@ -112,32 +140,4 @@ func ExampleReduce() {
 	// Output:
 	// 6
 	// 1
-}
-
-func ExampleCompact() {
-	iter := iterator.Slice([]string{"a", "a", "b", "c", "c", "c", "a"})
-	compacted := iterator.Compact(iter)
-	fmt.Println(iterator.Collect(compacted))
-
-	// Output:
-	// [a b c a]
-}
-
-func ExampleCompactFunc() {
-	iter := iterator.Slice([]string{
-		"bank",
-		"beach",
-		"ghost",
-		"goat",
-		"group",
-		"yaw",
-		"yew",
-	})
-	compacted := iterator.CompactFunc(iter, func(a, b string) bool {
-		return a[0] == b[0]
-	})
-	fmt.Println(iterator.Collect(compacted))
-
-	// Output:
-	// [bank ghost yaw]
 }

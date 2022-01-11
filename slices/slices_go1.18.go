@@ -2,7 +2,6 @@
 
 package slices
 
-
 // All returns true if f(x[i]) returns true for all i. Trivially, returns true if x is empty.
 func All[T any](x []T, f func(T) bool) bool {
 	for i := range x {
