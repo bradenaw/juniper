@@ -13,6 +13,9 @@ import (
 	"github.com/bradenaw/juniper/iterator"
 )
 
+// Returned from Sender.Send() when the associated stream has already been closed.
+var ErrClosedPipe = errors.New("closed pipe")
+
 // Stream is used to iterate over a sequence of values. It is similar to Iterator, except intended
 // for use when iteration may fail for some reason, usually because the sequence requires I/O to
 // produce.
@@ -31,44 +34,14 @@ type Stream[T any] interface {
 	Close() error
 }
 
-type iteratorStream[T any] struct {
-	iter iterator.Iterator[T]
-	err  error
-}
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Converters + Constructors                                                                      //
+// Functions that produce a Stream.                                                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (s *iteratorStream[T]) Next(ctx context.Context) (T, bool) {
-	if ctx.Err() != nil {
-		s.err = ctx.Err()
-		var zero T
-		return zero, false
-	}
-	return s.iter.Next()
-}
-func (s *iteratorStream[T]) Close() error {
-	return s.err
-}
-
-// FromIterator returns a Stream that yields the values from iter. This stream ignores the context
-// passed to Next during the call to iter.Next.
-func FromIterator[T any](iter iterator.Iterator[T]) Stream[T] {
-	return &iteratorStream[T]{iter: iter}
-}
-
-// Collect advances s to the end and returns all of the items seen as a slice.
-func Collect[T any](ctx context.Context, s Stream[T]) ([]T, error) {
-	var out []T
-	for {
-		item, ok := s.Next(ctx)
-		if !ok {
-			break
-		}
-		out = append(out, item)
-	}
-	err := s.Close()
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
+// Chan returns a Stream that receives values from c.
+func Chan[T any](c <-chan T) Stream[T] {
+	return &chanStream[T]{c: c}
 }
 
 type chanStream[T any] struct {
@@ -86,233 +59,58 @@ func (s *chanStream[T]) Next(ctx context.Context) (T, bool) {
 		return zero, false
 	}
 }
+
 func (s *chanStream[T]) Close() error {
 	return s.err
 }
 
-// Chan returns a Stream that receives values from c.
-func Chan[T any](c <-chan T) Stream[T] {
-	return &chanStream[T]{c: c}
+// FromIterator returns a Stream that yields the values from iter. This stream ignores the context
+// passed to Next during the call to iter.Next.
+func FromIterator[T any](iter iterator.Iterator[T]) Stream[T] {
+	return &iteratorStream[T]{iter: iter}
 }
 
-type mapStream[T any, U any] struct {
-	inner Stream[T]
-	f     func(t T) (U, error)
-	err   error
+type iteratorStream[T any] struct {
+	iter iterator.Iterator[T]
+	err  error
 }
 
-func (s *mapStream[T, U]) Next(ctx context.Context) (U, bool) {
-	var zero U
-	if s.err != nil {
-		return zero, false
-	}
-	item, ok := s.inner.Next(ctx)
-	if !ok {
-		return zero, false
-	}
-	mapped, err := s.f(item)
-	if err != nil {
-		s.err = err
-		return zero, false
-	}
-	return mapped, true
-}
-func (s *mapStream[T, U]) Close() error {
-	closeErr := s.inner.Close()
-	if s.err != nil {
-		return s.err
-	}
-	return closeErr
-}
-
-// Map transforms the values of s using the conversion f. If f returns an error, terminates the
-// stream early.
-func Map[T any, U any](s Stream[T], f func(t T) (U, error)) Stream[U] {
-	return &mapStream[T, U]{inner: s, f: f}
-}
-
-type chainStream[T any] struct {
-	remaining []Stream[T]
-	err       error
-}
-
-func (s *chainStream[T]) Next(ctx context.Context) (T, bool) {
-	var zero T
-	if s.err != nil {
-		return zero, false
-	}
-	for len(s.remaining) > 0 {
-		item, ok := s.remaining[0].Next(ctx)
-		if !ok {
-			err := s.remaining[0].Close()
-			s.remaining = s.remaining[1:]
-			if err != nil {
-				s.err = err
-				return zero, false
-			}
-		}
-		return item, true
-	}
-	return zero, false
-}
-func (s *chainStream[T]) Close() error {
-	for i := range s.remaining {
-		err := s.remaining[i].Close()
-		if err != nil && s.err == nil {
-			s.err = err
-		}
-	}
-	return s.err
-}
-
-// Chain returns a Stream that yields all elements from streams[0], then all elements from
-// streams[1], and so on.
-func Chain[T any](streams ...Stream[T]) Stream[T] {
-	return &chainStream[T]{remaining: streams}
-}
-
-type filterStream[T any] struct {
-	inner Stream[T]
-	keep  func(T) (bool, error)
-	err   error
-}
-
-func (s *filterStream[T]) Next(ctx context.Context) (T, bool) {
-	var zero T
-	if s.err != nil {
-		return zero, false
-	}
-	for {
-		item, ok := s.inner.Next(ctx)
-		if !ok {
-			return zero, false
-		}
-		ok, err := s.keep(item)
-		if err != nil {
-			s.err = err
-			return zero, false
-		}
-		if ok {
-			return item, true
-		}
-	}
-}
-
-func (s *filterStream[T]) Close() error {
-	closeErr := s.inner.Close()
-	if s.err != nil {
-		return s.err
-	}
-	return closeErr
-}
-
-// Filter returns a Stream that yields only the items from s for which keep returns true. If keep
-// returns an error, terminates the stream early.
-func Filter[T any](s Stream[T], keep func(T) (bool, error)) Stream[T] {
-	return &filterStream[T]{inner: s, keep: keep}
-}
-
-type firstStream[T any] struct {
-	inner Stream[T]
-	x     int
-}
-
-func (s *firstStream[T]) Next(ctx context.Context) (T, bool) {
-	if s.x <= 0 {
+func (s *iteratorStream[T]) Next(ctx context.Context) (T, bool) {
+	if ctx.Err() != nil {
+		s.err = ctx.Err()
 		var zero T
 		return zero, false
 	}
-	s.x--
-	return s.inner.Next(ctx)
-}
-func (s *firstStream[T]) Close() error {
-	return s.inner.Close()
+	return s.iter.Next()
 }
 
-// First returns a Stream that yields the first n items from s.
-func First[T any](s Stream[T], n int) Stream[T] {
-	return &firstStream[T]{inner: s, x: n}
+func (s *iteratorStream[T]) Close() error {
+	return s.err
 }
 
-type whileStream[T any] struct {
-	inner Stream[T]
-	f     func(T) (bool, error)
-	done  bool
-	err   error
-}
+// Pipe returns a linked sender and receiver pair. Values sent using sender.Send will be delivered
+// to the given Stream. The Stream will terminate when the sender is closed.
+//
+// bufferSize is the number of elements in the buffer between the sender and the receiver. 0 has the
+// same meaning as for the built-in make(chan).
+func Pipe[T any](bufferSize int) (*Sender[T], Stream[T]) {
+	c := make(chan T, bufferSize)
+	senderDone := make(chan error, 1)
+	streamDone := make(chan struct{})
 
-func (s *whileStream[T]) Next(ctx context.Context) (T, bool) {
-	var zero T
-	if s.done {
-		return zero, false
+	sender := &Sender[T]{
+		c:          c,
+		senderDone: senderDone,
+		streamDone: streamDone,
 	}
-	item, ok := s.inner.Next(ctx)
-	if !ok {
-		return zero, false
+	receiver := &pipeStream[T]{
+		c:          c,
+		senderDone: senderDone,
+		streamDone: streamDone,
 	}
-	ok, err := s.f(item)
-	if !ok || err != nil {
-		s.done = true
-		s.err = err
-		return zero, false
-	}
-	return item, true
-}
-func (s *whileStream[T]) Close() error {
-	closeErr := s.inner.Close()
-	if s.err != nil {
-		return s.err
-	}
-	return closeErr
-}
 
-// While returns a Stream that terminates before the first item from s for which f returns false.
-// If f returns an error, terminates the stream early.
-func While[T any](s Stream[T], f func(T) (bool, error)) Stream[T] {
-	return &whileStream[T]{
-		inner: s,
-		f:     f,
-	}
+	return sender, receiver
 }
-
-type chunkStream[T any] struct {
-	inner     Stream[T]
-	chunkSize int
-}
-
-func (s *chunkStream[T]) Next(ctx context.Context) ([]T, bool) {
-	chunk := make([]T, 0, s.chunkSize)
-	for {
-		item, ok := s.inner.Next(ctx)
-		if !ok {
-			break
-		}
-		chunk = append(chunk, item)
-		if len(chunk) == s.chunkSize {
-			return chunk, true
-		}
-	}
-	if len(chunk) > 0 {
-		return chunk, true
-	}
-	return nil, false
-}
-
-func (s *chunkStream[T]) Close() error {
-	return s.inner.Close()
-}
-
-// Chunk returns a stream of non-overlapping chunks from s of size chunkSize. The last chunk will be
-// smaller than chunkSize if the stream does not contain an even multiple.
-func Chunk[T any](s Stream[T], chunkSize int) Stream[[]T] {
-	return &chunkStream[T]{
-		inner:     s,
-		chunkSize: chunkSize,
-	}
-}
-
-// Returned from Sender.Send() when the associated stream has already been closed.
-var ErrClosedPipe = errors.New("closed pipe")
 
 // Sender is the send half of a pipe returned by Pipe.
 type Sender[T any] struct {
@@ -385,67 +183,32 @@ func (s *pipeStream[T]) Close() error {
 	}
 }
 
-// Pipe returns a linked sender and receiver pair. Values sent using sender.Send will be delivered
-// to the given Stream. The Stream will terminate when the sender is closed.
-//
-// bufferSize is the number of elements in the buffer between the sender and the receiver. 0 has the
-// same meaning as for the built-in make(chan).
-func Pipe[T any](bufferSize int) (*Sender[T], Stream[T]) {
-	c := make(chan T, bufferSize)
-	senderDone := make(chan error, 1)
-	streamDone := make(chan struct{})
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Reducers                                                                                       //
+// Functions that consume a stream and produce some kind of final value.                          //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	sender := &Sender[T]{
-		c:          c,
-		senderDone: senderDone,
-		streamDone: streamDone,
-	}
-	receiver := &pipeStream[T]{
-		c:          c,
-		senderDone: senderDone,
-		streamDone: streamDone,
-	}
-
-	return sender, receiver
-}
-
-type batchStream[T any] struct {
-	bgCancel context.CancelFunc
-	batchC   chan []T
-	waiting  chan struct{}
-	err      error
-	eg       errgroup.Group
-}
-
-func (iter *batchStream[T]) Next(ctx context.Context) ([]T, bool) {
-	select {
-	// There might be a batch already ready because it filled before we even asked.
-	case batch, ok := <-iter.batchC:
-		return batch, ok
-	// Otherwise, we need to let the sender know we're waiting so that they can flush an underfilled
-	// batch at interval.
-	case iter.waiting <- struct{}{}:
-		select {
-		case batch, ok := <-iter.batchC:
-			return batch, ok
-		case <-ctx.Done():
-			iter.err = ctx.Err()
-			return nil, false
+// Collect advances s to the end and returns all of the items seen as a slice.
+func Collect[T any](ctx context.Context, s Stream[T]) ([]T, error) {
+	var out []T
+	for {
+		item, ok := s.Next(ctx)
+		if !ok {
+			break
 		}
-	case <-ctx.Done():
-		iter.err = ctx.Err()
-		return nil, false
+		out = append(out, item)
 	}
+	err := s.Close()
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
-func (iter *batchStream[T]) Close() error {
-	iter.bgCancel()
-	err := iter.eg.Wait()
-	if iter.err != nil {
-		return iter.err
-	}
-	return err
-}
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Combinators                                                                                    //
+// Functions that take and return iterators, transforming the output somehow.                     //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Batch returns a stream of non-overlapping batches from s of size batchSize. Batch is similar to
 // Chunk with the added feature that an underfilled batch will be delivered to the output stream if
@@ -583,4 +346,262 @@ func Batch[T any](s Stream[T], batchSize int, maxWait time.Duration) Stream[[]T]
 	})
 
 	return out
+}
+
+type batchStream[T any] struct {
+	bgCancel context.CancelFunc
+	batchC   chan []T
+	waiting  chan struct{}
+	err      error
+	eg       errgroup.Group
+}
+
+func (iter *batchStream[T]) Next(ctx context.Context) ([]T, bool) {
+	select {
+	// There might be a batch already ready because it filled before we even asked.
+	case batch, ok := <-iter.batchC:
+		return batch, ok
+	// Otherwise, we need to let the sender know we're waiting so that they can flush an underfilled
+	// batch at interval.
+	case iter.waiting <- struct{}{}:
+		select {
+		case batch, ok := <-iter.batchC:
+			return batch, ok
+		case <-ctx.Done():
+			iter.err = ctx.Err()
+			return nil, false
+		}
+	case <-ctx.Done():
+		iter.err = ctx.Err()
+		return nil, false
+	}
+}
+
+func (iter *batchStream[T]) Close() error {
+	iter.bgCancel()
+	err := iter.eg.Wait()
+	if iter.err != nil {
+		return iter.err
+	}
+	return err
+}
+
+// Chain returns a Stream that yields all elements from streams[0], then all elements from
+// streams[1], and so on.
+func Chain[T any](streams ...Stream[T]) Stream[T] {
+	return &chainStream[T]{remaining: streams}
+}
+
+type chainStream[T any] struct {
+	remaining []Stream[T]
+	err       error
+}
+
+func (s *chainStream[T]) Next(ctx context.Context) (T, bool) {
+	var zero T
+	if s.err != nil {
+		return zero, false
+	}
+	for len(s.remaining) > 0 {
+		item, ok := s.remaining[0].Next(ctx)
+		if !ok {
+			err := s.remaining[0].Close()
+			s.remaining = s.remaining[1:]
+			if err != nil {
+				s.err = err
+				return zero, false
+			}
+		}
+		return item, true
+	}
+	return zero, false
+}
+
+func (s *chainStream[T]) Close() error {
+	for i := range s.remaining {
+		err := s.remaining[i].Close()
+		if err != nil && s.err == nil {
+			s.err = err
+		}
+	}
+	return s.err
+}
+
+// Chunk returns a stream of non-overlapping chunks from s of size chunkSize. The last chunk will be
+// smaller than chunkSize if the stream does not contain an even multiple.
+func Chunk[T any](s Stream[T], chunkSize int) Stream[[]T] {
+	return &chunkStream[T]{
+		inner:     s,
+		chunkSize: chunkSize,
+	}
+}
+
+type chunkStream[T any] struct {
+	inner     Stream[T]
+	chunkSize int
+}
+
+func (s *chunkStream[T]) Next(ctx context.Context) ([]T, bool) {
+	chunk := make([]T, 0, s.chunkSize)
+	for {
+		item, ok := s.inner.Next(ctx)
+		if !ok {
+			break
+		}
+		chunk = append(chunk, item)
+		if len(chunk) == s.chunkSize {
+			return chunk, true
+		}
+	}
+	if len(chunk) > 0 {
+		return chunk, true
+	}
+	return nil, false
+}
+
+func (s *chunkStream[T]) Close() error {
+	return s.inner.Close()
+}
+
+// Filter returns a Stream that yields only the items from s for which keep returns true. If keep
+// returns an error, terminates the stream early.
+func Filter[T any](s Stream[T], keep func(T) (bool, error)) Stream[T] {
+	return &filterStream[T]{inner: s, keep: keep}
+}
+
+type filterStream[T any] struct {
+	inner Stream[T]
+	keep  func(T) (bool, error)
+	err   error
+}
+
+func (s *filterStream[T]) Next(ctx context.Context) (T, bool) {
+	var zero T
+	if s.err != nil {
+		return zero, false
+	}
+	for {
+		item, ok := s.inner.Next(ctx)
+		if !ok {
+			return zero, false
+		}
+		ok, err := s.keep(item)
+		if err != nil {
+			s.err = err
+			return zero, false
+		}
+		if ok {
+			return item, true
+		}
+	}
+}
+
+func (s *filterStream[T]) Close() error {
+	closeErr := s.inner.Close()
+	if s.err != nil {
+		return s.err
+	}
+	return closeErr
+}
+
+// First returns a Stream that yields the first n items from s.
+func First[T any](s Stream[T], n int) Stream[T] {
+	return &firstStream[T]{inner: s, x: n}
+}
+
+type firstStream[T any] struct {
+	inner Stream[T]
+	x     int
+}
+
+func (s *firstStream[T]) Next(ctx context.Context) (T, bool) {
+	if s.x <= 0 {
+		var zero T
+		return zero, false
+	}
+	s.x--
+	return s.inner.Next(ctx)
+}
+
+func (s *firstStream[T]) Close() error {
+	return s.inner.Close()
+}
+
+// Map transforms the values of s using the conversion f. If f returns an error, terminates the
+// stream early.
+func Map[T any, U any](s Stream[T], f func(t T) (U, error)) Stream[U] {
+	return &mapStream[T, U]{inner: s, f: f}
+}
+
+type mapStream[T any, U any] struct {
+	inner Stream[T]
+	f     func(t T) (U, error)
+	err   error
+}
+
+func (s *mapStream[T, U]) Next(ctx context.Context) (U, bool) {
+	var zero U
+	if s.err != nil {
+		return zero, false
+	}
+	item, ok := s.inner.Next(ctx)
+	if !ok {
+		return zero, false
+	}
+	mapped, err := s.f(item)
+	if err != nil {
+		s.err = err
+		return zero, false
+	}
+	return mapped, true
+}
+
+func (s *mapStream[T, U]) Close() error {
+	closeErr := s.inner.Close()
+	if s.err != nil {
+		return s.err
+	}
+	return closeErr
+}
+
+// While returns a Stream that terminates before the first item from s for which f returns false.
+// If f returns an error, terminates the stream early.
+func While[T any](s Stream[T], f func(T) (bool, error)) Stream[T] {
+	return &whileStream[T]{
+		inner: s,
+		f:     f,
+	}
+}
+
+type whileStream[T any] struct {
+	inner Stream[T]
+	f     func(T) (bool, error)
+	done  bool
+	err   error
+}
+
+func (s *whileStream[T]) Next(ctx context.Context) (T, bool) {
+	var zero T
+	if s.done {
+		return zero, false
+	}
+	item, ok := s.inner.Next(ctx)
+	if !ok {
+		return zero, false
+	}
+	ok, err := s.f(item)
+	if !ok || err != nil {
+		s.done = true
+		s.err = err
+		return zero, false
+	}
+	return item, true
+}
+
+func (s *whileStream[T]) Close() error {
+	closeErr := s.inner.Close()
+	if s.err != nil {
+		return s.err
+	}
+	return closeErr
 }
