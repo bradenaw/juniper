@@ -463,6 +463,51 @@ func (s *chunkStream[T]) Close() error {
 	return s.inner.Close()
 }
 
+// Compact elides adjacent duplicates from s.
+func Compact[T comparable](s Stream[T]) Stream[T] {
+	return CompactFunc(s, func(a, b T) bool {
+		return a == b
+	})
+}
+
+// CompactFunc elides adjacent duplicates from s, using eq to determine duplicates.
+func CompactFunc[T comparable](s Stream[T], eq func(T, T) bool) Stream[T] {
+	return &compactStream[T]{
+		inner: s,
+		first: true,
+		eq:    eq,
+	}
+}
+
+type compactStream[T any] struct {
+	inner Stream[T]
+	prev  T
+	first bool
+	eq    func(T, T) bool
+}
+
+func (s *compactStream[T]) Next(ctx context.Context) (T, bool) {
+	for {
+		item, ok := s.inner.Next(ctx)
+		if !ok {
+			return item, false
+		}
+
+		if s.first {
+			s.first = false
+			s.prev = item
+			return item, true
+		} else if !s.eq(s.prev, item) {
+			s.prev = item
+			return item, true
+		}
+	}
+}
+
+func (s *compactStream[T]) Close() (error) {
+	return s.inner.Close()
+}
+
 // Filter returns a Stream that yields only the items from s for which keep returns true. If keep
 // returns an error, terminates the stream early.
 func Filter[T any](s Stream[T], keep func(T) (bool, error)) Stream[T] {
