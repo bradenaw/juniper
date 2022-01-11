@@ -4,9 +4,11 @@ package slices_test
 
 import (
 	"fmt"
+	"math"
 	"testing"
 
 	"github.com/bradenaw/juniper/slices"
+	"github.com/bradenaw/juniper/xmath"
 )
 
 func ExampleGrow() {
@@ -94,6 +96,25 @@ func ExampleCompact() {
 
 	// Output:
 	// [a b c a]
+}
+
+func ExampleCompactFunc() {
+	x := []string{
+		"bank",
+		"beach",
+		"ghost",
+		"goat",
+		"group",
+		"yaw",
+		"yew",
+	}
+	compacted := slices.CompactFunc(x, func(a, b string) bool {
+		return a[0] == b[0]
+	})
+	fmt.Println(compacted)
+
+	// Output:
+	// [bank ghost yaw]
 }
 
 func ExampleEqual() {
@@ -259,4 +280,18 @@ func ExampleRuns() {
 
 	// Output:
 	// [[2 4 0] [7 1 3 9] [2 8]]
+}
+
+func ExampleReduce() {
+	x := []int{3, 1, 2}
+
+	sum := slices.Reduce(x, 0, func(x, y int) int { return x + y })
+	fmt.Println(sum)
+
+	min := slices.Reduce(x, math.MaxInt, xmath.Min[int])
+	fmt.Println(min)
+
+	// Output:
+	// 6
+	// 1
 }

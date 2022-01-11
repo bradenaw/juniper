@@ -113,3 +113,31 @@ func ExampleReduce() {
 	// 6
 	// 1
 }
+
+func ExampleCompact() {
+	iter := iterator.Slice([]string{"a", "a", "b", "c", "c", "c", "a"})
+	compacted := iterator.Compact(iter)
+	fmt.Println(iterator.Collect(compacted))
+
+	// Output:
+	// [a b c a]
+}
+
+func ExampleCompactFunc() {
+	iter := iterator.Slice([]string{
+		"bank",
+		"beach",
+		"ghost",
+		"goat",
+		"group",
+		"yaw",
+		"yew",
+	})
+	compacted := iterator.CompactFunc(iter, func(a, b string) bool {
+		return a[0] == b[0]
+	})
+	fmt.Println(iterator.Collect(compacted))
+
+	// Output:
+	// [bank ghost yaw]
+}

@@ -2,11 +2,21 @@
 
 package slices
 
-// Grow grows x's capacity, if necessary, to fit n more elements and returns the modified slice.
-// This does not change the length of x. After Grow(x, n), the following n append()s to x will not
-// need to reallocate.
+// Grow grows x's capacity by reallocating, if necessary, to fit n more elements and returns the
+// modified slice. This does not change the length of x. After Grow(x, n), the following n
+// append()s to x will not need to reallocate.
 func Grow[T any](x []T, n int) []T {
 	if cap(x)-len(x) < n {
+		x2 := make([]T, len(x)+n)
+		copy(x2, x)
+		return x2[:len(x)]
+	}
+	return x
+}
+
+// Shrink shrinks x's capacity by reallocating, if necessary, so that cap(x) <= len(x) + n.
+func Shrink[T any](x []T, n int) []T {
+	if cap(x) > len(x)+n {
 		x2 := make([]T, len(x)+n)
 		copy(x2, x)
 		return x2[:len(x)]
@@ -84,6 +94,19 @@ func Compact[T comparable](x []T) []T {
 	return compacted
 }
 
+// CompactFunc removes adjacent duplicates from x in-place, preserving the first occurrence, using
+// the supplied eq function and returns the modified slice.
+func CompactFunc[T any](x []T, eq func(T, T) bool) []T {
+	compacted := x[:0]
+	for i := range x {
+		if i == 0 || !eq(x[i-1], x[i]) {
+			compacted = append(compacted, x[i])
+		}
+	}
+	Clear(x[len(compacted):])
+	return compacted
+}
+
 // Equal returns true if a and b contain the same items in the same order.
 func Equal[T comparable](a, b []T) bool {
 	if len(a) != len(b) {
@@ -123,16 +146,6 @@ func Index[T comparable](a []T, item T) int {
 	return -1
 }
 
-// LastIndex returns the last index of item in a, or -1 if item is not in a.
-func LastIndex[T comparable](a []T, item T) int {
-	for i := len(a) - 1; i >= 0; i-- {
-		if a[i] == item {
-			return i
-		}
-	}
-	return -1
-}
-
 // Index returns the first index in a for which f(a[i]) returns true, or -1 if there are no such
 // items.
 func IndexFunc[T any](a []T, f func(T) bool) int {
@@ -144,9 +157,19 @@ func IndexFunc[T any](a []T, f func(T) bool) int {
 	return -1
 }
 
+// LastIndex returns the last index of item in a, or -1 if item is not in a.
+func LastIndex[T comparable](a []T, item T) int {
+	for i := len(a) - 1; i >= 0; i-- {
+		if a[i] == item {
+			return i
+		}
+	}
+	return -1
+}
+
 // LastIndexFunc returns the last index in a for which f(a[i]) returns true, or -1 if there are no
 // such items.
-func LastIndexFunc[T any](a []T, f func(T) bool ) int {
+func LastIndexFunc[T any](a []T, f func(T) bool) int {
 	for i := len(a) - 1; i >= 0; i-- {
 		if f(a[i]) {
 			return i
@@ -258,6 +281,15 @@ func Map[T any, U any](x []T, f func(T) U) []U {
 	out := make([]U, len(x))
 	for i := range x {
 		out[i] = f(x[i])
+	}
+	return out
+}
+
+// Reduce reduces x to a single value using the reduction function f.
+func Reduce[T any, U any](x []T, initial U, f func(U, T) U) U {
+	out := initial
+	for i := range x {
+		out = f(out, x[i])
 	}
 	return out
 }

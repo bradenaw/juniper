@@ -367,14 +367,55 @@ func Runs[T any](iter Iterator[T], same func(a, b T) bool) Iterator[Iterator[T]]
 	}
 }
 
-// Reduce reduces iter to a single value using the reduction function reduce.
-func Reduce[T any, U any](iter Iterator[T], start U, reduce func(u U, t T) U) U {
-	acc := start
+// Reduce reduces iter to a single value using the reduction function f.
+func Reduce[T any, U any](iter Iterator[T], initial U, f func(U, T) U) U {
+	acc := initial
 	for {
 		item, ok := iter.Next()
 		if !ok {
 			return acc
 		}
-		acc = reduce(acc, item)
+		acc = f(acc, item)
+	}
+}
+
+type compactIterator[T any] struct {
+	inner Iterator[T]
+	prev  T
+	first bool
+	eq    func(T, T) bool
+}
+
+func (iter *compactIterator[T]) Next() (T, bool) {
+	for {
+		item, ok := iter.inner.Next()
+		if !ok {
+			return item, false
+		}
+
+		if iter.first {
+			iter.first = false
+			iter.prev = item
+			return item, true
+		} else if !iter.eq(iter.prev, item) {
+			iter.prev = item
+			return item, true
+		}
+	}
+}
+
+// Compact elides adjacent duplicates from iter.
+func Compact[T comparable](iter Iterator[T]) Iterator[T] {
+	return CompactFunc(iter, func(a, b T) bool {
+		return a == b
+	})
+}
+
+// CompactFunc elides adjacent duplicates from iter, using eq to determine duplicates.
+func CompactFunc[T any](iter Iterator[T], eq func(T, T) bool) Iterator[T] {
+	return &compactIterator[T]{
+		inner: iter,
+		first: true,
+		eq:    eq,
 	}
 }
