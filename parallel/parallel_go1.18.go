@@ -57,7 +57,7 @@ func MapContext[T any, U any](
 }
 
 // MapIterator uses parallelism goroutines to call f once for each element yielded by iter. The
-// returned iterator returns these results in the same order that iter produced them in.
+// returned iterator returns these results in the same order that iter yielded them in.
 //
 // This iterator, in contrast with most, must be consumed completely or it will leak the goroutines.
 //
@@ -128,7 +128,7 @@ type valueAndIndex[T any] struct {
 }
 
 // MapStream uses parallelism goroutines to call f once for each element yielded by s. The returned
-// iterator returns these results in the same order that iter produced them in.
+// stream returns these results in the same order that s yielded them in.
 //
 // If any call to f returns an error the context passed to invocations of f is cancelled, no further
 // calls to f are made, and the returned stream's Next returns the first error encountered.
