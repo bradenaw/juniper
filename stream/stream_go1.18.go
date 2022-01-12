@@ -683,6 +683,8 @@ func (s *mapStream[T, U]) Close() {
 // Runs returns a stream of streams. The inner streams yield contiguous elements from s such that
 // same(a, b) returns true for any a and b in the run.
 //
+// The inner stream should be drained before calling Next on the outer stream.
+//
 // same(a, a) must return true. If same(a, b) and same(b, c) both return true, then same(a, c) must
 // also.
 func Runs[T any](s Stream[T], same func(a, b T) bool) Stream[Stream[T]] {
