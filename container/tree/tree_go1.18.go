@@ -158,7 +158,6 @@ func (t *tree[K, V]) removeLeftmost(
 	parent *node[K, V],
 	in **node[K, V],
 ) *node[K, V] {
-
 	for {
 		curr := *in
 		if curr.left == nil {
@@ -175,8 +174,6 @@ func (t *tree[K, V]) removeLeftmost(
 	}
 
 	curr := x
-	if curr == nil {
-	}
 	for curr != parent {
 		t.setHeight(curr)
 		curr = t.rebalance(curr)
