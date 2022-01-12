@@ -169,3 +169,11 @@ func ExampleReduce() {
 	// 6
 	// 1
 }
+
+func ExampleRepeat() {
+	iter := iterator.Repeat("a", 4)
+	fmt.Println(iterator.Collect(iter))
+
+	// Output:
+	// [a a a a]
+}

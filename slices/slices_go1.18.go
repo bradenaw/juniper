@@ -259,6 +259,15 @@ func Remove[T any](x []T, idx int, n int) []T {
 	return x[:len(x)-n]
 }
 
+// Repeat returns a slice with length n where every item is x.
+func Repeat[T any](x T, n int) []T {
+	out := make([]T, n)
+	for i := range out {
+		out[i] = x
+	}
+	return out
+}
+
 // Reverse reverses the elements of x in place.
 func Reverse[T any](x []T) {
 	for i := 0; i < len(x)/2; i++ {

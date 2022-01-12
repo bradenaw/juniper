@@ -231,6 +231,14 @@ func ExampleRemove() {
 	// [1 4 5]
 }
 
+func ExampleRepeat() {
+	x := slices.Repeat("a", 4)
+	fmt.Println(x)
+
+	// Output
+	// [a a a a]
+}
+
 func ExampleReverse() {
 	x := []string{"a", "b", "c", "d", "e"}
 	slices.Reverse(x)

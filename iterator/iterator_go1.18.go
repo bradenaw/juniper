@@ -72,6 +72,28 @@ func (iter *counterIterator) Next() (int, bool) {
 	return item, true
 }
 
+// Repeat returns an iterator that yields item n times.
+func Repeat[T any](item T, n int) Iterator[T] {
+	return &repeatIterator[T]{
+		item: item,
+		x:    n,
+	}
+}
+
+type repeatIterator[T any] struct {
+	item T
+	x    int
+}
+
+func (iter *repeatIterator[T]) Next() (T, bool) {
+	if iter.x <= 0 {
+		var zero T
+		return zero, false
+	}
+	iter.x--
+	return iter.item, true
+}
+
 // Slice returns an iterator over the elements of s.
 func Slice[T any](s []T) Iterator[T] {
 	return &sliceIterator[T]{
