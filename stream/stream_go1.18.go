@@ -171,6 +171,55 @@ func (s *pipeStream[T]) Next(ctx context.Context) (T, error) {
 
 func (s *pipeStream[T]) Close() { close(s.streamDone) }
 
+// Peekable allows viewing the next item from a stream without consuming it.
+type Peekable[T any] interface {
+	Stream[T]
+	// Peek returns the next item of the stream if there is one without consuming it.
+	//
+	// If Peek returns a value, the next call to Next will return the same value.
+	Peek(ctx context.Context) (T, error)
+}
+
+// WithPeek returns iter with a Peek() method attached.
+func WithPeek[T any](s Stream[T]) Peekable[T] {
+	return &peekable[T]{inner: s, has: false}
+}
+
+type peekable[T any] struct {
+	inner Stream[T]
+	curr  T
+	has   bool
+}
+
+func (s *peekable[T]) Next(ctx context.Context) (T, error) {
+	if s.has {
+		item := s.curr
+		s.has = false
+		var zero T
+		s.curr = zero
+		return item, nil
+	}
+	return s.inner.Next(ctx)
+}
+func (s *peekable[T]) Peek(ctx context.Context) (T, error) {
+	var zero T
+	if !s.has {
+		var err error
+		s.curr, err = s.inner.Next(ctx)
+		if err == End {
+			s.has = false
+			return zero, End
+		} else if err != nil {
+			return zero, err
+		}
+		s.has = true
+	}
+	return s.curr, nil
+}
+func (s *peekable[T]) Close() {
+	s.inner.Close()
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Reducers                                                                                       //
 // Functions that consume a stream and produce some kind of final value.                          //
@@ -190,6 +239,32 @@ func Collect[T any](ctx context.Context, s Stream[T]) ([]T, error) {
 		}
 		out = append(out, item)
 	}
+}
+
+// Last consumes s and returns the last n items. If s yields fewer than n items, Last returns
+// all of them.
+func Last[T any](ctx context.Context, s Stream[T], n int) ([]T, error) {
+	defer s.Close()
+	buf := make([]T, n)
+	i := 0
+	for {
+		item, err := s.Next(ctx)
+		if err == End {
+			break
+		} else if err != nil {
+			return nil, err
+		}
+		buf[i % n] = item
+		i++
+	}
+	if i < n {
+		return buf[:i], nil
+	}
+	out := make([]T, n)
+	idx := i % n
+	copy(out, buf[idx:])
+	copy(out[n-idx:], buf[:idx])
+	return out, nil
 }
 
 // Reduce reduces s to a single value using the reduction function f.
@@ -604,6 +679,73 @@ func (s *mapStream[T, U]) Next(ctx context.Context) (U, error) {
 func (s *mapStream[T, U]) Close() {
 	s.inner.Close()
 }
+
+// Runs returns a stream of streams. The inner streams yield contiguous elements from s such that
+// same(a, b) returns true for any a and b in the run.
+//
+// same(a, a) must return true. If same(a, b) and same(b, c) both return true, then same(a, c) must
+// also.
+func Runs[T any](s Stream[T], same func(a, b T) bool) Stream[Stream[T]] {
+	return &runsStream[T]{
+		inner: WithPeek(s),
+		same:  same,
+		curr:  nil,
+	}
+}
+
+type runsStream[T any] struct {
+	inner Peekable[T]
+	same  func(a, b T) bool
+	curr  *runsInnerStream[T]
+}
+
+func (s *runsStream[T]) Next(ctx context.Context) (Stream[T], error) {
+	if s.curr != nil {
+		for {
+			_, err := s.curr.Next(ctx)
+			if err == End {
+				break
+			} else if err != nil {
+				return nil, err
+			}
+		}
+		s.curr.Close()
+		s.curr = nil
+	}
+	item, err := s.inner.Peek(ctx)
+	if err != nil {
+		return nil, err
+	}
+	s.curr = &runsInnerStream[T]{parent: s, prev: item}
+	return s.curr, nil
+}
+
+func (s *runsStream[T]) Close() {
+	s.inner.Close()
+}
+
+type runsInnerStream[T any] struct {
+	parent *runsStream[T]
+	prev   T
+}
+
+func (s *runsInnerStream[T]) Next(ctx context.Context) (T, error) {
+	var zero T
+	if s.parent == nil {
+		return zero, End
+	}
+	item, err := s.parent.inner.Peek(ctx)
+	if err == End {
+		return zero, End
+	} else if err != nil {
+		return zero, err
+	} else if !s.parent.same(s.prev, item)  {
+		return zero, End
+	}
+	return s.parent.inner.Next(ctx)
+}
+
+func (s *runsInnerStream[T]) Close() { s.parent = nil }
 
 // While returns a Stream that terminates before the first item from s for which f returns false.
 // If f returns an error, terminates the stream early.

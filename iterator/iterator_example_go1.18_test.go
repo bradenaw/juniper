@@ -114,6 +114,21 @@ func ExampleFirst() {
 	// [a b c]
 }
 
+func ExampleLast() {
+	iter := iterator.Counter(10)
+
+	last3 := iterator.Last(iter, 3)
+	fmt.Println(last3)
+
+	iter = iterator.Counter(2)
+	last3 = iterator.Last(iter, 3)
+	fmt.Println(last3)
+
+	// Output:
+	// [7 8 9]
+	// [0 1]
+}
+
 func ExampleRuns() {
 	iter := iterator.Slice([]int{2, 4, 0, 7, 1, 3, 9, 2, 8})
 

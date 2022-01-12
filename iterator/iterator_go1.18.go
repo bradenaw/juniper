@@ -165,6 +165,29 @@ func Equal[T comparable](iters ...Iterator[T]) bool {
 	}
 }
 
+// Last consumes iter and returns the last n items. If iter yields fewer than n items, Last returns
+// all of them.
+func Last[T any](iter Iterator[T], n int) []T {
+	buf := make([]T, n)
+	i := 0
+	for {
+		item, ok := iter.Next()
+		if !ok {
+			break
+		}
+		buf[i % n] = item
+		i++
+	}
+	if i < n {
+		return buf[:i]
+	}
+	out := make([]T, n)
+	idx := i % n
+	copy(out, buf[idx:])
+	copy(out[n-idx:], buf[:idx])
+	return out
+}
+
 // Reduce reduces iter to a single value using the reduction function f.
 func Reduce[T any, U any](iter Iterator[T], initial U, f func(U, T) U) U {
 	acc := initial
