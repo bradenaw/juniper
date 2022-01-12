@@ -13,13 +13,12 @@ type tree[K any, V any] struct {
 	root *node[K, V]
 	less xsort.Less[K]
 	size int
-	// Incremented whenever the tree structure changes, so that iterators know to reset.
-	gen int
 }
 
 type node[K any, V any] struct {
-	left   *node[K, V]
-	right  *node[K, V]
+	left  *node[K, V]
+	right *node[K, V]
+	// nil if root or unlinked
 	parent *node[K, V]
 	// The height of this node. Leaves have height 0, internal nodes are one higher than their
 	// highest child.
@@ -34,7 +33,6 @@ func newTree[K any, V any](less xsort.Less[K]) *tree[K, V] {
 		root: nil,
 		less: less,
 		size: 0,
-		gen:  1,
 	}
 }
 
@@ -45,7 +43,6 @@ func (t *tree[K, V]) Put(k K, v V) {
 			value: v,
 		}
 		t.size++
-		t.gen++
 		return
 	}
 
@@ -89,7 +86,6 @@ func (t *tree[K, V]) Put(k K, v V) {
 	}
 	t.root = curr
 	t.size++
-	t.gen++
 }
 
 func (t *tree[K, V]) Delete(k K) {
@@ -136,6 +132,8 @@ func (t *tree[K, V]) Delete(k K) {
 				*in = nil
 				last = curr.parent
 			}
+			// unlink so cursors know to re-seek
+			curr.parent = nil
 			break
 		}
 	}
@@ -150,7 +148,6 @@ func (t *tree[K, V]) Delete(k K) {
 	}
 	t.root = curr
 	t.size--
-	t.gen++
 }
 
 func (t *tree[K, V]) removeLeftmost(
@@ -248,13 +245,11 @@ func (t *tree[K, V]) rebalance(curr *node[K, V]) *node[K, V] {
 			t.rotateLeft(curr.left)
 		}
 		newSubtreeRoot = t.rotateRight(curr)
-		t.gen++
 	} else if imbalance < -1 {
 		if t.imbalance(curr.right) > 0 {
 			t.rotateRight(curr.right)
 		}
 		newSubtreeRoot = t.rotateLeft(curr)
-		t.gen++
 	} else {
 		t.setHeight(curr)
 	}
@@ -361,16 +356,13 @@ func (t *tree[K, V]) setHeight(x *node[K, V]) {
 
 type cursor[K any, V any] struct {
 	t *tree[K, V]
-	// Should be manipulated via reset(), up(), left(), and right().
 	curr *node[K, V]
-	gen  int
 }
 
 func (c *cursor[K, V]) clone() cursor[K, V] {
 	return cursor[K, V]{
 		t:    c.t,
 		curr: c.curr,
-		gen:  c.gen,
 	}
 }
 
@@ -378,21 +370,20 @@ func (c *cursor[K, V]) Next() {
 	if !c.Ok() {
 		return
 	}
-	if c.gen != c.t.gen {
-		// Tree has changed structure, must re-seek to find our place.
+	if c.currDeleted() {
 		c.SeekFirstGreater(c.curr.key)
 		return
 	}
 	if c.curr.right != nil {
-		c.right()
+		c.curr = c.curr.right
 		for c.curr.left != nil {
-			c.left()
+			c.curr = c.curr.left
 		}
 	} else {
 		prev := c.curr
-		c.up()
+		c.curr = c.curr.parent
 		for c.curr != nil && c.t.less(c.curr.key, prev.key) {
-			c.up()
+			c.curr = c.curr.parent
 		}
 	}
 }
@@ -400,20 +391,20 @@ func (c *cursor[K, V]) Prev() {
 	if !c.Ok() {
 		return
 	}
-	if c.gen != c.t.gen && c.curr != nil {
+	if c.currDeleted() {
 		c.SeekLastLess(c.curr.key)
 		return
 	}
 	if c.curr.left != nil {
-		c.left()
+		c.curr = c.curr.left
 		for c.curr.right != nil {
-			c.right()
+			c.curr = c.curr.right
 		}
 	} else {
 		prev := c.curr
-		c.up()
+		c.curr = c.curr.parent
 		for c.curr != nil && c.t.less(prev.key, c.curr.key) {
-			c.up()
+		c.curr = c.curr.parent
 		}
 	}
 }
@@ -431,40 +422,40 @@ func (c *cursor[K, V]) Value() V {
 }
 
 func (c *cursor[K, V]) seek(k K) bool {
-	if !c.reset() {
+	c.curr = c.t.root
+	if c.curr == nil {
 		return false
 	}
 	for {
 		if c.curr.left != nil && c.t.less(k, c.curr.key) {
-			c.left()
+			c.curr = c.curr.left
 		} else if c.curr.right != nil && c.t.less(c.curr.key, k) {
-			c.right()
+			c.curr = c.curr.right
 		} else {
 			break
 		}
 	}
-	c.gen = c.t.gen
 	return true
 }
 
 func (c *cursor[K, V]) SeekFirst() {
-	if !c.reset() {
+	c.curr = c.t.root
+	if c.curr == nil {
 		return
 	}
 	for c.curr.left != nil {
-		c.left()
+		c.curr = c.curr.left
 	}
-	c.gen = c.t.gen
 }
 
 func (c *cursor[K, V]) SeekLast() {
-	if !c.reset() {
+	c.curr = c.t.root
+	if c.curr == nil {
 		return
 	}
 	for c.curr.right != nil {
-		c.right()
+		c.curr = c.curr.right
 	}
-	c.gen = c.t.gen
 }
 
 func (c *cursor[K, V]) SeekLastLess(k K) {
@@ -520,7 +511,7 @@ func (iter *forwardIterator[K, V]) Next() (KVPair[K, V], bool) {
 
 func (c *cursor[K, V]) Forward() iterator.Iterator[KVPair[K, V]] {
 	c2 := c.clone()
-	if c2.gen != c2.t.gen && c2.Ok() {
+	if c2.currDeleted() {
 		c2.SeekFirstGreaterOrEqual(c2.Key())
 	}
 	return &forwardIterator[K, V]{c: c2}
@@ -543,24 +534,14 @@ func (iter *backwardIterator[K, V]) Next() (KVPair[K, V], bool) {
 
 func (c *cursor[K, V]) Backward() iterator.Iterator[KVPair[K, V]] {
 	c2 := c.clone()
-	if c2.gen != c2.t.gen && c2.Ok() {
+	if c2.currDeleted() {
 		c2.SeekLastLessOrEqual(c2.Key())
 	}
 	return &backwardIterator[K, V]{c: c2}
 }
 
-func (c *cursor[K, V]) reset() bool {
-	c.curr = c.t.root
-	return c.curr != nil
-}
-func (c *cursor[K, V]) up() {
-	c.curr = c.curr.parent
-}
-func (c *cursor[K, V]) left() {
-	c.curr = c.curr.left
-}
-func (c *cursor[K, V]) right() {
-	c.curr = c.curr.right
+func (c *cursor[K, V]) currDeleted() bool {
+	return c.curr != nil && c.curr.parent == nil && c.t.root != c.curr
 }
 
 func (t *tree[K, V]) Cursor() cursor[K, V] {
