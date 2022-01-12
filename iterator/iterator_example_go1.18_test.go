@@ -104,6 +104,21 @@ func ExampleFilter() {
 	// [2 4 6]
 }
 
+func ExampleFlatten() {
+	iter := iterator.Slice([]iterator.Iterator[int]{
+		iterator.Slice([]int{0, 1, 2}),
+		iterator.Slice([]int{3, 4, 5, 6}),
+		iterator.Slice([]int{7}),
+	})
+
+	all := iterator.Flatten(iter)
+
+	fmt.Println(iterator.Collect(all))
+
+	// Output:
+	// [0 1 2 3 4 5 6 7]
+}
+
 func ExampleFirst() {
 	iter := iterator.Slice([]string{"a", "b", "c", "d", "e"})
 

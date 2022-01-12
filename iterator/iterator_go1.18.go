@@ -343,6 +343,36 @@ func (iter *firstIterator[T]) Next() (T, bool) {
 	return iter.inner.Next()
 }
 
+// Flatten returns an iterator that yields all items from all iterators yielded by iter.
+func Flatten[T any](iter Iterator[Iterator[T]]) Iterator[T] {
+	return &flattenIterator[T]{inner: iter}
+}
+
+type flattenIterator[T any] struct {
+	inner Iterator[Iterator[T]]
+	curr  Iterator[T]
+}
+
+func (iter *flattenIterator[T]) Next() (T, bool) {
+	for {
+		if iter.curr == nil {
+			var ok bool
+			iter.curr, ok = iter.inner.Next()
+			if !ok {
+				var zero T
+				return zero, false
+			}
+		}
+
+		item, ok := iter.curr.Next()
+		if !ok {
+			iter.curr = nil
+			continue
+		}
+		return item, true
+	}
+}
+
 // Join returns an Iterator that returns all elements of iters[0], then all elements of iters[1],
 // and so on.
 func Join[T any](iters ...Iterator[T]) Iterator[T] {

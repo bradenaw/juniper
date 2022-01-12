@@ -620,6 +620,47 @@ func (s *firstStream[T]) Close() {
 	s.inner.Close()
 }
 
+// Flatten returns a stream that yields all items from all streams yielded by s.
+func Flatten[T any](s Stream[Stream[T]]) Stream[T] {
+	return &flattenStream[T]{inner: s}
+}
+
+type flattenStream[T any] struct {
+	inner Stream[Stream[T]]
+	curr  Stream[T]
+}
+
+func (s *flattenStream[T]) Next(ctx context.Context) (T, error) {
+	for {
+		if s.curr == nil {
+			var err error
+			s.curr, err = s.inner.Next(ctx)
+			if err != nil {
+				var zero T
+				return zero, err
+			}
+		}
+
+		item, err := s.curr.Next(ctx)
+		if err == End {
+			s.curr.Close()
+			s.curr = nil
+			continue
+		} else if err != nil {
+			return item, err
+		}
+
+		return item, nil
+	}
+}
+
+func (s *flattenStream[T]) Close() {
+	if s.curr != nil {
+		s.curr.Close()
+	}
+	s.inner.Close()
+}
+
 // Join returns a Stream that yields all elements from streams[0], then all elements from
 // streams[1], and so on.
 func Join[T any](streams ...Stream[T]) Stream[T] {
