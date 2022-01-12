@@ -175,7 +175,7 @@ func Last[T any](iter Iterator[T], n int) []T {
 		if !ok {
 			break
 		}
-		buf[i % n] = item
+		buf[i%n] = item
 		i++
 	}
 	if i < n {
@@ -204,30 +204,6 @@ func Reduce[T any, U any](iter Iterator[T], initial U, f func(U, T) U) U {
 // Combinators                                                                                    //
 // Functions that take and return iterators, transforming the output somehow.                     //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Chain returns an Iterator that returns all elements of iters[0], then all elements of iters[1],
-// and so on.
-func Chain[T any](iters ...Iterator[T]) Iterator[T] {
-	return &chainIterator[T]{
-		iters: iters,
-	}
-}
-
-type chainIterator[T any] struct {
-	iters []Iterator[T]
-}
-
-func (iter *chainIterator[T]) Next() (T, bool) {
-	for len(iter.iters) > 0 {
-		item, ok := iter.iters[0].Next()
-		if ok {
-			return item, true
-		}
-		iter.iters = iter.iters[1:]
-	}
-	var zero T
-	return zero, false
-}
 
 // Chunk returns an iterator over non-overlapping chunks of size chunkSize. The last chunk will be
 // smaller than chunkSize if the iterator does not contain an even multiple.
@@ -343,6 +319,30 @@ func (iter *firstIterator[T]) Next() (T, bool) {
 	}
 	iter.x--
 	return iter.inner.Next()
+}
+
+// Join returns an Iterator that returns all elements of iters[0], then all elements of iters[1],
+// and so on.
+func Join[T any](iters ...Iterator[T]) Iterator[T] {
+	return &joinIterator[T]{
+		iters: iters,
+	}
+}
+
+type joinIterator[T any] struct {
+	iters []Iterator[T]
+}
+
+func (iter *joinIterator[T]) Next() (T, bool) {
+	for len(iter.iters) > 0 {
+		item, ok := iter.iters[0].Next()
+		if ok {
+			return item, true
+		}
+		iter.iters = iter.iters[1:]
+	}
+	var zero T
+	return zero, false
 }
 
 // Map transforms the results of iter using the conversion f.

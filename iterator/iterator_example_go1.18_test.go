@@ -114,6 +114,19 @@ func ExampleFirst() {
 	// [a b c]
 }
 
+func ExampleJoin() {
+	iter := iterator.Join(
+		iterator.Counter(3),
+		iterator.Counter(5),
+		iterator.Counter(2),
+	)
+
+	fmt.Println(iterator.Collect(iter))
+
+	// Output:
+	// [0 1 2 0 1 2 3 4 0 1]
+}
+
 func ExampleLast() {
 	iter := iterator.Counter(10)
 

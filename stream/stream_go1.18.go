@@ -254,7 +254,7 @@ func Last[T any](ctx context.Context, s Stream[T], n int) ([]T, error) {
 		} else if err != nil {
 			return nil, err
 		}
-		buf[i % n] = item
+		buf[i%n] = item
 		i++
 	}
 	if i < n {
@@ -482,38 +482,6 @@ func (iter *batchStream[T]) Close() {
 	iter.wg.Wait()
 }
 
-// Chain returns a Stream that yields all elements from streams[0], then all elements from
-// streams[1], and so on.
-func Chain[T any](streams ...Stream[T]) Stream[T] {
-	return &chainStream[T]{remaining: streams}
-}
-
-type chainStream[T any] struct {
-	remaining []Stream[T]
-}
-
-func (s *chainStream[T]) Next(ctx context.Context) (T, error) {
-	var zero T
-	for len(s.remaining) > 0 {
-		item, err := s.remaining[0].Next(ctx)
-		if err == End {
-			s.remaining[0].Close()
-			s.remaining = s.remaining[1:]
-			continue
-		} else if err != nil {
-			return zero, err
-		}
-		return item, nil
-	}
-	return zero, End
-}
-
-func (s *chainStream[T]) Close() {
-	for i := range s.remaining {
-		s.remaining[i].Close()
-	}
-}
-
 // Chunk returns a stream of non-overlapping chunks from s of size chunkSize. The last chunk will be
 // smaller than chunkSize if the stream does not contain an even multiple.
 func Chunk[T any](s Stream[T], chunkSize int) Stream[[]T] {
@@ -652,6 +620,38 @@ func (s *firstStream[T]) Close() {
 	s.inner.Close()
 }
 
+// Join returns a Stream that yields all elements from streams[0], then all elements from
+// streams[1], and so on.
+func Join[T any](streams ...Stream[T]) Stream[T] {
+	return &joinStream[T]{remaining: streams}
+}
+
+type joinStream[T any] struct {
+	remaining []Stream[T]
+}
+
+func (s *joinStream[T]) Next(ctx context.Context) (T, error) {
+	var zero T
+	for len(s.remaining) > 0 {
+		item, err := s.remaining[0].Next(ctx)
+		if err == End {
+			s.remaining[0].Close()
+			s.remaining = s.remaining[1:]
+			continue
+		} else if err != nil {
+			return zero, err
+		}
+		return item, nil
+	}
+	return zero, End
+}
+
+func (s *joinStream[T]) Close() {
+	for i := range s.remaining {
+		s.remaining[i].Close()
+	}
+}
+
 // Map transforms the values of s using the conversion f. If f returns an error, terminates the
 // stream early.
 func Map[T any, U any](s Stream[T], f func(t T) (U, error)) Stream[U] {
@@ -739,7 +739,7 @@ func (s *runsInnerStream[T]) Next(ctx context.Context) (T, error) {
 		return zero, End
 	} else if err != nil {
 		return zero, err
-	} else if !s.parent.same(s.prev, item)  {
+	} else if !s.parent.same(s.prev, item) {
 		return zero, End
 	}
 	return s.parent.inner.Next(ctx)
