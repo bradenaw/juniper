@@ -78,13 +78,17 @@ func (t *tree[K, V]) Put(k K, v V) {
 	}
 
 	for {
+		height := curr.height
 		curr = t.rebalance(curr)
 		if curr.parent == nil {
+			t.root = curr
+			break
+		}
+		if height == curr.height {
 			break
 		}
 		curr = curr.parent
 	}
-	t.root = curr
 	t.size++
 }
 
@@ -355,7 +359,7 @@ func (t *tree[K, V]) setHeight(x *node[K, V]) {
 }
 
 type cursor[K any, V any] struct {
-	t *tree[K, V]
+	t    *tree[K, V]
 	curr *node[K, V]
 }
 
@@ -404,7 +408,7 @@ func (c *cursor[K, V]) Prev() {
 		prev := c.curr
 		c.curr = c.curr.parent
 		for c.curr != nil && c.t.less(prev.key, c.curr.key) {
-		c.curr = c.curr.parent
+			c.curr = c.curr.parent
 		}
 	}
 }
