@@ -59,6 +59,8 @@ func MapContext[T any, U any](
 // MapIterator uses parallelism goroutines to call f once for each element yielded by iter. The
 // returned iterator returns these results in the same order that iter produced them in.
 //
+// This iterator, in contrast with most, must be consumed completely or it will leak the goroutines.
+//
 // If parallelism <= 0, uses GOMAXPROCS instead.
 //
 // bufferSize is the size of the work buffer for each goroutine. A larger buffer uses more memory
