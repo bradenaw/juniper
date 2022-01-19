@@ -161,13 +161,13 @@ func FuzzTree(f *testing.F) {
 				cursorDeleted = false
 			},
 			func(k byte) {
-				t.Logf("tree.SeekLastLess(%#v)", k)
+				t.Logf("cursor.SeekLastLess(%#v)", k)
 				cursor.SeekLastLess(k)
 				oracleCursor = oracleLastLess(&k)
 				cursorDeleted = false
 			},
 			func(k byte) {
-				t.Logf("tree.SeekLastLessOrEqual(%#v)", k)
+				t.Logf("cursor.SeekLastLessOrEqual(%#v)", k)
 				cursor.SeekLastLessOrEqual(k)
 				v, ok := oracle[k]
 				if ok {
@@ -178,7 +178,7 @@ func FuzzTree(f *testing.F) {
 				cursorDeleted = false
 			},
 			func(k byte) {
-				t.Logf("tree.SeekFirstGreaterOrEqual(%#v)", k)
+				t.Logf("cursor.SeekFirstGreaterOrEqual(%#v)", k)
 				cursor.SeekFirstGreaterOrEqual(k)
 				v, ok := oracle[k]
 				if ok {
@@ -189,7 +189,7 @@ func FuzzTree(f *testing.F) {
 				cursorDeleted = false
 			},
 			func(k byte) {
-				t.Logf("tree.SeekFirstGreater(%#v)", k)
+				t.Logf("cursor.SeekFirstGreater(%#v)", k)
 				cursor.SeekFirstGreater(k)
 				oracleCursor = oracleFirstGreater(&k)
 				cursorDeleted = false
