@@ -10,58 +10,28 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/bradenaw/juniper/internal/fuzz"
+	"github.com/bradenaw/juniper/internal/orderedhashmap"
 	"github.com/bradenaw/juniper/iterator"
-	"github.com/bradenaw/juniper/maps"
-	"github.com/bradenaw/juniper/slices"
 	"github.com/bradenaw/juniper/xmath"
 	"github.com/bradenaw/juniper/xsort"
 )
 
+func orderedhashmapKVPairToKVPair[K any, V any](kv orderedhashmap.KVPair[byte, int]) KVPair[byte, int] {
+	return KVPair[byte, int]{kv.K, kv.V}
+}
+
 func FuzzTree(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte) {
 		tree := newTree[byte, int](xsort.OrderedLess[byte])
-		oracle := make(map[byte]int)
 		cursor := tree.Cursor()
-		var oracleCursor *KVPair[byte, int]
-		// Since the cursor points at a tree node, they preserve the old value if the key is deleted
-		// from a map, but show updates for overwrites.
-		var cursorDeleted bool
 
-		// If k is non-nil, returns the greatest key in oracle less than k.
-		// If k is nil, returns the last key in oracle.
-		// The return is nil if there is no such key.
-		oracleLastLess := func(k *byte) *KVPair[byte, int] {
-			var out *KVPair[byte, int]
-			for existingK, existingV := range oracle {
-				if k != nil && existingK >= *k {
-					continue
-				}
-				if out == nil || existingK > out.K {
-					out = &KVPair[byte, int]{existingK, existingV}
-				}
-			}
-			return out
-		}
-		// If k is non-nil, returns the lowest key in oracle greater than k.
-		// If k is nil, returns the first key in oracle.
-		// The return is nil if there is no such key.
-		oracleFirstGreater := func(k *byte) *KVPair[byte, int] {
-			var out *KVPair[byte, int]
-			for existingK, existingV := range oracle {
-				if k != nil && existingK <= *k {
-					continue
-				}
-				if out == nil || existingK < out.K {
-					out = &KVPair[byte, int]{existingK, existingV}
-				}
-			}
-			return out
-		}
+		oracle := orderedhashmap.NewMap[byte, int](xsort.OrderedLess[byte])
+		oracleCursor := oracle.Cursor()
 
-		sortKVs := func(kvs []KVPair[byte, int]) {
-			xsort.Slice(kvs, func(a, b KVPair[byte, int]) bool {
-				return a.K < b.K
-			})
+		ctr := 0
+		nextV := func() int {
+			ctr++
+			return ctr
 		}
 
 		fuzz.Operations(
@@ -70,18 +40,13 @@ func FuzzTree(f *testing.F) {
 				t.Log("check")
 				t.Log(treeToString(tree))
 
-				require.Equal(t, len(oracle), tree.size)
-				var oracleSlice []KVPair[byte, int]
-				for k, v := range oracle {
-					oracleSlice = append(oracleSlice, KVPair[byte, int]{k, v})
-				}
-				sortKVs(oracleSlice)
+				require.Equal(t, oracle.Len(), tree.size)
+
+				oracleSlice := iterator.Collect(iterator.Map(
+					oracle.Iterate(),
+					orderedhashmapKVPairToKVPair[byte, int],
+				))
 				t.Logf("oracle: %#v", oracleSlice)
-				if oracleCursor == nil {
-					t.Log("oracle cursor: nil")
-				} else {
-					t.Logf("oracle cursor: %#v", *oracleCursor)
-				}
 
 				checkTree(t, tree)
 
@@ -89,158 +54,118 @@ func FuzzTree(f *testing.F) {
 				treeSlice := iterator.Collect[KVPair[byte, int]](c.Forward())
 				require.Equal(t, oracleSlice, treeSlice)
 
-				if oracleCursor == nil {
+				if !oracleCursor.Ok() {
 					require.False(t, cursor.Ok())
 				} else {
 					require.True(t, cursor.Ok())
-					require.Equal(t, oracleCursor.K, cursor.Key())
-					require.Equal(t, oracleCursor.V, cursor.Value())
-				}
-
-				if len(oracle) > 0 {
-					expectedFirst := oracleFirstGreater(nil)
-					firstK, firstV := tree.First()
-					require.Equal(t, expectedFirst.K, firstK)
-					require.Equal(t, expectedFirst.V, firstV)
-
-					expectedLast := oracleLastLess(nil)
-					lastK, lastV := tree.Last()
-					require.Equal(t, expectedLast.K, lastK)
-					require.Equal(t, expectedLast.V, lastV)
-				}
-			},
-			func(k byte, v int) {
-				t.Logf("tree.Put(%#v, %#v)", k, v)
-				tree.Put(k, v)
-				oracle[k] = v
-
-				if oracleCursor != nil && oracleCursor.K == k && !cursorDeleted {
-					oracleCursor.V = v
+					require.Equal(t, oracleCursor.Key(), cursor.Key())
+					require.Equal(t, oracle.Get(oracleCursor.Key()), cursor.Value())
 				}
 			},
 			func(k byte) {
+				v := nextV()
+				t.Logf("tree.Put(%#v, %#v)", k, v)
+				tree.Put(k, v)
+				oracle.Put(k, v)
+			},
+			func(k byte, d byte) {
 				t.Logf("tree.Delete(%#v)", k)
-				tree.Delete(k)
-				delete(oracle, k)
-				if oracleCursor != nil && oracleCursor.K == k {
-					cursorDeleted = true
+				if oracleCursor.Ok() && oracleCursor.Key() == k {
+					if d >= 128 {
+						t.Log("cursor.Next()")
+						cursor.Next()
+						oracleCursor.Next()
+					} else {
+						t.Log("cursor.Prev()")
+						cursor.Prev()
+						oracleCursor.Prev()
+					}
 				}
+				tree.Delete(k)
+				oracle.Delete(k)
 			},
 			func(k byte) {
 				t.Logf("tree.Contains(%#v)", k)
 				treeOk := tree.Contains(k)
-				_, oracleOk := oracle[k]
+				oracleOk := oracle.Contains(k)
 				require.Equal(t, oracleOk, treeOk)
 			},
 			func(k byte) {
 				t.Logf("tree.Get(%#v)", k)
 				v := tree.Get(k)
-				expectedV := oracle[k]
+				expectedV := oracle.Get(k)
+				require.Equal(t, expectedV, v)
+			},
+			func() {
+				t.Logf("tree.First()")
+				k, v := tree.First()
+				expectedK, expectedV := oracle.First()
+				require.Equal(t, expectedK, k)
+				require.Equal(t, expectedV, v)
+			},
+			func() {
+				t.Logf("tree.Last()")
+				k, v := tree.Last()
+				expectedK, expectedV := oracle.Last()
+				require.Equal(t, expectedK, k)
 				require.Equal(t, expectedV, v)
 			},
 			func() {
 				t.Log("cursor.Next()")
 				cursor.Next()
-				if oracleCursor != nil {
-					oracleCursor = oracleFirstGreater(&oracleCursor.K)
-				}
-				cursorDeleted = false
+				oracleCursor.Next()
 			},
 			func() {
 				t.Log("cursor.Prev()")
 				cursor.Prev()
-				if oracleCursor != nil {
-					oracleCursor = oracleLastLess(&oracleCursor.K)
-				}
-				cursorDeleted = false
+				oracleCursor.Prev()
 			},
 			func() {
 				t.Log("cursor.SeekFirst()")
 				cursor.SeekFirst()
-				oracleCursor = oracleFirstGreater(nil)
-				cursorDeleted = false
+				oracleCursor.SeekFirst()
 			},
 			func(k byte) {
 				t.Logf("cursor.SeekLastLess(%#v)", k)
 				cursor.SeekLastLess(k)
-				oracleCursor = oracleLastLess(&k)
-				cursorDeleted = false
+				oracleCursor.SeekLastLess(k)
 			},
 			func(k byte) {
 				t.Logf("cursor.SeekLastLessOrEqual(%#v)", k)
 				cursor.SeekLastLessOrEqual(k)
-				v, ok := oracle[k]
-				if ok {
-					oracleCursor = &KVPair[byte, int]{k, v}
-				} else {
-					oracleCursor = oracleLastLess(&k)
-				}
-				cursorDeleted = false
+				oracleCursor.SeekLastLessOrEqual(k)
 			},
 			func(k byte) {
 				t.Logf("cursor.SeekFirstGreaterOrEqual(%#v)", k)
 				cursor.SeekFirstGreaterOrEqual(k)
-				v, ok := oracle[k]
-				if ok {
-					oracleCursor = &KVPair[byte, int]{k, v}
-				} else {
-					oracleCursor = oracleFirstGreater(&k)
-				}
-				cursorDeleted = false
+				oracleCursor.SeekFirstGreaterOrEqual(k)
 			},
 			func(k byte) {
 				t.Logf("cursor.SeekFirstGreater(%#v)", k)
 				cursor.SeekFirstGreater(k)
-				oracleCursor = oracleFirstGreater(&k)
-				cursorDeleted = false
+				oracleCursor.SeekFirstGreater(k)
 			},
 			func() {
 				t.Log("cursor.SeekLast()")
 				cursor.SeekLast()
-				oracleCursor = oracleLastLess(nil)
-				cursorDeleted = false
+				oracleCursor.SeekLast()
 			},
 			func() {
 				t.Log("cursor.Forward()")
 				kvs := iterator.Collect(cursor.Forward())
-				var expectedKVs []KVPair[byte, int]
-				if oracleCursor != nil {
-					expectedKVs = slices.Map(
-						slices.Filter(
-							maps.Keys(oracle),
-							func(k byte) bool { return k >= oracleCursor.K },
-						),
-						func(k byte) KVPair[byte, int] {
-							return KVPair[byte, int]{k, oracle[k]}
-						},
-					)
-					sortKVs(expectedKVs)
-					if len(expectedKVs) == 0 {
-						expectedKVs = nil
-					}
-				}
+				expectedKVs := iterator.Collect(iterator.Map(
+					oracleCursor.Forward(),
+					orderedhashmapKVPairToKVPair[byte, int],
+				))
 				require.Equal(t, expectedKVs, kvs)
 			},
 			func() {
 				t.Log("cursor.Backward()")
 				kvs := iterator.Collect(cursor.Backward())
-				var expectedKVs []KVPair[byte, int]
-				if oracleCursor != nil {
-					expectedKVs = slices.Map(
-						slices.Filter(
-							maps.Keys(oracle),
-							func(k byte) bool { return k <= oracleCursor.K },
-						),
-						func(k byte) KVPair[byte, int] {
-							return KVPair[byte, int]{k, oracle[k]}
-						},
-					)
-					sortKVs(expectedKVs)
-					slices.Reverse(expectedKVs)
-					if len(expectedKVs) == 0 {
-						expectedKVs = nil
-					}
-				}
+				expectedKVs := iterator.Collect(iterator.Map(
+					oracleCursor.Backward(),
+					orderedhashmapKVPairToKVPair[byte, int],
+				))
 				require.Equal(t, expectedKVs, kvs)
 			},
 		)
