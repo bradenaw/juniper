@@ -128,3 +128,20 @@ func FuzzBatch(f *testing.F) {
 		)
 	})
 }
+
+func TestBatch(t *testing.T) {
+	ctx := context.Background()
+	sender, receiver := Pipe[int](1)
+	sender.Send(ctx, 1)
+
+	batches := Batch(receiver, 365*24*time.Hour, 1)
+	_, err := batches.Next(ctx)
+	require.NoError(t, err)
+
+	sender, receiver = Pipe[int](1)
+	sender.Send(ctx, 1)
+
+	batches = Batch(receiver, 0, 2)
+	_, err = batches.Next(context.Background())
+	require.NoError(t, err)
+}

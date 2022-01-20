@@ -301,18 +301,18 @@ func Reduce[T any, U any](
 // Chunk with the added feature that an underfilled batch will be delivered to the output stream if
 // any item has been in the batch for more than maxWait.
 func Batch[T any](s Stream[T], maxWait time.Duration, batchSize int) Stream[[]T] {
-	return BatchFunc(s, maxWait, func(batch []T, item T) bool {
-		return len(batch) < batchSize
+	return BatchFunc(s, maxWait, func(batch []T) bool {
+		return len(batch) >= batchSize
 	})
 }
 
-// BatchFunc returns a stream of non-overlapping batches from s, using canAdd to determine when a
+// BatchFunc returns a stream of non-overlapping batches from s, using full to determine when a
 // batch is full. BatchFunc is similar to Chunk with the added feature that an underfilled batch
 // will be delivered to the output stream if any item has been in the batch for more than maxWait.
 func BatchFunc[T any](
 	s Stream[T],
 	maxWait time.Duration,
-	canAdd func(batch []T, item T) bool,
+	full func(batch []T) bool,
 ) Stream[[]T] {
 	bgCtx, bgCancel := context.WithCancel(context.Background())
 
@@ -413,13 +413,13 @@ func BatchFunc[T any](
 					}
 					return
 				}
-				if !canAdd(batch, item) { // Case (A): the batch is full.
+				batch = append(batch, item)
+				if full(batch) { // Case (A): the batch is full.
 					stopTimer()
 					if !flush() {
 						return
 					}
 				}
-				batch = append(batch, item)
 				if len(batch) == 1 { // Bookkeeping for case (B).
 					batchStart = time.Now()
 					if waitingAtEmpty {
