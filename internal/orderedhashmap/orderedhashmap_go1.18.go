@@ -75,8 +75,8 @@ func (m Map[K, V]) Iterate() iterator.Iterator[KVPair[K, V]] {
 	return m.Cursor().Forward()
 }
 
-func (m Map[K, V]) Cursor() *MapCursor[K, V] {
-	c := &MapCursor[K, V]{
+func (m Map[K, V]) Cursor() *Cursor[K, V] {
+	c := &Cursor[K, V]{
 		m: m,
 	}
 	c.SeekFirst()
@@ -113,104 +113,112 @@ func (m Map[K, V]) firstGreater(k K) (K, bool) {
 	return out, !first
 }
 
-type MapCursor[K comparable, V any] struct {
-	m  Map[K, V]
-	ok bool
-	k  K
+type Cursor[K comparable, V any] struct {
+	m       Map[K, V]
+	offEdge bool
+	k       K
 }
 
-func (c *MapCursor[K, V]) SeekFirst() {
+func (c *Cursor[K, V]) SeekFirst() {
 	c.k, _ = c.m.First()
-	c.ok = len(c.m.m) > 0
+	c.offEdge = len(c.m.m) == 0
 }
 
-func (c *MapCursor[K, V]) SeekLast() {
+func (c *Cursor[K, V]) SeekLast() {
 	c.k, _ = c.m.Last()
-	c.ok = len(c.m.m) > 0
+	c.offEdge = len(c.m.m) == 0
 }
 
-func (c *MapCursor[K, V]) set(k K) {
+func (c *Cursor[K, V]) set(k K) {
 	c.k = k
-	c.ok = true
+	c.offEdge = false
 }
 
-func (c *MapCursor[K, V]) SeekLastLess(k K) {
+func (c *Cursor[K, V]) SeekLastLess(k K) {
 	k, ok := c.m.lastLess(k)
-	c.ok = ok
+	c.offEdge = !ok
 	if ok {
 		c.set(k)
 	}
 }
 
-func (c *MapCursor[K, V]) SeekLastLessOrEqual(k K) {
+func (c *Cursor[K, V]) SeekLastLessOrEqual(k K) {
 	if c.m.Contains(k) {
 		c.set(k)
 		return
 	}
 	k, ok := c.m.lastLess(k)
-	c.ok = ok
+	c.offEdge = !ok
 	if ok {
 		c.set(k)
 	}
 }
 
-func (c *MapCursor[K, V]) SeekFirstGreaterOrEqual(k K) {
+func (c *Cursor[K, V]) SeekFirstGreaterOrEqual(k K) {
 	if c.m.Contains(k) {
 		c.set(k)
 		return
 	}
 	k, ok := c.m.firstGreater(k)
-	c.ok = ok
+	c.offEdge = !ok
 	if ok {
 		c.set(k)
 	}
 }
 
-func (c *MapCursor[K, V]) SeekFirstGreater(k K) {
+func (c *Cursor[K, V]) SeekFirstGreater(k K) {
 	k, ok := c.m.firstGreater(k)
-	c.ok = ok
+	c.offEdge = !ok
 	if ok {
 		c.set(k)
 	}
 }
 
-func (c *MapCursor[K, V]) Next() {
-	if !c.ok {
+func (c *Cursor[K, V]) Next() {
+	if c.offEdge {
 		return
 	}
 	k, ok := c.m.firstGreater(c.k)
-	c.ok = ok
+	c.offEdge = !ok
 	if ok {
 		c.set(k)
 	}
 }
 
-func (c *MapCursor[K, V]) Prev() {
-	if !c.ok {
+func (c *Cursor[K, V]) Prev() {
+	if c.offEdge {
 		return
 	}
 	k, ok := c.m.lastLess(c.k)
-	c.ok = ok
+	c.offEdge = !ok
 	if ok {
 		c.set(k)
 	}
 }
 
-func (c *MapCursor[K, V]) deleted() bool {
+func (c *Cursor[K, V]) deleted() bool {
 	return !c.m.Contains(c.k)
 }
 
-func (c *MapCursor[K, V]) Ok() bool { return c.ok }
+func (c *Cursor[K, V]) Ok() bool {
+	_, ok := c.m.m[c.k]
+	return !c.offEdge && ok
+}
 
-func (c *MapCursor[K, V]) Key() K { return c.k }
+func (c *Cursor[K, V]) Key() K { return c.k }
 
-func (c *MapCursor[K, V]) Value() V { return c.m.m[c.k] }
+func (c *Cursor[K, V]) Value() V {
+	return c.m.m[c.k]
+}
 
 type forwardIterator[K comparable, V any] struct {
-	c MapCursor[K, V]
+	c Cursor[K, V]
 }
 
 func (iter *forwardIterator[K, V]) Next() (KVPair[K, V], bool) {
+	if !iter.c.offEdge && iter.c.deleted() {
+		iter.c.SeekFirstGreaterOrEqual(iter.c.Key())
+	}
 	if !iter.c.Ok() {
 		var zero KVPair[K, V]
 		return zero, false
@@ -221,19 +229,22 @@ func (iter *forwardIterator[K, V]) Next() (KVPair[K, V], bool) {
 	return KVPair[K, V]{k, v}, true
 }
 
-func (c *MapCursor[K, V]) Forward() iterator.Iterator[KVPair[K, V]] {
+func (c *Cursor[K, V]) Forward() iterator.Iterator[KVPair[K, V]] {
 	c2 := *c
-	if c2.Ok() && c2.deleted() {
+	if !c2.offEdge && c2.deleted() {
 		c2.SeekFirstGreater(c2.k)
 	}
 	return &forwardIterator[K, V]{c: c2}
 }
 
 type backwardIterator[K comparable, V any] struct {
-	c MapCursor[K, V]
+	c Cursor[K, V]
 }
 
 func (iter *backwardIterator[K, V]) Next() (KVPair[K, V], bool) {
+	if !iter.c.offEdge && iter.c.deleted() {
+		iter.c.SeekLastLessOrEqual(iter.c.Key())
+	}
 	if !iter.c.Ok() {
 		var zero KVPair[K, V]
 		return zero, false
@@ -244,9 +255,9 @@ func (iter *backwardIterator[K, V]) Next() (KVPair[K, V], bool) {
 	return KVPair[K, V]{k, v}, true
 }
 
-func (c *MapCursor[K, V]) Backward() iterator.Iterator[KVPair[K, V]] {
+func (c *Cursor[K, V]) Backward() iterator.Iterator[KVPair[K, V]] {
 	c2 := *c
-	if c2.Ok() && c2.deleted() {
+	if !c2.offEdge && c2.deleted() {
 		c2.SeekLastLess(c.k)
 	}
 	return &backwardIterator[K, V]{c: c2}

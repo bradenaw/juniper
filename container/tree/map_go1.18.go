@@ -15,14 +15,16 @@ type KVPair[K any, V any] struct {
 // Map is a tree-structured key-value map, similar to Go's built-in map but keeps elements in sorted
 // order by key.
 type Map[K any, V any] struct {
-	t *tree[K, V]
+	// An extra indirect here so that tree.Map behaves like a reference type like the map builtin.
+	t *btree[K, V]
 }
 
 // NewMap returns a Map that uses less to determine the sort order of keys. If !less(a, b) &&
-// !less(b, a), then a and b are considered the same key.
+// !less(b, a), then a and b are considered the same key. The output of less must not change for any
+// pair of keys while they are in the map.
 func NewMap[K any, V any](less xsort.Less[K]) Map[K, V] {
 	return Map[K, V]{
-		t: newTree[K, V](less),
+		t: newBtree[K, V](less),
 	}
 }
 

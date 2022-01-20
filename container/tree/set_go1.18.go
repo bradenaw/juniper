@@ -10,14 +10,16 @@ import (
 // Set is a tree-structured set. Sets are a collection of unique elements. Similar to Go's built-in
 // map[T]struct{} but keeps elements in sorted order.
 type Set[T any] struct {
-	t *tree[T, struct{}]
+	// An extra indirect here so that tree.Set behaves like a reference type like the map builtin.
+	t *btree[T, struct{}]
 }
 
 // NewSet returns a Set that uses less to determine the sort order of items. If !less(a, b) &&
-// !less(b, a), then a and b are considered the same item.
+// !less(b, a), then a and b are considered the same item. The output of less must not change for
+// any pair of items while they are in the set.
 func NewSet[T any](less xsort.Less[T]) Set[T] {
 	return Set[T]{
-		t: newTree[T, struct{}](less),
+		t: newBtree[T, struct{}](less),
 	}
 }
 
