@@ -8,8 +8,8 @@ import (
 )
 
 type KVPair[K any, V any] struct {
-	K K
-	V V
+	Key   K
+	Value V
 }
 
 // Map is a tree-structured key-value map, similar to Go's built-in map but keeps elements in sorted

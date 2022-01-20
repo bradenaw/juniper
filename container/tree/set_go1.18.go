@@ -137,8 +137,8 @@ func (c *SetCursor[T]) Item() T { return c.inner.Key() }
 // This iterator's Next method is amoritized O(1), unless the map changes in which case the
 // following Next is O(log(n)) where n is the number of elements in the map.
 func (c *SetCursor[T]) Forward() iterator.Iterator[T] {
-	return iterator.Map(c.inner.Forward(), func(kv KVPair[T, struct{}]) T {
-		return kv.K
+	return iterator.Map(c.inner.Forward(), func(pair KVPair[T, struct{}]) T {
+		return pair.Key
 	})
 }
 
@@ -148,7 +148,7 @@ func (c *SetCursor[T]) Forward() iterator.Iterator[T] {
 // This iterator's Next method is amoritized O(1), unless the map changes in which case the
 // following Next is O(log(n)) where n is the number of elements in the map.
 func (c *SetCursor[T]) Backward() iterator.Iterator[T] {
-	return iterator.Map(c.inner.Backward(), func(kv KVPair[T, struct{}]) T {
-		return kv.K
+	return iterator.Map(c.inner.Backward(), func(pair KVPair[T, struct{}]) T {
+		return pair.Key
 	})
 }

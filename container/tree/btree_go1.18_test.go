@@ -46,7 +46,7 @@ func FuzzBtree(f *testing.F) {
 					iterator.Map(oracle.Cursor().Forward(), orderedhashmapKVPairToKVPair[byte, int]),
 				)
 				xsort.Slice(oraclePairs, func(a, b KVPair[byte, int]) bool {
-					return a.K < b.K
+					return a.Key < b.Key
 				})
 
 				c := tree.Cursor()
