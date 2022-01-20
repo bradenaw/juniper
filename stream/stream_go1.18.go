@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	// ErrClosedPipe is returned from Sender.Send() when the associated stream has already been
+	// ErrClosedPipe is returned from PipeSender.Send() when the associated stream has already been
 	// closed.
 	ErrClosedPipe = errors.New("closed pipe")
 	// End is returned from Stream.Next when iteration ends successfully.
@@ -97,12 +97,12 @@ func (s *iteratorStream[T]) Close() {}
 //
 // bufferSize is the number of elements in the buffer between the sender and the receiver. 0 has the
 // same meaning as for the built-in make(chan).
-func Pipe[T any](bufferSize int) (*Sender[T], Stream[T]) {
+func Pipe[T any](bufferSize int) (*PipeSender[T], Stream[T]) {
 	c := make(chan T, bufferSize)
 	senderDone := make(chan error, 1)
 	streamDone := make(chan struct{})
 
-	sender := &Sender[T]{
+	sender := &PipeSender[T]{
 		c:          c,
 		senderDone: senderDone,
 		streamDone: streamDone,
@@ -116,8 +116,8 @@ func Pipe[T any](bufferSize int) (*Sender[T], Stream[T]) {
 	return sender, receiver
 }
 
-// Sender is the send half of a pipe returned by Pipe.
-type Sender[T any] struct {
+// PipeSender is the send half of a pipe returned by Pipe.
+type PipeSender[T any] struct {
 	c          chan<- T
 	senderDone chan<- error
 	streamDone <-chan struct{}
@@ -128,7 +128,7 @@ type Sender[T any] struct {
 //
 // A nil return does not necessarily mean that the receiver will see x, since the receiver may close
 // early.
-func (s *Sender[T]) Send(ctx context.Context, x T) error {
+func (s *PipeSender[T]) Send(ctx context.Context, x T) error {
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -139,9 +139,9 @@ func (s *Sender[T]) Send(ctx context.Context, x T) error {
 	}
 }
 
-// Close closes the Sender, signalling to the receiver that no more values will be sent. If an error
-// is provided, it will surface when closing the receiver.
-func (s *Sender[T]) Close(err error) {
+// Close closes the PipeSender, signalling to the receiver that no more values will be sent. If an
+// error is provided, it will surface when closing the receiver.
+func (s *PipeSender[T]) Close(err error) {
 	s.senderDone <- err
 	close(s.c)
 }
