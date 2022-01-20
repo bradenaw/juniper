@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/bradenaw/juniper/iterator"
+	"github.com/bradenaw/juniper/xmath"
 )
 
 var (
@@ -299,7 +300,20 @@ func Reduce[T any, U any](
 // Batch returns a stream of non-overlapping batches from s of size batchSize. Batch is similar to
 // Chunk with the added feature that an underfilled batch will be delivered to the output stream if
 // any item has been in the batch for more than maxWait.
-func Batch[T any](s Stream[T], batchSize int, maxWait time.Duration) Stream[[]T] {
+func Batch[T any](s Stream[T], maxWait time.Duration, batchSize int) Stream[[]T] {
+	return BatchFunc(s, maxWait, func(batch []T, item T) bool {
+		return len(batch) < batchSize
+	})
+}
+
+// BatchFunc returns a stream of non-overlapping batches from s, using canAdd to determine when a
+// batch is full. BatchFunc is similar to Chunk with the added feature that an underfilled batch
+// will be delivered to the output stream if any item has been in the batch for more than maxWait.
+func BatchFunc[T any](
+	s Stream[T],
+	maxWait time.Duration,
+	canAdd func(batch []T, item T) bool,
+) Stream[[]T] {
 	bgCtx, bgCancel := context.WithCancel(context.Background())
 
 	out := &batchStream[T]{
@@ -339,8 +353,9 @@ func Batch[T any](s Stream[T], batchSize int, maxWait time.Duration) Stream[[]T]
 	go func() {
 		defer out.wg.Done()
 
-		batch := make([]T, 0, batchSize)
+		var batch []T
 		var batchStart time.Time
+		batchSizeEstimate := 0
 		var timer *time.Timer
 		// Starts off as nil so that the timerC select arm isn't chosen until populated.  Also set
 		// to nil when we've already stopped or received from timer to know when it needs to be
@@ -361,7 +376,8 @@ func Batch[T any](s Stream[T], batchSize int, maxWait time.Duration) Stream[[]T]
 				return false
 			case out.batchC <- batch:
 			}
-			batch = make([]T, 0, batchSize)
+			batchSizeEstimate = (batchSizeEstimate + len(batch)) / 2
+			batch = make([]T, 0, xmath.Max(len(batch), batchSizeEstimate*11/10))
 			waitingAtEmpty = false
 			return true
 		}
@@ -397,13 +413,14 @@ func Batch[T any](s Stream[T], batchSize int, maxWait time.Duration) Stream[[]T]
 					}
 					return
 				}
-				batch = append(batch, item)
-				if len(batch) == batchSize { // Case (A): the batch is full.
+				if !canAdd(batch, item) { // Case (A): the batch is full.
 					stopTimer()
 					if !flush() {
 						return
 					}
-				} else if len(batch) == 1 { // Bookkeeping for case (B).
+				}
+				batch = append(batch, item)
+				if len(batch) == 1 { // Bookkeeping for case (B).
 					batchStart = time.Now()
 					if waitingAtEmpty {
 						startTimer()

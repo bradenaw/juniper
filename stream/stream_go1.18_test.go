@@ -29,7 +29,7 @@ func FuzzBatch(f *testing.F) {
 		t.Logf("batchSize = %#v", batchSize)
 
 		sender, receiver := Pipe[int](bufferSize)
-		s := Batch(receiver, batchSize, 10*time.Millisecond)
+		s := Batch(receiver, 10*time.Millisecond, batchSize)
 
 		var oracle []int
 		sendClosed := false

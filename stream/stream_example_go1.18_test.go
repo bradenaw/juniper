@@ -87,7 +87,7 @@ func ExampleBatch() {
 	ctx := context.Background()
 
 	sender, receiver := stream.Pipe[string](0)
-	batchStream := stream.Batch(receiver, 3, 50*time.Millisecond)
+	batchStream := stream.Batch(receiver, 50*time.Millisecond, 3)
 
 	wait := make(chan struct{}, 3)
 	go func() {
