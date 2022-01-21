@@ -820,7 +820,7 @@ func (c *cursor[K, V]) refind() bool {
 	}
 	c.curr = curr
 	c.i = i
-	c.k = c.curr.keys[c.i]
+	c.gen = c.t.gen
 	return true
 }
 
