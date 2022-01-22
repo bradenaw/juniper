@@ -627,7 +627,7 @@ func (c *cursor[K, V]) Next() {
 		c.SeekFirstGreater(c.k)
 		return
 	}
-	if !c.Ok() {
+	if c.curr == nil {
 		return
 	}
 
@@ -664,7 +664,7 @@ func (c *cursor[K, V]) Prev() {
 		c.SeekLastLess(c.k)
 		return
 	}
-	if !c.Ok() {
+	if c.curr == nil {
 		return
 	}
 
@@ -709,6 +709,10 @@ func (c *cursor[K, V]) Value() V {
 	if !c.refind() {
 		return zero
 	}
+	return c.curr.values[c.i]
+}
+
+func (c *cursor[K, V]) valueUnchecked() V {
 	return c.curr.values[c.i]
 }
 
@@ -849,12 +853,13 @@ func (iter *forwardIterator[K, V]) Next() (KVPair[K, V], bool) {
 	if iter.c.lost() {
 		iter.c.SeekFirstGreaterOrEqual(iter.c.Key())
 	}
-	if !iter.c.Ok() {
+	if iter.c.curr == nil {
 		var zero KVPair[K, V]
 		return zero, false
 	}
 	k := iter.c.Key()
-	v := iter.c.Value()
+	// Safe since we already made sure !iter.c.lost() by reseeking above.
+	v := iter.c.valueUnchecked()
 	iter.c.Next()
 	return KVPair[K, V]{k, v}, true
 }
@@ -871,12 +876,13 @@ func (iter *backwardIterator[K, V]) Next() (KVPair[K, V], bool) {
 	if iter.c.lost() {
 		iter.c.SeekLastLessOrEqual(iter.c.Key())
 	}
-	if !iter.c.Ok() {
+	if iter.c.curr == nil {
 		var zero KVPair[K, V]
 		return zero, false
 	}
 	k := iter.c.Key()
-	v := iter.c.Value()
+	// Safe since we already made sure !iter.c.lost() by reseeking above.
+	v := iter.c.valueUnchecked()
 	iter.c.Prev()
 	return KVPair[K, V]{k, v}, true
 }
