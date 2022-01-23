@@ -7,7 +7,7 @@
 
 // NOSPLIT,NOFRAME?
 // func matchMask(a uint8, b [16]uint8) uint16
-TEXT ·matchMask(SB),$0-17
+TEXT ·matchMask(SB),NOFRAME,$0-17
     VPBROADCASTB    a+0(FP),    X0
     VPCMPEQB        b+1(FP),    X0, X0
     VPMOVMSKB       X0,         AX

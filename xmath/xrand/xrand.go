@@ -52,10 +52,10 @@ func sampleInner(
 			first = false
 		}
 		skip := math.Floor(math.Log(randFloat64()) / math.Log(1-w))
-		if math.IsInf(skip, 0) || math.IsNaN(skip) {
+		i += int(skip) + 1
+		if math.IsInf(skip, 0) || math.IsNaN(skip) || i < 0 {
 			return math.MaxInt, 0
 		}
-		i += int(skip) + 1
 		w *= math.Exp(math.Log(randFloat64()) / float64(k))
 		return i, randIntn(k)
 	}

@@ -3,8 +3,9 @@
 package hashtable
 
 import (
-	"hash/maphash"
 	"fmt"
+	"hash/maphash"
+	"math"
 	"math/rand"
 	"strings"
 	"testing"
@@ -12,8 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/bradenaw/juniper/internal/fuzz"
-	"github.com/bradenaw/juniper/xmath/xrand"
 	"github.com/bradenaw/juniper/iterator"
+	"github.com/bradenaw/juniper/xmath/xrand"
 )
 
 func FuzzHashtable(f *testing.F) {
@@ -131,7 +132,7 @@ func tableToString[K any, V any](ht *hashtable[K, V]) string {
 			case controlDeleted:
 				fmt.Fprintf(&sb, "[deleted]")
 			default:
-				fmt.Fprintf(&sb, "h2=%02x  %#v: %#v", control, g.pairs[j].key , g.pairs[j].value )
+				fmt.Fprintf(&sb, "h2=%02x  %#v: %#v", control, g.pairs[j].key, g.pairs[j].value)
 			}
 			fmt.Fprintf(&sb, "\n")
 		}
@@ -143,18 +144,22 @@ var sizes = []int{10, 100, 1_000, 10_000, 100_000, 1_000_000}
 
 func BenchmarkHashtableMapGet(b *testing.B) {
 	for _, size := range sizes {
-		m := newHashtable[int, int](defaultHash[int](), defaultEq[int])
+		//m := newHashtable[int, int](defaultHash[int](), defaultEq[int])
+		m := newHashtable[int, int](func(x int) uint64 {
+			return uint64(x)
+		}, defaultEq[int])
+		r := rand.New(rand.NewSource(rand.Int63()))
+		keys := xrand.Sample(r, math.MaxInt, size)
 		for i := 0; i < size; i++ {
-			m.Put(i, i)
+			m.Put(keys[i], i)
 		}
 		b.Run(fmt.Sprintf("Size=%d", size), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				_ = m.Get(i % size)
+				_ = m.Get(keys[i%size])
 			}
 		})
 	}
 }
-
 
 func BenchmarkHashtableMapPut(b *testing.B) {
 	for _, size := range sizes {
@@ -173,7 +178,6 @@ func BenchmarkHashtableMapPut(b *testing.B) {
 		})
 	}
 }
-
 
 func BenchmarkHashtableMapPutAlreadyPresent(b *testing.B) {
 	for _, size := range sizes {
