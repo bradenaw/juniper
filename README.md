@@ -1,204 +1,44 @@
 # Juniper
 
-Juniper is a library of extensions to the Go standard library. It is **very much experimental** and
-nothing is guaranteed, use at your own risk.
+Juniper is a library of extensions to the Go standard library using generics, including containers.
 
-For example:
-
-- `container/tree` contains equivalents to the built-in `map` that keep elements in sorted order.
-- `container/deque` contains a double-ended queue.
-- `container/xheap` contains a min-heap similar to `container/heap` but easier to use, although less
-  powerful.
-- `slices` contains some commonly-used slice operations.
-- `iterator` contains an iterator interface used by the containers, along with a few functions to
-  manipulate them.
-- `xsort` contains mostly equivalents to `sort`.
+- `container/tree` contains a `Map` and `Set` that keep elements in sorted order. They are
+  implemented using a B-tree, which performs better than a binary search tree.
+- `container/deque` contains a double-ended queue implemented with a ring buffer.
+- `container/xheap` contains a min-heap similar to the standard library's `container/heap` but
+  more ergonomic, along with a `PriorityQueue` that allows setting priorities by key.
+- `container/xlist` contains a linked-list similar to the standard library's `container/list`, but
+  type-safe.
+- `slices` contains some commonly-used slice operations, like `Insert`, `Remove`, `Chunk`, `Filter`,
+  and `Compact`.
+- `iterator` contains an iterator interface used by the containers, along with functions to
+  manipulate them, like `Map`, `While`, and `Reduce`.
+- `stream` contains a stream interface, which is an iterator that can fail. Useful for iterating
+  over collections that require I/O. It has most of the same combinators as `iterator`, plus some
+  extras like `Pipe` and `Batch`.
+- `parallel` contains some shorthand for common uses of goroutines to process slices, iterators, and
+  streams in parallel, like `parallel.MapStream`.
+- `xsort` contains extensions to the standard library package `sort`. Notably, it also has the
+  definition for `xsort.Less`, which is how custom orderings can be defined for sorting and also for
+  ordered collections like from `container/tree`.
+- You can probably guess what's in the packages `maps`, `sets`, `xerrors`, `xmath`, `xmath/xrand`,
+  `xsync`, and `xtime`.
 
 Packages that overlap directly with a standard library package are named the same but with an `x`
 prefix for "extensions", e.g. `sort` and `xsort`.
 
-Currently it's an experiment with Go 1.18's generics and how the standard library might evolve to
-take advantage of them. Go itself is not adopting changes to the standard library with Go 1.18,
-instead waiting until the Go community has gotten some experience working with them.
+A few functions do not require generics (e.g. `parallel.Do` and `xmath/xrand.Sample`), and so this
+library still builds with Go 1.17 and below but with a significantly smaller API. Note that
+pkg.go.dev still builds with 1.17, so the documentation is incomplete.
 
-To play with it, you'll need to use [Go 1.18 Beta 1](https://go.dev/blog/go1.18beta1) or [build Go
-from source](https://go.dev/doc/install/source) as Go 1.18 is not yet released.
+## Status
 
-A few functions do not require generics, and so this library still builds with Go 1.17 and below but
-with a significantly smaller API.
+Things should basically work. The container packages have been tested decently well using the [new
+built-in coverage-based fuzzer](https://go.dev/doc/fuzz/) (it's a pleasure, by the way, other than
+having to translate from the built-in fuzz argument types). `container/tree` has been benchmarked
+and tweaked for some extra performance. It's far from hyper-optimized, but should be efficient
+enough. Most of the simpler functions are tested only with their examples.
 
-# Notes on Challenges with Generics So Far
-
-## Ordering
-
-`xsort` allows defining ordering for arbitrary types. This is used for sorting, searching, and
-ordered data structures like `container/tree` and `container/xheap`. Every available option for
-doing this is a little awkward.
-
-### Option A: Less function type
-```
-type Less[T] func(a, b T) bool
-
-func OrderedLess[T constraints.Ordered](a, b T) bool {
-	return a < b
-}
-
-func SortByLen[T any](x [][]T) {
-    xsort.Slice(x, func(a, b []T) bool {
-        return len(a) < len(b)
-    })
-}
-```
-
-Pros:
-- Easy to understand. Already the way the standard library `sort` does it.
-- Allows short ad-hoc definitions for `Less`.
-
-Cons:
-- Ordering is not expressed in the type system.
-- Requires passing a `Less[T]` function pointer everywhere that it's needed.
-- `less` can't get inlined because its implementation isn't known at compile time.
-
-### Option B: Ordering interface
-```
-type Lesser[T any] interface {
-    Less(a, b T) bool
-}
-
-type OrderedLesser[T constraints.Ordered] struct{}
-
-func (OrderedLesser[T]) Less(a, b T) bool {
-	return a < b
-}
-
-func SortSlice[T any, L Lesser[T]](a []T) {
-    // ...
-}
-
-a := []int{5, 3, 4}
-SortSlice[int, OrderedLesser[int]](a)
-```
-
-Pros:
-- Ordering is a part of the type signature for an ordered container (e.g.
-  `tree.Set[xsort.Reverse[xsort.NaturalOrder[int]]]` tells you both that the set elements are `int`
-  but also they're in reverse order by `<`).
-- `Less`'s concrete implementation is known at specialization time, so it should be possible for the
-  compiler to inline it. `-gcflags=-m` does seem to suggest that it's trying to do this.
-
-Cons:
-- It feels odd to have this extra `struct{}` type definition to hang `Less` off of which we always
-  call on the zero value.
-- Defining an `Ordering` is more cumbersome than Option A. Anonymous, single-use `Ordering`s aren't
-  possible.
-- Type definitions feel a little verbose or clumsy, requiring some redundancy to say `[O
-  Ordering[T], T any]`. Since Go is willing to infer suffixes of missing type parameters when
-  calling a function, this is not as verbose as it could have been. e.g.
-  `xsort.Slice[xsort.NaturalOrder[int]](x)` - `T` is inferred from `O`, so it can be left off.
-  The type signatures still look confusing, and this inference is only done for functions, not
-  types.
-- Awkwardness abound when there are several type parameters, like for `tree.Map`. Naturally, the
-  proper order is `[K, V]`. If we're adding `Ordering[K]`, then `[O Ordering[K], K any, V any]`.
-  However, because `K` is inferrable from `O`, `[O, V, K]` would give us the proper shorthand. This
-  allows `tree.NewMap[xsort.NaturalOrder[int], string]`, but `V` and `K` appearing in that order in
-  the type parameter list is uncomfortable.
-- Because ordering follows the types around, there are more hoops to jump through when order is
-  irrelevant. For example, it is possible to do union or intersection of ordered sets without
-  care for the order of any.
-
-### Option C: Ordered interface
-```
-package xsort
-
-type Ordered[T] interface {
-    Less(other T) bool
-}
-
-type OrderedByLessOperator[T constraints.Ordered] struct {
-    T
-}
-
-func (o OrderedByLessOperator[T]) Less(other T) {
-    return o.T < other.T
-}
-```
-
-Pros:
-- This feels a little more Go-ish than option B, since there isn't this extra `struct{}` type to hold
-the ordering function.
-
-Cons:
-- It has the same awkwardness as option B with having to pass both `Ordered[T]` and `T` in type
-  parameters lists. Further, it requires an extra boxing/unboxing for usage.
-
-## Chaining and Method Parameterization
-
-This would've made combinators on `Iterator` and `Stream` a lot more ergonomic.
-
-Here's an example that doesn't work:
-
-```
-type SimpleIterator[T any] interface {
-    Next() (T, bool)
-}
-
-type Iterator[T any] struct {
-    SimpleIterator[T]
-}
-
-func (iter Iterator[T]) Filter(keep func(T) bool) Iterator[T] {
-    // ...
-}
-
-func (iter Iterator[T]) Map[U any](transform func(T) U) Iterator[U] {
-    // ...
-}
-```
-
-This would allow more natural chaining:
-
-```
-intIterator.Filter(func(x int) bool {
-    return x % 2 == 0
-}).Map(func(x int) float64{
-    return float64(x) / 2
-})
-```
-
-Unfortunately, this is disallowed because methods cannot be parametric. This line:
-```
-func (iter Iterator[T]) Map[U any](transform func(T) U) Iterator[U] {
-```
-
-fails with:
-```
-./prog.go:23:28: methods cannot have type parameters
-./prog.go:23:29: invalid AST: method must have no type parameters
-```
-
-This requires slightly awkward reordering, which is the implementation I've landed on for now.
-```
-type Iterator[T any] interface {
-	Next() (T, bool)
-}
-
-func Filter[T any](iter Iterator[T], keep func(T) bool) Iterator[T] {
-    // ...
-}
-
-func Map[T any, U any](iter Iterator[T], f func(t T) U) Iterator[U] {
-    // ...
-}
-```
-
-In this model, the above example looks like this, which unfortunately reads inside-out rather than
-left-to-right:
-```
-iterator.Map(
-    iterator.Filter(
-        intIterator,
-        func(x int) bool { return x % 2 == 0 },
-    ),
-    func(x int) float64{ return float64(x) / 2 },
-}
-```
+Since I no longer work at a megacorp running a huge global deployment of Go, I no longer have that
+at my disposal to certify any of this as battle-hardened. However, the quality of code here is high
+enough that I would've been comfortable using anything here in the systems that I worked on.
