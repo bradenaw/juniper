@@ -121,6 +121,15 @@ func ExampleEqual() {
 	// false
 }
 
+func ExampleFill() {
+	x := []int{1, 2, 3}
+	slices.Fill(x, 5)
+	fmt.Println(x)
+
+	// Output:
+	// [5 5 5]
+}
+
 func ExampleFilter() {
 	x := []int{5, -9, -2, 1, -4, 8, 3}
 	x = slices.Filter(x, func(value int) bool {

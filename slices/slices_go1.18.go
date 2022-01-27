@@ -42,9 +42,7 @@ func Chunk[T any](x []T, chunkSize int) [][]T {
 // Clear fills x with the zero value of T.
 func Clear[T any](x []T) {
 	var zero T
-	for i := range x {
-		x[i] = zero
-	}
+	Fill(x, zero)
 }
 
 // Clone creates a new slice and copies the elements of x into it.
@@ -104,6 +102,13 @@ func Equal[T comparable](a, b []T) bool {
 		}
 	}
 	return true
+}
+
+// Fill fills a with copies of x.
+func Fill[T any](a []T, x T) {
+	for i := range a {
+		a[i] = x
+	}
 }
 
 // Filter filters the contents of x to only those for which keep() returns true. This is done
