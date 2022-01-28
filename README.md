@@ -1,5 +1,7 @@
 # Juniper
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/bradenaw/juniper.svg)](https://pkg.go.dev/github.com/bradenaw/juniper) (Note: go 1.17 features only until pkg.go.dev builds with 1.18)
+
 Juniper is a library of extensions to the Go standard library using generics, including containers.
 
 - `container/tree` contains a `Map` and `Set` that keep elements in sorted order. They are
