@@ -5,8 +5,7 @@ package xheap
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
+	"github.com/bradenaw/juniper/internal/require2"
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/xsort"
 )
@@ -37,8 +36,8 @@ func FuzzHeap(f *testing.F) {
 		xsort.Slice(expected, xsort.OrderedLess[byte])
 		t.Logf("expected sorted: %#v", expected)
 
-		require.Equal(t, expected, outByPop)
-		require.Equal(t, expected, outByIterate)
+		require2.SlicesEqual(t, expected, outByPop)
+		require2.SlicesEqual(t, expected, outByIterate)
 	})
 }
 
@@ -97,29 +96,29 @@ func FuzzPriorityQueue(f *testing.F) {
 			case Pop:
 				t.Logf("Pop()")
 				if len(oracle) == 0 {
-					require.Equal(t, 0, h.Len())
+					require2.Equal(t, 0, h.Len())
 					continue
 				}
 				lowestP := oracleLowestP()
 				hPopped := h.Pop()
-				require.Equal(t, lowestP, oracle[hPopped])
+				require2.Equal(t, lowestP, oracle[hPopped])
 				delete(oracle, hPopped)
 			case Peek:
 				t.Logf("Peek()")
 				if len(oracle) == 0 {
-					require.Equal(t, 0, h.Len())
+					require2.Equal(t, 0, h.Len())
 					continue
 				}
 				lowestP := oracleLowestP()
 				hPeeked := h.Peek()
-				require.Equal(t, lowestP, oracle[hPeeked])
+				require2.Equal(t, lowestP, oracle[hPeeked])
 			case Contains:
 				t.Logf("Contains(%d)", k)
 				_, oracleContains := oracle[k]
-				require.Equal(t, oracleContains, h.Contains(k))
+				require2.Equal(t, oracleContains, h.Contains(k))
 			case Priority:
 				t.Logf("Priority(%d)", k)
-				require.Equal(t, oracle[k], h.Priority(k))
+				require2.Equal(t, oracle[k], h.Priority(k))
 			case Remove:
 				t.Logf("Remove(%d)", k)
 				delete(oracle, k)
@@ -131,10 +130,10 @@ func FuzzPriorityQueue(f *testing.F) {
 					oracleItems = append(oracleItems, k)
 				}
 				items := iterator.Collect(h.Iterate())
-				require.ElementsMatch(t, oracleItems, items)
+				require2.ElementsMatch(t, oracleItems, items)
 			}
 
-			require.Equal(t, len(oracle), h.Len())
+			require2.Equal(t, len(oracle), h.Len())
 		}
 	})
 }

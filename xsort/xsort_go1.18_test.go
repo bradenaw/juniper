@@ -7,8 +7,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
+	"github.com/bradenaw/juniper/internal/require2"
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/xsort"
 )
@@ -17,7 +16,7 @@ func TestMergeSlices(t *testing.T) {
 	check := func(in ...[]int) {
 		var all []int
 		for i := range in {
-			require.True(t, xsort.SliceIsSorted(in[i], xsort.OrderedLess[int]))
+			require2.True(t, xsort.SliceIsSorted(in[i], xsort.OrderedLess[int]))
 			all = append(all, in[i]...)
 		}
 		merged := xsort.MergeSlices(
@@ -25,8 +24,8 @@ func TestMergeSlices(t *testing.T) {
 			nil,
 			in...,
 		)
-		require.True(t, xsort.SliceIsSorted(merged, xsort.OrderedLess[int]))
-		require.ElementsMatch(t, all, merged)
+		require2.True(t, xsort.SliceIsSorted(merged, xsort.OrderedLess[int]))
+		require2.ElementsMatch(t, all, merged)
 	}
 
 	check([]int{1, 2, 3})
@@ -77,7 +76,7 @@ func FuzzMerge(f *testing.F) {
 			)...,
 		)
 
-		require.Equal(t, expected, iterator.Collect(merged))
+		require2.SlicesEqual(t, expected, iterator.Collect(merged))
 	})
 }
 

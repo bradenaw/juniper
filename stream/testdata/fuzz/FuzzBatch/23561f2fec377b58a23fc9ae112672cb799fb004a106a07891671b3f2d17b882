@@ -1,0 +1,4 @@
+go test fuzz v1
+int(94)
+int(46)
+[]byte("C0")

@@ -5,9 +5,8 @@ package xlist
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/bradenaw/juniper/internal/fuzz"
+	"github.com/bradenaw/juniper/internal/require2"
 	"github.com/bradenaw/juniper/slices"
 )
 
@@ -30,26 +29,26 @@ func FuzzList(f *testing.F) {
 			b,
 			func() { // check
 				t.Logf("%v", oracle)
-				require.Equal(t, len(oracle), l.Len())
+				require2.Equal(t, len(oracle), l.Len())
 
 				if len(oracle) == 0 {
-					require.Nil(t, l.Front())
-					require.Nil(t, l.Back())
+					require2.Nil(t, l.Front())
+					require2.Nil(t, l.Back())
 					return
 				}
 
 				node := l.Front()
 				for i := range oracle {
-					require.NotNilf(t, node, "node nil at index %d, len(oracle)==%d", i, len(oracle))
-					require.Equal(t, oracle[i], node.Value)
+					require2.NotNilf(t, node, "node nil at index %d, len(oracle)==%d", i, len(oracle))
+					require2.Equal(t, oracle[i], node.Value)
 					if node.Next() != nil {
-						require.Equal(t, node, node.Next().Prev())
+						require2.Equal(t, node, node.Next().Prev())
 					}
 					node = node.Next()
 				}
-				require.Nil(t, node)
-				require.NotNil(t, l.Back())
-				require.Equal(t, oracle[len(oracle)-1], l.Back().Value)
+				require2.Nil(t, node)
+				require2.NotNil(t, l.Back())
+				require2.Equal(t, oracle[len(oracle)-1], l.Back().Value)
 			},
 			func(value int) {
 				t.Logf("PushFront(%d)", value)

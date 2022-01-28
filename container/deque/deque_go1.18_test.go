@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/bradenaw/juniper/internal/fuzz"
+	"github.com/bradenaw/juniper/internal/require2"
 	"github.com/bradenaw/juniper/iterator"
 )
 
@@ -20,7 +19,7 @@ func FuzzDeque(f *testing.F) {
 		fuzz.Operations(
 			b,
 			func() {
-				require.Equal(t, len(oracle), deque.Len())
+				require2.Equal(t, len(oracle), deque.Len())
 				t.Logf("  len = %d", len(oracle))
 				t.Logf("  oracle state: %#v", oracle)
 				t.Logf("  deque state:  (len(r.a) = %d) %#v", len(deque.a), deque)
@@ -43,7 +42,7 @@ func FuzzDeque(f *testing.F) {
 				t.Logf("PopFront() -> %#v", oracleItem)
 				oracle = oracle[1:]
 				dequeItem := deque.PopFront()
-				require.Equal(t, oracleItem, dequeItem)
+				require2.Equal(t, oracleItem, dequeItem)
 			},
 			func() {
 				if len(oracle) == 0 {
@@ -53,7 +52,7 @@ func FuzzDeque(f *testing.F) {
 				t.Logf("PopBack() -> %#v", oracleItem)
 				oracle = oracle[:len(oracle)-1]
 				dequeItem := deque.PopBack()
-				require.Equal(t, oracleItem, dequeItem)
+				require2.Equal(t, oracleItem, dequeItem)
 			},
 			func() {
 				if len(oracle) == 0 {
@@ -65,7 +64,7 @@ func FuzzDeque(f *testing.F) {
 				oracleItem := oracle[0]
 				t.Logf("Front() -> %#v", oracleItem)
 				dequeItem := deque.Front()
-				require.Equal(t, oracleItem, dequeItem)
+				require2.Equal(t, oracleItem, dequeItem)
 			},
 			func() {
 				if len(oracle) == 0 {
@@ -77,7 +76,7 @@ func FuzzDeque(f *testing.F) {
 				oracleItem := oracle[len(oracle)-1]
 				t.Logf("Back() -> %#v", oracleItem)
 				dequeItem := deque.Back()
-				require.Equal(t, oracleItem, dequeItem)
+				require2.Equal(t, oracleItem, dequeItem)
 			},
 			func(i int) {
 				if i < 0 || i > len(oracle) {
@@ -89,7 +88,7 @@ func FuzzDeque(f *testing.F) {
 				oracleItem := oracle[i]
 				t.Logf("Item(%d) -> %#v", i, oracleItem)
 				dequeItem := deque.Item(i)
-				require.Equal(t, oracleItem, dequeItem)
+				require2.Equal(t, oracleItem, dequeItem)
 			},
 			func() {
 				t.Log("Iterate()")
@@ -101,7 +100,7 @@ func FuzzDeque(f *testing.F) {
 				if len(dequeAll) == 0 {
 					dequeAll = nil
 				}
-				require.Equal(t, oracleAll, dequeAll)
+				require2.SlicesEqual(t, oracleAll, dequeAll)
 			},
 			func(n byte) {
 				t.Logf("Grow(%d)", n)

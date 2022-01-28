@@ -1,3 +1,5 @@
+//go:build go1.18
+
 package tree
 
 import (
@@ -5,10 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/bradenaw/juniper/internal/fuzz"
 	"github.com/bradenaw/juniper/internal/orderedhashmap"
+	"github.com/bradenaw/juniper/internal/require2"
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/slices"
 	"github.com/bradenaw/juniper/xsort"
@@ -40,7 +41,7 @@ func FuzzBtree(f *testing.F) {
 
 				checkTree(t, tree)
 
-				require.Equal(t, oracle.Len(), tree.Len())
+				require2.Equal(t, oracle.Len(), tree.Len())
 
 				oraclePairs := iterator.Collect(
 					iterator.Map(oracle.Cursor().Forward(), orderedhashmapKVPairToKVPair[byte, int]),
@@ -52,16 +53,12 @@ func FuzzBtree(f *testing.F) {
 				c := tree.Cursor()
 				treePairs := iterator.Collect(c.Forward())
 
-				if len(oraclePairs) == 0 {
-					require.Empty(t, treePairs)
-				} else {
-					require.Equal(t, oraclePairs, treePairs)
-				}
+				require2.SlicesEqual(t, oraclePairs, treePairs)
 
-				require.Equal(t, oracleCursor.Ok(), cursor.Ok(), "cursor.Ok()")
+				require2.Equalf(t, oracleCursor.Ok(), cursor.Ok(), "cursor.Ok()")
 				if oracleCursor.Ok() {
-					require.Equal(t, oracleCursor.Key(), cursor.Key())
-					require.Equal(t, oracleCursor.Value(), cursor.Value())
+					require2.Equal(t, oracleCursor.Key(), cursor.Key())
+					require2.Equal(t, oracleCursor.Value(), cursor.Value())
 				}
 			},
 			func(k byte) {
@@ -75,7 +72,7 @@ func FuzzBtree(f *testing.F) {
 				expected := oracle.Get(k)
 				t.Logf("tree.Get(%#v) -> %#v", k, expected)
 				actual := tree.Get(k)
-				require.Equal(t, expected, actual)
+				require2.Equal(t, expected, actual)
 			},
 			func(k byte) {
 				t.Logf("tree.Delete(%#v)", k)
@@ -86,21 +83,21 @@ func FuzzBtree(f *testing.F) {
 				oracleOk := oracle.Contains(k)
 				t.Logf("tree.Contains(%#v) -> %t", k, oracleOk)
 				treeOk := tree.Contains(k)
-				require.Equal(t, oracleOk, treeOk)
+				require2.Equal(t, oracleOk, treeOk)
 			},
 			func() {
 				t.Logf("tree.First()")
 				k, v := tree.First()
 				expectedK, expectedV := oracle.First()
-				require.Equal(t, expectedK, k)
-				require.Equal(t, expectedV, v)
+				require2.Equal(t, expectedK, k)
+				require2.Equal(t, expectedV, v)
 			},
 			func() {
 				t.Logf("tree.Last()")
 				k, v := tree.Last()
 				expectedK, expectedV := oracle.Last()
-				require.Equal(t, expectedK, k)
-				require.Equal(t, expectedV, v)
+				require2.Equal(t, expectedK, k)
+				require2.Equal(t, expectedV, v)
 			},
 			func() {
 				t.Log("cursor.Next()")
@@ -149,7 +146,7 @@ func FuzzBtree(f *testing.F) {
 					oracleCursor.Forward(),
 					orderedhashmapKVPairToKVPair[byte, int],
 				))
-				require.Equal(t, expectedKVs, kvs)
+				require2.SlicesEqual(t, expectedKVs, kvs)
 			},
 			func() {
 				t.Log("cursor.Backward()")
@@ -158,7 +155,7 @@ func FuzzBtree(f *testing.F) {
 					oracleCursor.Backward(),
 					orderedhashmapKVPairToKVPair[byte, int],
 				))
-				require.Equal(t, expectedKVs, kvs)
+				require2.SlicesEqual(t, expectedKVs, kvs)
 			},
 		)
 	})
@@ -174,12 +171,12 @@ func checkTree[K comparable, V comparable](t *testing.T, tree *btree[K, V]) {
 	checkNode = func(x *node[K, V]) {
 		if x.leaf() {
 			for i := 0; i < int(x.n)+1; i++ {
-				require.Nil(t, x.children[i])
+				require2.Nil(t, x.children[i])
 			}
 		} else {
 			for i := 0; i < int(x.n)+1; i++ {
-				require.NotNil(t, x.children[i])
-				require.Truef(
+				require2.NotNil(t, x.children[i])
+				require2.Truef(
 					t,
 					x.children[i].parent == x,
 					"%p ─child─> %p ─parent─> %p",
@@ -193,21 +190,21 @@ func checkTree[K comparable, V comparable](t *testing.T, tree *btree[K, V]) {
 				left := x.children[i]
 				right := x.children[i+1]
 				k := x.keys[i]
-				require.True(t, tree.less(left.keys[int(left.n)-1], k))
-				require.True(t, tree.less(k, right.keys[0]))
+				require2.True(t, tree.less(left.keys[int(left.n)-1], k))
+				require2.True(t, tree.less(k, right.keys[0]))
 			}
 		}
 		if x == tree.root {
 			if tree.Len() > 0 {
-				require.GreaterOrEqual(t, int(x.n), 1)
+				require2.GreaterOrEqual(t, int(x.n), 1)
 			}
 		} else {
-			require.GreaterOrEqual(t, int(x.n), minKVs)
+			require2.GreaterOrEqual(t, int(x.n), minKVs)
 		}
-		require.True(t, xsort.SliceIsSorted(x.keys[:int(x.n)], tree.less))
-		require.True(t, slices.All(x.keys[int(x.n):], isZero[K]))
-		require.True(t, slices.All(x.values[int(x.n):], isZero[V]))
-		require.Truef(
+		require2.True(t, xsort.SliceIsSorted(x.keys[:int(x.n)], tree.less))
+		require2.True(t, slices.All(x.keys[int(x.n):], isZero[K]))
+		require2.True(t, slices.All(x.values[int(x.n):], isZero[V]))
+		require2.Truef(
 			t,
 			slices.All(x.children[int(x.n)+1:], isZero[*node[K, V]]),
 			"%p %#v",
@@ -216,8 +213,8 @@ func checkTree[K comparable, V comparable](t *testing.T, tree *btree[K, V]) {
 		)
 	}
 
-	require.NotNil(t, tree.root)
-	require.Nil(t, tree.root.parent)
+	require2.NotNil(t, tree.root)
+	require2.Nil(t, tree.root.parent)
 	checkNode(tree.root)
 }
 
@@ -284,7 +281,7 @@ func TestAmalgam1(t *testing.T) {
 			slices.Insert(expectedKeys[:len(expectedKeys)-1], idx, extraKey)
 			slices.Insert(expectedValues[:len(expectedKeys)-1], idx, extraValue)
 			slices.Insert(expectedChildren[:len(expectedChildren)-1], idx+1, extraChild)
-			require.Truef(
+			require2.Truef(
 				t,
 				xsort.SliceIsSorted(expectedKeys[:], xsort.OrderedLess[byte]),
 				"%#v",
@@ -313,9 +310,9 @@ func TestAmalgam1(t *testing.T) {
 			}
 			actualChildren[len(actualChildren)-1] = a.Child(len(actualChildren) - 1)
 
-			require.Equal(t, expectedKeys, actualKeys)
-			require.Equal(t, expectedValues, actualValues)
-			require.Equal(t, expectedChildren, actualChildren)
+			require2.Equal(t, expectedKeys, actualKeys)
+			require2.Equal(t, expectedValues, actualValues)
+			require2.Equal(t, expectedChildren, actualChildren)
 		})
 	}
 

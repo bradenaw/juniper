@@ -9,8 +9,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
+	"github.com/bradenaw/juniper/internal/require2"
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/stream"
 )
@@ -24,7 +23,7 @@ func TestMap(t *testing.T) {
 			return strconv.Itoa(i)
 		},
 	)
-	require.Equal(t, []string{"0", "1", "2", "3", "4"}, strs)
+	require2.SlicesEqual(t, []string{"0", "1", "2", "3", "4"}, strs)
 }
 
 func TestMapIterator(t *testing.T) {
@@ -36,7 +35,7 @@ func TestMapIterator(t *testing.T) {
 			return strconv.Itoa(i)
 		},
 	)
-	require.Equal(t, []string{"0", "1", "2", "3", "4"}, iterator.Collect(strs))
+	require2.SlicesEqual(t, []string{"0", "1", "2", "3", "4"}, iterator.Collect(strs))
 }
 
 func TestMapStream(t *testing.T) {
@@ -49,8 +48,8 @@ func TestMapStream(t *testing.T) {
 		},
 	)
 	strs, err := stream.Collect(context.Background(), strsStream)
-	require.NoError(t, err)
-	require.Equal(t, []string{"0", "1", "2", "3", "4"}, strs)
+	require2.NoError(t, err)
+	require2.SlicesEqual(t, []string{"0", "1", "2", "3", "4"}, strs)
 }
 
 func TestMapStreamError(t *testing.T) {
@@ -67,9 +66,9 @@ func TestMapStreamError(t *testing.T) {
 	oopsError := errors.New("oops")
 
 	err := sender.Send(context.Background(), 0)
-	require.NoError(t, err)
+	require2.NoError(t, err)
 	err = sender.Send(context.Background(), 1)
-	require.NoError(t, err)
+	require2.NoError(t, err)
 	sender.Close(oopsError)
 
 	for {
@@ -77,7 +76,7 @@ func TestMapStreamError(t *testing.T) {
 		if err == nil {
 			continue
 		}
-		require.Equal(t, oopsError, err)
+		require2.Equal(t, oopsError, err)
 		break
 	}
 }

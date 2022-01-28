@@ -9,8 +9,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
+	"github.com/bradenaw/juniper/internal/require2"
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/stream"
 )
@@ -38,8 +37,8 @@ func FuzzSampleInner(f *testing.F) {
 			if out == 1 {
 				out = math.Nextafter(out, 0)
 			}
-			require.GreaterOrEqual(t, out, float64(0))
-			require.Less(t, out, float64(1))
+			require2.GreaterOrEqual(t, out, float64(0))
+			require2.Less(t, out, float64(1))
 			t.Logf("%f", out)
 			return out
 		}
@@ -55,12 +54,12 @@ func FuzzSampleInner(f *testing.F) {
 				break
 			}
 			if i < k {
-				require.Equal(t, next, i)
-				require.Equal(t, replace, i)
+				require2.Equal(t, next, i)
+				require2.Equal(t, replace, i)
 			} else {
-				require.Greater(t, next, prev)
-				require.GreaterOrEqual(t, replace, 0)
-				require.Less(t, replace, k)
+				require2.Greater(t, next, prev)
+				require2.GreaterOrEqual(t, replace, 0)
+				require2.Less(t, replace, k)
 			}
 
 			prev = next
@@ -106,7 +105,7 @@ func testSample(t *testing.T, f func(r *rand.Rand) []int) {
 
 	// There's certainly a better statistical test than this, but I haven't bothered to break out
 	// the stats book yet.
-	require.InDelta(t, 0.02, stddev(counts)/m, 0.01)
+	require2.InDelta(t, 0.02, stddev(counts)/m, 0.01)
 
 }
 func TestSample(t *testing.T) {
@@ -136,7 +135,7 @@ func TestSampleStream(t *testing.T) {
 			stream.FromIterator(iterator.Counter(20)),
 			5,
 		)
-		require.NoError(t, err)
+		require2.NoError(t, err)
 		return out
 	})
 }

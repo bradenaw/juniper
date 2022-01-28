@@ -4,13 +4,13 @@ package stream
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/bradenaw/juniper/internal/fuzz"
+	"github.com/bradenaw/juniper/internal/require2"
 	"github.com/bradenaw/juniper/xmath"
 )
 
@@ -47,19 +47,20 @@ func FuzzBatch(f *testing.F) {
 				t.Logf("  recvClosed    = %#v", recvClosed)
 			},
 			func() {
-				if len(oracle) == bufferSize {
-					// would block
-					return
-				} else if sendClosed {
+				if sendClosed {
 					// not allowed
+					return
+				}
+				if len(oracle) == bufferSize {
+					// might block
 					return
 				}
 				t.Logf("sender.Send(ctx, %d)", x)
 				err := sender.Send(context.Background(), x)
-				if recvClosed {
-					require.Error(t, ErrClosedPipe)
+				if !recvClosed {
+					require2.NoError(t, err)
 				} else {
-					require.NoError(t, err)
+					require2.True(t, err == nil || errors.Is(err, ErrClosedPipe))
 				}
 				oracle = append(oracle, x)
 				x++
@@ -90,9 +91,9 @@ func FuzzBatch(f *testing.F) {
 						t.Log("s.Next(ctx) at end")
 						_, err := s.Next(context.Background())
 						if sendClosedErr == nil {
-							require.Equal(t, End, err)
+							require2.Equal(t, End, err)
 						} else {
-							require.Equal(t, sendClosedErr, err)
+							require2.Equal(t, sendClosedErr, err)
 						}
 						return
 					} else {
@@ -104,14 +105,14 @@ func FuzzBatch(f *testing.F) {
 				t.Log("s.Next(ctx)")
 
 				batch, err := s.Next(context.Background())
-				require.NoError(t, err)
+				require2.NoError(t, err)
 
 				// Unfortunately we can't actually tell if the receiver has received everything that
 				// we sent with Send().
-				require.Greater(t, len(batch), 0)
-				require.LessOrEqual(t, len(batch), batchSize)
+				require2.Greater(t, len(batch), 0)
+				require2.LessOrEqual(t, len(batch), batchSize)
 				expectedBatch := oracle[:len(batch)]
-				require.Equal(t, expectedBatch, batch)
+				require2.SlicesEqual(t, expectedBatch, batch)
 
 				t.Logf(" -> %#v", batch)
 
@@ -136,12 +137,12 @@ func TestBatch(t *testing.T) {
 
 	batches := Batch(receiver, 365*24*time.Hour, 1)
 	_, err := batches.Next(ctx)
-	require.NoError(t, err)
+	require2.NoError(t, err)
 
 	sender, receiver = Pipe[int](1)
 	sender.Send(ctx, 1)
 
 	batches = Batch(receiver, 0, 2)
 	_, err = batches.Next(context.Background())
-	require.NoError(t, err)
+	require2.NoError(t, err)
 }
