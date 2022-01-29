@@ -1,7 +1,6 @@
 # Juniper
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/bradenaw/juniper.svg)](https://pkg.go.dev/github.com/bradenaw/juniper) [![Go](https://github.com/bradenaw/juniper/actions/workflows/go.yml/badge.svg)](https://github.com/bradenaw/juniper/actions/workflows/go.yml)
-(Note: docs show go 1.17 features only until pkg.go.dev builds with 1.18)
+[![Go Reference](https://pkg.go.dev/badge/github.com/bradenaw/juniper.svg)](https://bradenaw.github.io/juniper/) [![Go](https://github.com/bradenaw/juniper/actions/workflows/go.yml/badge.svg)](https://github.com/bradenaw/juniper/actions/workflows/go.yml)
 
 Juniper is a library of extensions to the Go standard library using generics, including containers.
 
@@ -32,7 +31,7 @@ prefix for "extensions", e.g. `sort` and `xsort`.
 
 A few functions do not require generics (e.g. `parallel.Do` and `xmath/xrand.Sample`), and so this
 library still builds with Go 1.17 and below but with a significantly smaller API. Note that
-pkg.go.dev still builds with 1.17, so the documentation is incomplete.
+pkg.go.dev still builds with 1.17, so the documentation there is incomplete.
 
 ## Status
 
