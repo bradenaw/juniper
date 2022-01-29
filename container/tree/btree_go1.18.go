@@ -63,14 +63,10 @@ func newBtree[K any, V any](less xsort.Less[K]) *btree[K, V] {
 //                               contains keys greater than keys[n-1]╶────────┘                   //
 type node[K any, V any] struct {
 	// Odd ordering of fields is for better cache locality, actually does improve performance
-	// slightly. Keys get searched the most, we want to make sure they fit in the fewest cache lines
-	// possible. n being where it is wastes some space, but makes it probably share a cache line
-	// with some children. This is already smaller than the builtin hashmap, so we're doing okay on
-	// size.
-
+	// slightly. n and the first key are always accessed on search.
+	n    int8
 	keys [maxKVs]K
 	// number of k/v pairs, naturally [1, maxKVs]
-	n        int8
 	children [branchFactor]*node[K, V]
 	parent   *node[K, V]
 	values   [maxKVs]V
