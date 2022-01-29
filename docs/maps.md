@@ -1,58 +1,71 @@
-# maps
---
-    import "."
+# `package maps`
 
-
-## Usage
-
-#### func  Keys
-
-```go
-func Keys[K comparable, V any](m map[K]V) []K
 ```
+import "github.com/bradenaw/juniper/maps"
+```
+
+# Overview
+
+
+
+# Index
+
+<pre><a href="#Keys">func Keys[K comparable, V any](m map[K]V) []K</a></pre>
+<pre><a href="#Values">func Values[K comparable, V any](m map[K]V) []V</a></pre>
+<pre><a href="#Set">type Set</a></pre>
+<pre>    <a href="#Add">func (s Set[T]) Add(item T)</a></pre>
+<pre>    <a href="#Contains">func (s Set[T]) Contains(item T) bool</a></pre>
+<pre>    <a href="#Iterate">func (s Set[T]) Iterate() iterator.Iterator[T]</a></pre>
+<pre>    <a href="#Len">func (s Set[T]) Len() int</a></pre>
+<pre>    <a href="#Remove">func (s Set[T]) Remove(item T)</a></pre>
+
+# Constants
+
+This section is empty.
+
+# Variables
+
+This section is empty.
+
+# Functions
+
+## <a id="Keys"></a><pre>func <a href="#Keys">Keys</a>[K comparable, V any](m map[K]V) []K</pre>
+
 Keys returns the keys of m as a slice.
 
-#### func  Values
 
-```go
-func Values[K comparable, V any](m map[K]V) []V
-```
+## <a id="Values"></a><pre>func <a href="#Values">Values</a>[K comparable, V any](m map[K]V) []V</pre>
+
 Values returns the values of m as a slice.
 
-#### type Set
 
+# Types
+
+## <a id="Set"></a><pre>type Set</pre>
 ```go
 type Set[T comparable] map[T]struct{}
 ```
 
 Set implements sets.Set for map[T]struct{}.
 
-#### func (BADRECV) Add
 
-```go
-func (s Set[T]) Add(item T)
-```
+## <a id="Add"></a><pre>func (s <a href="#Set">Set</a>[T]) Add(item T)</pre>
 
-#### func (BADRECV) Contains
 
-```go
-func (s Set[T]) Contains(item T) bool
-```
 
-#### func (BADRECV) Iterate
+## <a id="Contains"></a><pre>func (s <a href="#Set">Set</a>[T]) Contains(item T) bool</pre>
 
-```go
-func (s Set[T]) Iterate() iterator.Iterator[T]
-```
 
-#### func (BADRECV) Len
 
-```go
-func (s Set[T]) Len() int
-```
+## <a id="Iterate"></a><pre>func (s <a href="#Set">Set</a>[T]) Iterate() <a href="./iterator.md#Iterator">iterator.Iterator</a>[T]</pre>
 
-#### func (BADRECV) Remove
 
-```go
-func (s Set[T]) Remove(item T)
-```
+
+## <a id="Len"></a><pre>func (s <a href="#Set">Set</a>[T]) Len() int</pre>
+
+
+
+## <a id="Remove"></a><pre>func (s <a href="#Set">Set</a>[T]) Remove(item T)</pre>
+
+
+

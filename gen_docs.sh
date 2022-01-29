@@ -16,4 +16,4 @@ while read pkg; do
     echo >> docs/index.md
 done <<< "$pkgs"
 
-xargs -I{} -P12 --verbose $GOTOOL run github.com/robertkrimen/godocdown/godocdown@latest --output "docs/{}.md" {} <<< "$pkgs"
+xargs -I{} -P12 --verbose bash -c $GOTOOL' run github.com/bradenaw/juniper/internal/gendocs {} > "docs/{}.md"' <<< "$pkgs"
