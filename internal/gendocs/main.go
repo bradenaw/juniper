@@ -451,6 +451,11 @@ func strWithLinks(
 				visit(index)
 			}
 			sb.WriteString("]")
+		case *ast.MapType:
+			sb.WriteString("map[")
+			visit(node.Key)
+			sb.WriteString("]")
+			visit(node.Value)
 		case *ast.SelectorExpr:
 			if ident, ok := node.X.(*ast.Ident); ok {
 				importPath, ok := imports[ident.Name]
