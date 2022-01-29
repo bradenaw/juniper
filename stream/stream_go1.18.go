@@ -124,7 +124,7 @@ type PipeSender[T any] struct {
 	streamDone <-chan struct{}
 }
 
-// Send attemps to send x to the receiver. If the receiver closes before x can be sent, returns
+// Send attempts to send x to the receiver. If the receiver closes before x can be sent, returns
 // ErrClosedPipe immediately. If ctx expires before x can be sent, returns ctx.Err().
 //
 // A nil return does not necessarily mean that the receiver will see x, since the receiver may close
