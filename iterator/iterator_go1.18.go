@@ -497,7 +497,7 @@ func (iter *whileIterator[T]) Next() (T, bool) {
 	if iter.done {
 		return zero, false
 	}
-	item, ok := iter.Next()
+	item, ok := iter.inner.Next()
 	if !ok {
 		return zero, false
 	}
