@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	err := main2("container/tree")
+	err := main2(os.Args[1])
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
