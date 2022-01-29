@@ -1,6 +1,7 @@
 # Juniper
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/bradenaw/juniper.svg)](https://pkg.go.dev/github.com/bradenaw/juniper) (Note: go 1.17 features only until pkg.go.dev builds with 1.18)
+[![Go Reference](https://pkg.go.dev/badge/github.com/bradenaw/juniper.svg)](https://pkg.go.dev/github.com/bradenaw/juniper) [![Go](https://github.com/bradenaw/juniper/actions/workflows/go.yml/badge.svg)](https://github.com/bradenaw/juniper/actions/workflows/go.yml)
+(Note: docs show go 1.17 features only until pkg.go.dev builds with 1.18)
 
 Juniper is a library of extensions to the Go standard library using generics, including containers.
 
