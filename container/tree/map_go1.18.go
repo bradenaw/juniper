@@ -74,6 +74,83 @@ func (m Map[K, V]) Iterate() iterator.Iterator[KVPair[K, V]] {
 	return m.Cursor().Forward()
 }
 
+func (m Map[K, V]) Range(
+	lower xsort.Bound[K],
+	upper xsort.Bound[K],
+	direction xsort.Direction,
+) iterator.Iterator[KVPair[K, V]] {
+	c := m.Cursor()
+
+	switch direction {
+	case xsort.Asc:
+		switch lower := lower.(type) {
+		case xsort.Min[K]:
+		case xsort.Before[K]:
+			c.SeekFirstGreaterOrEqual(lower.T)
+		case xsort.After[K]:
+			c.SeekFirstGreater(lower.T)
+		case xsort.Max[K]:
+			c.SeekLast()
+		default:
+			panic("")
+		}
+
+		var while func(pair KVPair[K, V]) bool
+		switch upper := upper.(type) {
+		case xsort.Min[K]:
+			while = func(pair KVPair[K, V]) bool { return false }
+		case xsort.Before[K]:
+			while = func(pair KVPair[K, V]) bool {
+				return m.t.less(pair.Key, upper.T)
+			}
+		case xsort.After[K]:
+			while = func(pair KVPair[K, V]) bool {
+				return xsort.LessOrEqual(m.t.less, pair.Key, upper.T)
+			}
+		case xsort.Max[K]:
+			while = func(pair KVPair[K, V]) bool { return true }
+		default:
+			panic("")
+		}
+
+		return iterator.While(c.Forward(), while)
+	case xsort.Desc:
+		switch upper := upper.(type) {
+		case xsort.Min[K]:
+		case xsort.Before[K]:
+			c.SeekLastLess(upper.T)
+		case xsort.After[K]:
+			c.SeekLastLessOrEqual(upper.T)
+		case xsort.Max[K]:
+			c.SeekLast()
+		default:
+			panic("")
+		}
+
+		var while func(pair KVPair[K, V]) bool
+		switch lower := lower.(type) {
+		case xsort.Min[K]:
+			while = func(pair KVPair[K, V]) bool { return true }
+		case xsort.Before[K]:
+			while = func(pair KVPair[K, V]) bool {
+				return xsort.GreaterOrEqual(m.t.less, pair.Key, lower.T)
+			}
+		case xsort.After[K]:
+			while = func(pair KVPair[K, V]) bool {
+				return xsort.Greater(m.t.less, pair.Key, lower.T)
+			}
+		case xsort.Max[K]:
+			while = func(pair KVPair[K, V]) bool { return false }
+		default:
+			panic("")
+		}
+
+		return iterator.While(c.Backward(), while)
+	default:
+		panic("")
+	}
+}
+
 // Cursor returns a cursor into the map placed at the first element.
 func (m Map[K, V]) Cursor() *MapCursor[K, V] {
 	inner := m.t.Cursor()

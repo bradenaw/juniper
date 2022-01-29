@@ -55,6 +55,34 @@ func Reverse[T any](less Less[T]) Less[T] {
 	}
 }
 
+type Direction int
+
+const (
+	Asc Direction = iota
+	Desc
+)
+
+type Bound[T any] interface {
+	// Min[T] | Before[T] | After[T] | Max[T]
+	isBound(T)
+}
+
+type Min[T any] struct{}
+
+func (Min[T]) isBound(T) {}
+
+type Before[T any] struct{ T T }
+
+func (Before[T]) isBound(T) {}
+
+type After[T any] struct{ T T }
+
+func (After[T]) isBound(T) {}
+
+type Max[T any] struct{}
+
+func (Max[T]) isBound(T) {}
+
 // Slice sorts x in-place using the given less function to compare items.
 //
 // Follows the same rules as sort.Slice.

@@ -320,3 +320,32 @@ func TestAmalgam1(t *testing.T) {
 		check(byte(i*2+1), byte(i*4+1))
 	}
 }
+
+func TestRange(t *testing.T) {
+	m := NewMap[int, int](xsort.OrderedLess[int])
+	for i := 0; i < 10; i += 2 {
+		m.Put(i, i)
+	}
+
+	check := func(
+		lower xsort.Bound[int],
+		upper xsort.Bound[int],
+		direction xsort.Direction,
+		expectedKeys []int,
+	) {
+		actual := iterator.Collect(iterator.Map(
+			m.Range(lower, upper, direction),
+			func(pair KVPair[int, int]) int { return pair.Key },
+		))
+		require2.SlicesEqual(t, expectedKeys, actual)
+	}
+
+	check(xsort.Min[int]{}, xsort.Max[int]{}, xsort.Asc, []int{0, 2, 4, 6, 8})
+	check(xsort.Min[int]{}, xsort.Max[int]{}, xsort.Desc, []int{8, 6, 4, 2, 0})
+
+	check(xsort.Before[int]{5}, xsort.After[int]{8}, xsort.Asc, []int{6, 8})
+	check(xsort.Before[int]{5}, xsort.After[int]{8}, xsort.Desc, []int{8, 6})
+	check(xsort.Before[int]{6}, xsort.After[int]{6}, xsort.Asc, []int{6})
+	check(xsort.Before[int]{6}, xsort.Before[int]{7}, xsort.Asc, []int{6})
+	check(xsort.After[int]{4}, xsort.After[int]{5}, xsort.Asc, []int{})
+}
