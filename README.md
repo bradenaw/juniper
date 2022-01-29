@@ -1,6 +1,9 @@
 # Juniper
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/bradenaw/juniper.svg)](https://bradenaw.github.io/juniper/) [![Go](https://github.com/bradenaw/juniper/actions/workflows/go.yml/badge.svg)](https://github.com/bradenaw/juniper/actions/workflows/go.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/bradenaw/juniper.svg)](https://bradenaw.github.io/juniper/)
+[![Go 1.18](https://github.com/bradenaw/juniper/actions/workflows/go1.18.yml/badge.svg)](https://github.com/bradenaw/juniper/actions/workflows/go1.18.yml)
+[![Go 1.17](https://github.com/bradenaw/juniper/actions/workflows/go1.17.yml/badge.svg)](https://github.com/bradenaw/juniper/actions/workflows/go1.17.yml)
+[![Fuzz](https://github.com/bradenaw/juniper/actions/workflows/fuzz.yml/badge.svg)](https://github.com/bradenaw/juniper/actions/workflows/fuzz.yml)
 
 Juniper is a library of extensions to the Go standard library using generics, including containers.
 
