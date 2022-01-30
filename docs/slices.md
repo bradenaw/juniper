@@ -4,11 +4,11 @@
 import "github.com/bradenaw/juniper/slices"
 ```
 
-# Overview
+## Overview
 
 
 
-# Index
+## Index
 
 <samp><a href="#All">func All[T any](x []T, f func(T) bool) bool</a></samp>
 
@@ -69,22 +69,22 @@ import "github.com/bradenaw/juniper/slices"
 <samp><a href="#Unique">func Unique[T comparable](x []T) []T</a></samp>
 
 
-# Constants
+## Constants
 
 This section is empty.
 
-# Variables
+## Variables
 
 This section is empty.
 
-# Functions
+## Functions
 
-<h2><a id="All"></a><samp>func <a href="#All">All</a>[T any](x []T, f (T) bool) bool</samp></h2>
+<h3><a id="All"></a><samp>func <a href="#All">All</a>[T any](x []T, f (T) bool) bool</samp></h3>
 
 All returns true if f(x[i]) returns true for all i. Trivially, returns true if x is empty.
 
 
-### Example 
+#### Example 
 ```go
 {
 	isOdd := func(x int) bool {
@@ -105,12 +105,12 @@ Output:
 true
 false
 ```
-<h2><a id="Any"></a><samp>func <a href="#Any">Any</a>[T any](x []T, f (T) bool) bool</samp></h2>
+<h3><a id="Any"></a><samp>func <a href="#Any">Any</a>[T any](x []T, f (T) bool) bool</samp></h3>
 
 Any returns true if f(x[i]) returns true for any i. Trivially, returns false if x is empty.
 
 
-### Example 
+#### Example 
 ```go
 {
 	isOdd := func(x int) bool {
@@ -131,7 +131,7 @@ Output:
 true
 false
 ```
-<h2><a id="Chunk"></a><samp>func <a href="#Chunk">Chunk</a>[T any](x []T, chunkSize int) [][]T</samp></h2>
+<h3><a id="Chunk"></a><samp>func <a href="#Chunk">Chunk</a>[T any](x []T, chunkSize int) [][]T</samp></h3>
 
 Chunk returns non-overlapping chunks of x. The last chunk will be smaller than chunkSize if
 len(x) is not a multiple of chunkSize.
@@ -139,7 +139,7 @@ len(x) is not a multiple of chunkSize.
 Returns an empty slice if len(x)==0. Panics if chunkSize <= 0.
 
 
-### Example 
+#### Example 
 ```go
 {
 	a := []string{"a", "b", "c", "d", "e", "f", "g", "h"}
@@ -153,12 +153,12 @@ Output:
 ```text
 [[a b c] [d e f] [g h]]
 ```
-<h2><a id="Clear"></a><samp>func <a href="#Clear">Clear</a>[T any](x []T)</samp></h2>
+<h3><a id="Clear"></a><samp>func <a href="#Clear">Clear</a>[T any](x []T)</samp></h3>
 
 Clear fills x with the zero value of T.
 
 
-### Example 
+#### Example 
 ```go
 {
 	x := []int{1, 2, 3}
@@ -172,12 +172,12 @@ Output:
 ```text
 [0 0 0]
 ```
-<h2><a id="Clone"></a><samp>func <a href="#Clone">Clone</a>[T any](x []T) []T</samp></h2>
+<h3><a id="Clone"></a><samp>func <a href="#Clone">Clone</a>[T any](x []T) []T</samp></h3>
 
 Clone creates a new slice and copies the elements of x into it.
 
 
-### Example 
+#### Example 
 ```go
 {
 	x := []int{1, 2, 3}
@@ -191,12 +191,12 @@ Output:
 ```text
 [1 2 3]
 ```
-<h2><a id="Compact"></a><samp>func <a href="#Compact">Compact</a>[T comparable](x []T) []T</samp></h2>
+<h3><a id="Compact"></a><samp>func <a href="#Compact">Compact</a>[T comparable](x []T) []T</samp></h3>
 
 Compact removes adjacent duplicates from x in-place and returns the modified slice.
 
 
-### Example 
+#### Example 
 ```go
 {
 	x := []string{"a", "a", "b", "c", "c", "c", "a"}
@@ -210,13 +210,13 @@ Output:
 ```text
 [a b c a]
 ```
-<h2><a id="CompactFunc"></a><samp>func <a href="#CompactFunc">CompactFunc</a>[T any](x []T, eq (T, T) bool) []T</samp></h2>
+<h3><a id="CompactFunc"></a><samp>func <a href="#CompactFunc">CompactFunc</a>[T any](x []T, eq (T, T) bool) []T</samp></h3>
 
 CompactFunc removes adjacent duplicates from x in-place, preserving the first occurrence, using
 the supplied eq function and returns the modified slice.
 
 
-### Example 
+#### Example 
 ```go
 {
 	x := []string{
@@ -240,12 +240,12 @@ Output:
 ```text
 [bank ghost yaw]
 ```
-<h2><a id="Count"></a><samp>func <a href="#Count">Count</a>[T comparable](a []T, item T) int</samp></h2>
+<h3><a id="Count"></a><samp>func <a href="#Count">Count</a>[T comparable](a []T, item T) int</samp></h3>
 
 Count returns the number of times item appears in a.
 
 
-### Example 
+#### Example 
 ```go
 {
 	x := []string{"a", "b", "a", "a", "b"}
@@ -259,17 +259,17 @@ Output:
 ```text
 3
 ```
-<h2><a id="CountFunc"></a><samp>func <a href="#CountFunc">CountFunc</a>[T any](a []T, f (T) bool) int</samp></h2>
+<h3><a id="CountFunc"></a><samp>func <a href="#CountFunc">CountFunc</a>[T any](a []T, f (T) bool) int</samp></h3>
 
 Count returns the number of items in a for which f returns true.
 
 
-<h2><a id="Equal"></a><samp>func <a href="#Equal">Equal</a>[T comparable](a, b []T) bool</samp></h2>
+<h3><a id="Equal"></a><samp>func <a href="#Equal">Equal</a>[T comparable](a, b []T) bool</samp></h3>
 
 Equal returns true if a and b contain the same items in the same order.
 
 
-### Example 
+#### Example 
 ```go
 {
 	x := []string{"a", "b", "c"}
@@ -289,12 +289,12 @@ true
 false
 false
 ```
-<h2><a id="Fill"></a><samp>func <a href="#Fill">Fill</a>[T any](a []T, x T)</samp></h2>
+<h3><a id="Fill"></a><samp>func <a href="#Fill">Fill</a>[T any](a []T, x T)</samp></h3>
 
 Fill fills a with copies of x.
 
 
-### Example 
+#### Example 
 ```go
 {
 	x := []int{1, 2, 3}
@@ -308,13 +308,13 @@ Output:
 ```text
 [5 5 5]
 ```
-<h2><a id="Filter"></a><samp>func <a href="#Filter">Filter</a>[T any](x []T, keep (t T) bool) []T</samp></h2>
+<h3><a id="Filter"></a><samp>func <a href="#Filter">Filter</a>[T any](x []T, keep (t T) bool) []T</samp></h3>
 
 Filter filters the contents of x to only those for which keep() returns true. This is done
 in-place and so modifies the contents of x. The modified slice is returned.
 
 
-### Example 
+#### Example 
 ```go
 {
 	x := []int{5, -9, -2, 1, -4, 8, 3}
@@ -330,12 +330,12 @@ Output:
 ```text
 [5 1 8 3]
 ```
-<h2><a id="Flatten"></a><samp>func <a href="#Flatten">Flatten</a>[T any](x [][]T) []T</samp></h2>
+<h3><a id="Flatten"></a><samp>func <a href="#Flatten">Flatten</a>[T any](x [][]T) []T</samp></h3>
 
 Flatten returns a slice containing all of the elements of all elements of x.
 
 
-### Example 
+#### Example 
 ```go
 {
 	x := [][]int{
@@ -355,14 +355,14 @@ Output:
 [[0 1 2] [3 4 5 6] [7]]
 [0 1 2 3 4 5 6 7]
 ```
-<h2><a id="Grow"></a><samp>func <a href="#Grow">Grow</a>[T any](x []T, n int) []T</samp></h2>
+<h3><a id="Grow"></a><samp>func <a href="#Grow">Grow</a>[T any](x []T, n int) []T</samp></h3>
 
 Grow grows x's capacity by reallocating, if necessary, to fit n more elements and returns the
 modified slice. This does not change the length of x. After Grow(x, n), the following n
 append()s to x will not need to reallocate.
 
 
-### Example 
+#### Example 
 ```go
 {
 	x := make([]int, 0, 1)
@@ -389,12 +389,12 @@ true
 true
 true
 ```
-<h2><a id="Index"></a><samp>func <a href="#Index">Index</a>[T comparable](a []T, item T) int</samp></h2>
+<h3><a id="Index"></a><samp>func <a href="#Index">Index</a>[T comparable](a []T, item T) int</samp></h3>
 
 Index returns the first index of item in a, or -1 if item is not in a.
 
 
-### Example 
+#### Example 
 ```go
 {
 	x := []string{"a", "b", "a", "a", "b"}
@@ -410,13 +410,13 @@ Output:
 1
 -1
 ```
-<h2><a id="IndexFunc"></a><samp>func <a href="#IndexFunc">IndexFunc</a>[T any](a []T, f (T) bool) int</samp></h2>
+<h3><a id="IndexFunc"></a><samp>func <a href="#IndexFunc">IndexFunc</a>[T any](a []T, f (T) bool) int</samp></h3>
 
 Index returns the first index in a for which f(a[i]) returns true, or -1 if there are no such
 items.
 
 
-<h2><a id="Insert"></a><samp>func <a href="#Insert">Insert</a>[T any](x []T, idx int, values ...) []T</samp></h2>
+<h3><a id="Insert"></a><samp>func <a href="#Insert">Insert</a>[T any](x []T, idx int, values ...) []T</samp></h3>
 
 Insert inserts the given values starting at index idx, shifting elements after idx to the right
 and growing the slice to make room. Insert will expand the length of the slice up to its capacity
@@ -427,7 +427,7 @@ if it can, if this isn't desired then x should be resliced to have capacity equa
 The time cost is O(n+m) where n is len(values) and m is len(x[idx:]).
 
 
-### Example 
+#### Example 
 ```go
 {
 	x := []string{"a", "b", "c", "d", "e"}
@@ -441,12 +441,12 @@ Output:
 ```text
 [a b c f g d e]
 ```
-<h2><a id="Join"></a><samp>func <a href="#Join">Join</a>[T any](in ...) []T</samp></h2>
+<h3><a id="Join"></a><samp>func <a href="#Join">Join</a>[T any](in ...) []T</samp></h3>
 
 Join joins together the contents of each in.
 
 
-### Example 
+#### Example 
 ```go
 {
 	joined := slices.Join(
@@ -464,12 +464,12 @@ Output:
 ```text
 [a b c x y l m n o]
 ```
-<h2><a id="LastIndex"></a><samp>func <a href="#LastIndex">LastIndex</a>[T comparable](a []T, item T) int</samp></h2>
+<h3><a id="LastIndex"></a><samp>func <a href="#LastIndex">LastIndex</a>[T comparable](a []T, item T) int</samp></h3>
 
 LastIndex returns the last index of item in a, or -1 if item is not in a.
 
 
-### Example 
+#### Example 
 ```go
 {
 	x := []string{"a", "b", "a", "a", "b"}
@@ -485,18 +485,18 @@ Output:
 3
 -1
 ```
-<h2><a id="LastIndexFunc"></a><samp>func <a href="#LastIndexFunc">LastIndexFunc</a>[T any](a []T, f (T) bool) int</samp></h2>
+<h3><a id="LastIndexFunc"></a><samp>func <a href="#LastIndexFunc">LastIndexFunc</a>[T any](a []T, f (T) bool) int</samp></h3>
 
 LastIndexFunc returns the last index in a for which f(a[i]) returns true, or -1 if there are no
 such items.
 
 
-<h2><a id="Map"></a><samp>func <a href="#Map">Map</a>[T any, U any](x []T, f (T) U) []U</samp></h2>
+<h3><a id="Map"></a><samp>func <a href="#Map">Map</a>[T any, U any](x []T, f (T) U) []U</samp></h3>
 
 Map creates a new slice by applying f to each element of x.
 
 
-### Example 
+#### Example 
 ```go
 {
 	toHalfFloat := func(x int) float32 {
@@ -514,14 +514,14 @@ Output:
 ```text
 [0.5 1 1.5]
 ```
-<h2><a id="Partition"></a><samp>func <a href="#Partition">Partition</a>[T any](x []T, f (t T) bool)</samp></h2>
+<h3><a id="Partition"></a><samp>func <a href="#Partition">Partition</a>[T any](x []T, f (t T) bool)</samp></h3>
 
 Partition moves elements of x such that all elements for which f returns false are at the
 beginning and all elements for which f returns true are at the end. It makes no other guarantees
 about the final order of elements.
 
 
-### Example 
+#### Example 
 ```go
 {
 	a := []int{11, 3, 4, 2, 7, 8, 0, 1, 14}
@@ -537,12 +537,12 @@ Output:
 ```text
 [11 3 1 7 2 8 0 4 14]
 ```
-<h2><a id="Reduce"></a><samp>func <a href="#Reduce">Reduce</a>[T any, U any](x []T, initial U, f (U, T) U) U</samp></h2>
+<h3><a id="Reduce"></a><samp>func <a href="#Reduce">Reduce</a>[T any, U any](x []T, initial U, f (U, T) U) U</samp></h3>
 
 Reduce reduces x to a single value using the reduction function f.
 
 
-### Example 
+#### Example 
 ```go
 {
 	x := []int{3, 1, 2}
@@ -561,14 +561,14 @@ Output:
 6
 1
 ```
-<h2><a id="Remove"></a><samp>func <a href="#Remove">Remove</a>[T any](x []T, idx int, n int) []T</samp></h2>
+<h3><a id="Remove"></a><samp>func <a href="#Remove">Remove</a>[T any](x []T, idx int, n int) []T</samp></h3>
 
 Remove removes n elements from x starting at index idx and returns the modified slice. This
 requires shifting the elements after the removed elements over, and so its cost is linear in the
 number of elements shifted.
 
 
-### Example 
+#### Example 
 ```go
 {
 	x := []int{1, 2, 3, 4, 5}
@@ -582,12 +582,12 @@ Output:
 ```text
 [1 4 5]
 ```
-<h2><a id="Repeat"></a><samp>func <a href="#Repeat">Repeat</a>[T any](x T, n int) []T</samp></h2>
+<h3><a id="Repeat"></a><samp>func <a href="#Repeat">Repeat</a>[T any](x T, n int) []T</samp></h3>
 
 Repeat returns a slice with length n where every item is x.
 
 
-### Example 
+#### Example 
 ```go
 {
 	x := slices.Repeat("a", 4)
@@ -599,12 +599,12 @@ Repeat returns a slice with length n where every item is x.
 Output:
 ```text
 ```
-<h2><a id="Reverse"></a><samp>func <a href="#Reverse">Reverse</a>[T any](x []T)</samp></h2>
+<h3><a id="Reverse"></a><samp>func <a href="#Reverse">Reverse</a>[T any](x []T)</samp></h3>
 
 Reverse reverses the elements of x in place.
 
 
-### Example 
+#### Example 
 ```go
 {
 	x := []string{"a", "b", "c", "d", "e"}
@@ -618,7 +618,7 @@ Output:
 ```text
 [e d c b a]
 ```
-<h2><a id="Runs"></a><samp>func <a href="#Runs">Runs</a>[T any](x []T, same (a, b T) bool) [][]T</samp></h2>
+<h3><a id="Runs"></a><samp>func <a href="#Runs">Runs</a>[T any](x []T, same (a, b T) bool) [][]T</samp></h3>
 
 Runs returns a slice of slices. The inner slices are contiguous runs of elements from x such
 that same(a, b) returns true for any a and b in the run.
@@ -629,7 +629,7 @@ also.
 The returned slices use the same underlying array as x.
 
 
-### Example 
+#### Example 
 ```go
 {
 	x := []int{2, 4, 0, 7, 1, 3, 9, 2, 8}
@@ -647,12 +647,12 @@ Output:
 ```text
 [[2 4 0] [7 1 3 9] [2 8]]
 ```
-<h2><a id="Shrink"></a><samp>func <a href="#Shrink">Shrink</a>[T any](x []T, n int) []T</samp></h2>
+<h3><a id="Shrink"></a><samp>func <a href="#Shrink">Shrink</a>[T any](x []T, n int) []T</samp></h3>
 
 Shrink shrinks x's capacity by reallocating, if necessary, so that cap(x) <= len(x) + n.
 
 
-<h2><a id="Unique"></a><samp>func <a href="#Unique">Unique</a>[T comparable](x []T) []T</samp></h2>
+<h3><a id="Unique"></a><samp>func <a href="#Unique">Unique</a>[T comparable](x []T) []T</samp></h3>
 
 Unique removes duplicates from x in-place, preserving order, and returns the modified slice.
 
@@ -660,7 +660,7 @@ Compact is more efficient if duplicates are already adjacent in x, for example i
 order.
 
 
-### Example 
+#### Example 
 ```go
 {
 	a := []string{"a", "b", "b", "c", "a", "b", "b", "c"}
@@ -674,5 +674,5 @@ Output:
 ```text
 [a b c]
 ```
-# Types
+## Types
 

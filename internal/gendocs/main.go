@@ -79,7 +79,7 @@ func main2(packageDir string) error {
 	fmt.Println("import \"" + docPkg.ImportPath + "\"")
 	fmt.Println("```")
 	fmt.Println()
-	fmt.Println("# Overview")
+	fmt.Println("## Overview")
 	fmt.Println()
 	fmt.Println(docPkg.Doc)
 
@@ -107,7 +107,7 @@ func main2(packageDir string) error {
 	}
 
 	fmt.Println()
-	fmt.Println("# Index")
+	fmt.Println("## Index")
 	fmt.Println()
 	for _, func_ := range docPkg.Funcs {
 		if !token.IsExported(func_.Name) {
@@ -137,14 +137,14 @@ func main2(packageDir string) error {
 				if err != nil {
 					return err
 				}
-				fmt.Println("<samp>&nbsp;&nbsp;&nbsp;&nbsp;" + indent(l, 4) + "</samp>")
+				fmt.Println("<samp>" + indent(l, 4) + "</samp>")
 				fmt.Println()
 			}
 		}
 	}
 	fmt.Println()
 
-	fmt.Println("# Constants")
+	fmt.Println("## Constants")
 	fmt.Println()
 	if len(docPkg.Consts) > 0 {
 		fmt.Println("<pre>")
@@ -163,7 +163,7 @@ func main2(packageDir string) error {
 	}
 	fmt.Println()
 
-	fmt.Println("# Variables")
+	fmt.Println("## Variables")
 	fmt.Println()
 	if len(docPkg.Vars) > 0 {
 		fmt.Println("<pre>")
@@ -182,7 +182,7 @@ func main2(packageDir string) error {
 	}
 	fmt.Println()
 
-	fmt.Println("# Functions")
+	fmt.Println("## Functions")
 	fmt.Println()
 	for _, func_ := range docPkg.Funcs {
 		if !token.IsExported(func_.Name) {
@@ -191,17 +191,17 @@ func main2(packageDir string) error {
 		printFunc(fset, docPkg.ImportPath, imports, localSymbols, func_)
 	}
 
-	fmt.Println("# Types")
+	fmt.Println("## Types")
 	fmt.Println()
 	for _, type_ := range docPkg.Types {
 		if !token.IsExported(type_.Name) {
 			continue
 		}
-		fmt.Print("<h2><a id=\"")
+		fmt.Print("<h3><a id=\"")
 		fmt.Print(type_.Name)
 		fmt.Print("\"></a><samp>type ")
 		fmt.Print(type_.Name)
-		fmt.Println("</samp></h2>")
+		fmt.Println("</samp></h3>")
 		type_.Decl.Doc = nil
 		fmt.Println("```go")
 		err := format.Node(os.Stdout, fset, type_.Decl)
@@ -233,11 +233,11 @@ func printFunc(
 	localSymbols map[string]string,
 	func_ *doc.Func,
 ) {
-	fmt.Print("<h2><a id=\"")
+	fmt.Print("<h3><a id=\"")
 	fmt.Print(func_.Name)
 	fmt.Print("\"></a><samp>")
 	fmt.Print(strWithLinks(fset, importPath, imports, localSymbols, func_.Decl))
-	fmt.Println("</samp></h2>")
+	fmt.Println("</samp></h3>")
 	fmt.Println()
 	fmt.Println(func_.Doc)
 	fmt.Println()
@@ -251,7 +251,7 @@ func printExample(
 	fset *token.FileSet,
 	example *doc.Example,
 ) {
-	fmt.Println("### Example " + example.Suffix)
+	fmt.Println("#### Example " + example.Suffix)
 	fmt.Println("```go")
 	err := format.Node(os.Stdout, fset, example.Code)
 	if err != nil {
@@ -510,6 +510,6 @@ func strWithLinks(
 }
 
 func indent(s string, by int) string {
-	indentation := strings.Repeat("&nbsp;&nbsp;&nbsp;&nbsp;", by)
+	indentation := strings.Repeat("&nbsp;", by)
 	return indentation + strings.ReplaceAll(s, "\n", "\n"+indentation)
 }

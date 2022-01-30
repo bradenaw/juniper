@@ -4,35 +4,35 @@
 import "github.com/bradenaw/juniper/sets"
 ```
 
-# Overview
+## Overview
 
 package sets contains set operations like union, intersection, and difference.
 
 
-# Index
+## Index
 
 <samp><a href="#Set">type Set</a></samp>
 
-<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Difference">func Difference[T comparable](out, a, b Set[T]) Set[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Difference">func Difference[T comparable](out, a, b Set[T]) Set[T]</a></samp>
 
-<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Intersection">func Intersection[T comparable](out Set[T], sets ...Set[T]) Set[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Intersection">func Intersection[T comparable](out Set[T], sets ...Set[T]) Set[T]</a></samp>
 
-<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Union">func Union[T any](out Set[T], sets ...Set[T]) Set[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Union">func Union[T any](out Set[T], sets ...Set[T]) Set[T]</a></samp>
 
 
-# Constants
-
-This section is empty.
-
-# Variables
+## Constants
 
 This section is empty.
 
-# Functions
+## Variables
 
-# Types
+This section is empty.
 
-<h2><a id="Set"></a><samp>type Set</samp></h2>
+## Functions
+
+## Types
+
+<h3><a id="Set"></a><samp>type Set</samp></h3>
 ```go
 type Set[T any] interface {
 	Add(item T)
@@ -45,12 +45,12 @@ type Set[T any] interface {
 
 
 
-<h2><a id="Difference"></a><samp>func Difference[T comparable](out, a, b <a href="#Set">Set</a>[T]) <a href="#Set">Set</a>[T]</samp></h2>
+<h3><a id="Difference"></a><samp>func Difference[T comparable](out, a, b <a href="#Set">Set</a>[T]) <a href="#Set">Set</a>[T]</samp></h3>
 
 Difference adds to out all items that appear in a but not in b and returns out.
 
 
-### Example 
+#### Example 
 ```go
 {
 	a := maps.Set[int]{
@@ -76,12 +76,12 @@ Output:
 ```text
 map[1:{} 5:{}]
 ```
-<h2><a id="Intersection"></a><samp>func Intersection[T comparable](out <a href="#Set">Set</a>[T], sets ...) <a href="#Set">Set</a>[T]</samp></h2>
+<h3><a id="Intersection"></a><samp>func Intersection[T comparable](out <a href="#Set">Set</a>[T], sets ...) <a href="#Set">Set</a>[T]</samp></h3>
 
 Intersection adds to out all items that appear in all sets and returns out.
 
 
-### Example 
+#### Example 
 ```go
 {
 	a := maps.Set[int]{
@@ -113,12 +113,12 @@ Output:
 ```text
 map[1:{} 4:{}]
 ```
-<h2><a id="Union"></a><samp>func Union[T any](out <a href="#Set">Set</a>[T], sets ...) <a href="#Set">Set</a>[T]</samp></h2>
+<h3><a id="Union"></a><samp>func Union[T any](out <a href="#Set">Set</a>[T], sets ...) <a href="#Set">Set</a>[T]</samp></h3>
 
 Union adds to out out all items from sets and returns out.
 
 
-### Example 
+#### Example 
 ```go
 {
 	a := maps.Set[int]{

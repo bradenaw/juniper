@@ -4,32 +4,32 @@
 import "github.com/bradenaw/juniper/xerrors"
 ```
 
-# Overview
+## Overview
 
 
 
-# Index
+## Index
 
 <samp><a href="#WithStack">func WithStack(err error) error</a></samp>
 
 
-# Constants
+## Constants
 
 This section is empty.
 
-# Variables
+## Variables
 
 This section is empty.
 
-# Functions
+## Functions
 
-<h2><a id="WithStack"></a><samp>func <a href="#WithStack">WithStack</a>(err error) error</samp></h2>
+<h3><a id="WithStack"></a><samp>func <a href="#WithStack">WithStack</a>(err error) error</samp></h3>
 
 WithStack returns an error that wraps err and adds the call stack of the call to WithStack to
 Error().
 
 
-### Example 
+#### Example 
 ```go
 {
 	err := WithStack(errors.New("foo"))
@@ -46,5 +46,5 @@ foo
 
 github.com/bradenaw/juniper/xerrors.ExampleWithStack(...)
 ```
-# Types
+## Types
 
