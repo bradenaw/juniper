@@ -323,7 +323,7 @@ func nonLocalSymbolLink(packagePath string, importPath string, symbol string) st
 	if !strings.HasSuffix(s, "/") {
 		s += "/"
 	}
-	return s + filepath.Base(importPath) + ".md#" + symbol
+	return s + filepath.Base(importPath) + ".html#" + symbol
 }
 
 func strWithLinks(

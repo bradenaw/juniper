@@ -358,7 +358,7 @@ First returns a Stream that yields the first n items from s.
 Flatten returns a stream that yields all items from all streams yielded by s.
 
 
-<h3><a id="FromIterator"></a><samp>func FromIterator[T any](iter <a href="./iterator.md#Iterator">iterator.Iterator</a>[T]) <a href="#Stream">Stream</a>[T]</samp></h3>
+<h3><a id="FromIterator"></a><samp>func FromIterator[T any](iter <a href="./iterator.html#Iterator">iterator.Iterator</a>[T]) <a href="#Stream">Stream</a>[T]</samp></h3>
 
 FromIterator returns a Stream that yields the values from iter. This stream ignores the context
 passed to Next during the call to iter.Next.

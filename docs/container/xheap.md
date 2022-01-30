@@ -83,7 +83,7 @@ Push and Pop take amoritized O(log(n)) time where n is the number of items in th
 Len and Peek take O(1) time.
 
 
-<h3><a id="New"></a><samp>func New[T any](less <a href="../xsort.md#Less">xsort.Less</a>[T], initial []T) <a href="#Heap">Heap</a>[T]</samp></h3>
+<h3><a id="New"></a><samp>func New[T any](less <a href="../xsort.html#Less">xsort.Less</a>[T], initial []T) <a href="#Heap">Heap</a>[T]</samp></h3>
 
 New returns a new Heap which uses less to determine the minimum element.
 
@@ -97,7 +97,7 @@ creating an empty heap and pushing each item (O(n * log(n))).
 Grow allocates sufficient space to add n more elements without needing to reallocate.
 
 
-<h3><a id="Iterate"></a><samp>func (h *<a href="#Heap">Heap</a>[T]) Iterate() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</samp></h3>
+<h3><a id="Iterate"></a><samp>func (h *<a href="#Heap">Heap</a>[T]) Iterate() <a href="../iterator.html#Iterator">iterator.Iterator</a>[T]</samp></h3>
 
 Iterate iterates over the elements of the heap.
 
@@ -145,7 +145,7 @@ type PriorityQueue[K comparable, P any] struct {
 PriorityQueue is a queue that yields items in increasing order of priority.
 
 
-<h3><a id="NewPriorityQueue"></a><samp>func NewPriorityQueue[K comparable, P any](less <a href="../xsort.md#Less">xsort.Less</a>[P], initial []<a href="#KP">KP</a>[K, P]) <a href="#PriorityQueue">PriorityQueue</a>[K, P]</samp></h3>
+<h3><a id="NewPriorityQueue"></a><samp>func NewPriorityQueue[K comparable, P any](less <a href="../xsort.html#Less">xsort.Less</a>[P], initial []<a href="#KP">KP</a>[K, P]) <a href="#PriorityQueue">PriorityQueue</a>[K, P]</samp></h3>
 
 NewPriorityQueue returns a new PriorityQueue which uses less to determine the minimum element.
 
@@ -170,7 +170,7 @@ Contains returns true if the given key is present in the priority queue.
 Grow allocates sufficient space to add n more elements without needing to reallocate.
 
 
-<h3><a id="Iterate"></a><samp>func (h *<a href="#PriorityQueue">PriorityQueue</a>[K, P]) Iterate() <a href="../iterator.md#Iterator">iterator.Iterator</a>[K]</samp></h3>
+<h3><a id="Iterate"></a><samp>func (h *<a href="#PriorityQueue">PriorityQueue</a>[K, P]) Iterate() <a href="../iterator.html#Iterator">iterator.Iterator</a>[K]</samp></h3>
 
 Iterate iterates over the elements of the priority queue.
 

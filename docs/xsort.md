@@ -70,7 +70,7 @@ LessOrEqual returns true if a >= b according to less.
 LessOrEqual returns true if a <= b according to less.
 
 
-<h3><a id="Merge"></a><samp>func <a href="#Merge">Merge</a>[T any](less <a href="#Less">Less</a>[T], in ...) <a href="./iterator.md#Iterator">iterator.Iterator</a>[T]</samp></h3>
+<h3><a id="Merge"></a><samp>func <a href="#Merge">Merge</a>[T any](less <a href="#Less">Less</a>[T], in ...) <a href="./iterator.html#Iterator">iterator.Iterator</a>[T]</samp></h3>
 
 Merge returns an iterator that yields all items from in in sorted order.
 
@@ -137,7 +137,7 @@ Output:
 ```text
 [a b e f o p s v x z]
 ```
-<h3><a id="MinK"></a><samp>func <a href="#MinK">MinK</a>[T any](less <a href="#Less">Less</a>[T], iter <a href="./iterator.md#Iterator">iterator.Iterator</a>[T], k int) []T</samp></h3>
+<h3><a id="MinK"></a><samp>func <a href="#MinK">MinK</a>[T any](less <a href="#Less">Less</a>[T], iter <a href="./iterator.html#Iterator">iterator.Iterator</a>[T], k int) []T</samp></h3>
 
 MinK returns the k minimum items according to less from iter in sorted order. If iter yields
 fewer than k items, MinK returns all of them.

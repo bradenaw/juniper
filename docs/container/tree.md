@@ -144,7 +144,7 @@ Map is a tree-structured key-value map, similar to Go's built-in map but keeps e
 order by key.
 
 
-<h3><a id="NewMap"></a><samp>func NewMap[K any, V any](less <a href="../xsort.md#Less">xsort.Less</a>[K]) <a href="#Map">Map</a>[K, V]</samp></h3>
+<h3><a id="NewMap"></a><samp>func NewMap[K any, V any](less <a href="../xsort.html#Less">xsort.Less</a>[K]) <a href="#Map">Map</a>[K, V]</samp></h3>
 
 NewMap returns a Map that uses less to determine the sort order of keys. If !less(a, b) &&
 !less(b, a), then a and b are considered the same key. The output of less must not change for any
@@ -177,7 +177,7 @@ Get returns the value associated with the given key if it is present in the map.
 returns the zero-value of V.
 
 
-<h3><a id="Iterate"></a><samp>func (m <a href="#Map">Map</a>[K, V]) Iterate() <a href="../iterator.md#Iterator">iterator.Iterator</a>[<a href="#KVPair">KVPair</a>[K, V]]</samp></h3>
+<h3><a id="Iterate"></a><samp>func (m <a href="#Map">Map</a>[K, V]) Iterate() <a href="../iterator.html#Iterator">iterator.Iterator</a>[<a href="#KVPair">KVPair</a>[K, V]]</samp></h3>
 
 Iterate returns an iterator that yields the elements of the map in sorted order by key.
 
@@ -215,7 +215,7 @@ A cursor is usable while a map is being modified. If the element the cursor is a
 cursor will still return the old value.
 
 
-<h3><a id="Backward"></a><samp>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Backward() <a href="../iterator.md#Iterator">iterator.Iterator</a>[<a href="#KVPair">KVPair</a>[K, V]]</samp></h3>
+<h3><a id="Backward"></a><samp>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Backward() <a href="../iterator.html#Iterator">iterator.Iterator</a>[<a href="#KVPair">KVPair</a>[K, V]]</samp></h3>
 
 Backward returns an iterator that starts from the cursor's position and yields all of the
 elements less than or equal to the cursor in descending order.
@@ -224,7 +224,7 @@ This iterator's Next method is amoritized O(1), unless the map changes in which 
 following Next is O(log(n)) where n is the number of elements in the map.
 
 
-<h3><a id="Forward"></a><samp>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Forward() <a href="../iterator.md#Iterator">iterator.Iterator</a>[<a href="#KVPair">KVPair</a>[K, V]]</samp></h3>
+<h3><a id="Forward"></a><samp>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Forward() <a href="../iterator.html#Iterator">iterator.Iterator</a>[<a href="#KVPair">KVPair</a>[K, V]]</samp></h3>
 
 Forward returns an iterator that starts from the cursor's position and yields all of the elements
 greater than or equal to the cursor in ascending order.
@@ -320,7 +320,7 @@ Set is a tree-structured set. Sets are a collection of unique elements. Similar 
 map[T]struct{} but keeps elements in sorted order.
 
 
-<h3><a id="NewSet"></a><samp>func NewSet[T any](less <a href="../xsort.md#Less">xsort.Less</a>[T]) <a href="#Set">Set</a>[T]</samp></h3>
+<h3><a id="NewSet"></a><samp>func NewSet[T any](less <a href="../xsort.html#Less">xsort.Less</a>[T]) <a href="#Set">Set</a>[T]</samp></h3>
 
 NewSet returns a Set that uses less to determine the sort order of items. If !less(a, b) &&
 !less(b, a), then a and b are considered the same item. The output of less must not change for
@@ -347,7 +347,7 @@ Cursor returns a cursor into the set placed at the first item.
 First returns the lowest item in the set according to less.
 
 
-<h3><a id="Iterate"></a><samp>func (s <a href="#Set">Set</a>[T]) Iterate() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</samp></h3>
+<h3><a id="Iterate"></a><samp>func (s <a href="#Set">Set</a>[T]) Iterate() <a href="../iterator.html#Iterator">iterator.Iterator</a>[T]</samp></h3>
 
 Iterate returns an iterator that yields the elements of the set in sorted order.
 
@@ -384,7 +384,7 @@ A cursor is usable while a set is being modified. If the item the cursor is at i
 cursor will still return the old item.
 
 
-<h3><a id="Backward"></a><samp>func (c *<a href="#SetCursor">SetCursor</a>[T]) Backward() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</samp></h3>
+<h3><a id="Backward"></a><samp>func (c *<a href="#SetCursor">SetCursor</a>[T]) Backward() <a href="../iterator.html#Iterator">iterator.Iterator</a>[T]</samp></h3>
 
 Backward returns an iterator that starts from the cursor's position and yields all of the
 elements less than or equal to the cursor in descending order.
@@ -393,7 +393,7 @@ This iterator's Next method is amoritized O(1), unless the map changes in which 
 following Next is O(log(n)) where n is the number of elements in the map.
 
 
-<h3><a id="Forward"></a><samp>func (c *<a href="#SetCursor">SetCursor</a>[T]) Forward() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</samp></h3>
+<h3><a id="Forward"></a><samp>func (c *<a href="#SetCursor">SetCursor</a>[T]) Forward() <a href="../iterator.html#Iterator">iterator.Iterator</a>[T]</samp></h3>
 
 Forward returns an iterator that starts from the cursor's position and yields all of the elements
 greater than or equal to the cursor in ascending order.

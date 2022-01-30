@@ -56,7 +56,7 @@ be passed to Shuffle.
 Output:
 ```text
 ```
-<h3><a id="SampleIterator"></a><samp>func <a href="#SampleIterator">SampleIterator</a>[T any](r *<a href="https://pkg.go.dev/math/rand#Rand">rand.Rand</a>, iter <a href="../iterator.md#Iterator">iterator.Iterator</a>[T], k int) []T</samp></h3>
+<h3><a id="SampleIterator"></a><samp>func <a href="#SampleIterator">SampleIterator</a>[T any](r *<a href="https://pkg.go.dev/math/rand#Rand">rand.Rand</a>, iter <a href="../iterator.html#Iterator">iterator.Iterator</a>[T], k int) []T</samp></h3>
 
 SampleIterator pseudo-randomly picks k items uniformly without replacement from iter.
 
@@ -76,7 +76,7 @@ The output is not in any particular order. If a pseudo-random order is desired, 
 be passed to Shuffle.
 
 
-<h3><a id="SampleStream"></a><samp>func <a href="#SampleStream">SampleStream</a>[T any](ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, r *<a href="https://pkg.go.dev/math/rand#Rand">rand.Rand</a>, s <a href="../stream.md#Stream">stream.Stream</a>[T], k int) ([]T, error)</samp></h3>
+<h3><a id="SampleStream"></a><samp>func <a href="#SampleStream">SampleStream</a>[T any](ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, r *<a href="https://pkg.go.dev/math/rand#Rand">rand.Rand</a>, s <a href="../stream.html#Stream">stream.Stream</a>[T], k int) ([]T, error)</samp></h3>
 
 SampleStream pseudo-randomly picks k items uniformly without replacement from s.
 

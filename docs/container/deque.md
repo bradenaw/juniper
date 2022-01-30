@@ -78,7 +78,7 @@ Grow allocates sufficient space to add n more items without needing to reallocat
 Item returns the ith item in the deque. 0 is the front and r.Len()-1 is the back.
 
 
-<h3><a id="Iterate"></a><samp>func (r *<a href="#Deque">Deque</a>[T]) Iterate() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</samp></h3>
+<h3><a id="Iterate"></a><samp>func (r *<a href="#Deque">Deque</a>[T]) Iterate() <a href="../iterator.html#Iterator">iterator.Iterator</a>[T]</samp></h3>
 
 Iterate iterates over the elements of the deque.
 

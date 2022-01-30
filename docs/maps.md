@@ -65,7 +65,7 @@ Set implements sets.Set for map[T]struct{}.
 
 
 
-<h3><a id="Iterate"></a><samp>func (s <a href="#Set">Set</a>[T]) Iterate() <a href="./iterator.md#Iterator">iterator.Iterator</a>[T]</samp></h3>
+<h3><a id="Iterate"></a><samp>func (s <a href="#Set">Set</a>[T]) Iterate() <a href="./iterator.html#Iterator">iterator.Iterator</a>[T]</samp></h3>
 
 
 

@@ -99,7 +99,7 @@ calls to f are made, and Map returns the first error encountered.
 If parallelism <= 0, uses GOMAXPROCS instead.
 
 
-<h3><a id="MapIterator"></a><samp>func <a href="#MapIterator">MapIterator</a>[T any, U any](iter <a href="./iterator.md#Iterator">iterator.Iterator</a>[T], parallelism int, bufferSize int, f func(T) U) <a href="./iterator.md#Iterator">iterator.Iterator</a>[U]</samp></h3>
+<h3><a id="MapIterator"></a><samp>func <a href="#MapIterator">MapIterator</a>[T any, U any](iter <a href="./iterator.html#Iterator">iterator.Iterator</a>[T], parallelism int, bufferSize int, f func(T) U) <a href="./iterator.html#Iterator">iterator.Iterator</a>[U]</samp></h3>
 
 MapIterator uses parallelism goroutines to call f once for each element yielded by iter. The
 returned iterator returns these results in the same order that iter yielded them in.
@@ -112,7 +112,7 @@ bufferSize is the size of the work buffer for each goroutine. A larger buffer us
 but gives better throughput in the face of larger variance in the processing time for f.
 
 
-<h3><a id="MapStream"></a><samp>func <a href="#MapStream">MapStream</a>[T any, U any](s <a href="./stream.md#Stream">stream.Stream</a>[T], parallelism int, bufferSize int, f func(<a href="https://pkg.go.dev/context#Context">context.Context</a>, T) (U, error)) <a href="./stream.md#Stream">stream.Stream</a>[U]</samp></h3>
+<h3><a id="MapStream"></a><samp>func <a href="#MapStream">MapStream</a>[T any, U any](s <a href="./stream.html#Stream">stream.Stream</a>[T], parallelism int, bufferSize int, f func(<a href="https://pkg.go.dev/context#Context">context.Context</a>, T) (U, error)) <a href="./stream.html#Stream">stream.Stream</a>[U]</samp></h3>
 
 MapStream uses parallelism goroutines to call f once for each element yielded by s. The returned
 stream returns these results in the same order that s yielded them in.
