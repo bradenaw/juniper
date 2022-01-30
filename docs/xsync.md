@@ -40,15 +40,23 @@ Package xsync contains extensions to the standard library package sync.
 <samp>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Once">func (g *Group) Once(f func(ctx context.Context))</a></samp>
 
 <samp>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Periodic">func (g *Group) Periodic(
+
 &nbsp;&nbsp;&nbsp;&nbsp;	interval time.Duration,
+
 &nbsp;&nbsp;&nbsp;&nbsp;	jitter time.Duration,
+
 &nbsp;&nbsp;&nbsp;&nbsp;	f func(ctx context.Context),
+
 &nbsp;&nbsp;&nbsp;&nbsp;)</a></samp>
 
 <samp>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PeriodicOrTrigger">func (g *Group) PeriodicOrTrigger(
+
 &nbsp;&nbsp;&nbsp;&nbsp;	interval time.Duration,
+
 &nbsp;&nbsp;&nbsp;&nbsp;	jitter time.Duration,
+
 &nbsp;&nbsp;&nbsp;&nbsp;	f func(ctx context.Context),
+
 &nbsp;&nbsp;&nbsp;&nbsp;) func()</a></samp>
 
 <samp>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Stop">func (g *Group) Stop()</a></samp>

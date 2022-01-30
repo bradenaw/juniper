@@ -511,5 +511,5 @@ func strWithLinks(
 
 func indent(s string, by int) string {
 	indentation := strings.Repeat("&nbsp;", by)
-	return indentation + strings.ReplaceAll(s, "\n", "\n"+indentation)
+	return indentation + strings.ReplaceAll(s, "\n", "\n\n"+indentation)
 }
