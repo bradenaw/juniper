@@ -11,40 +11,40 @@ Package parallel provides primitives for running tasks in parallel.
 
 # Index
 
-<pre><a href="#Do">func Do(
+<samp><a href="#Do">func Do(
 	parallelism int,
 	n int,
 	f func(i int),
-)</a></pre>
-<pre><a href="#DoContext">func DoContext(
+)</a></samp>
+<samp><a href="#DoContext">func DoContext(
 	ctx context.Context,
 	parallelism int,
 	n int,
 	f func(ctx context.Context, i int) error,
-) error</a></pre>
-<pre><a href="#Map">func Map[T any, U any](
+) error</a></samp>
+<samp><a href="#Map">func Map[T any, U any](
 	parallelism int,
 	in []T,
 	f func(in T) U,
-) []U</a></pre>
-<pre><a href="#MapContext">func MapContext[T any, U any](
+) []U</a></samp>
+<samp><a href="#MapContext">func MapContext[T any, U any](
 	ctx context.Context,
 	parallelism int,
 	in []T,
 	f func(ctx context.Context, in T) (U, error),
-) ([]U, error)</a></pre>
-<pre><a href="#MapIterator">func MapIterator[T any, U any](
+) ([]U, error)</a></samp>
+<samp><a href="#MapIterator">func MapIterator[T any, U any](
 	iter iterator.Iterator[T],
 	parallelism int,
 	bufferSize int,
 	f func(T) U,
-) iterator.Iterator[U]</a></pre>
-<pre><a href="#MapStream">func MapStream[T any, U any](
+) iterator.Iterator[U]</a></samp>
+<samp><a href="#MapStream">func MapStream[T any, U any](
 	s stream.Stream[T],
 	parallelism int,
 	bufferSize int,
 	f func(context.Context, T) (U, error),
-) stream.Stream[U]</a></pre>
+) stream.Stream[U]</a></samp>
 
 # Constants
 
@@ -56,14 +56,14 @@ This section is empty.
 
 # Functions
 
-<h2><a id="Do"></a><pre>func <a href="#Do">Do</a>(parallelism int, n int, f (i int))</pre></h2>
+<h2><a id="Do"></a><samp>func <a href="#Do">Do</a>(parallelism int, n int, f (i int))</samp></h2>
 
 Do calls f from parallelism goroutines n times, providing each invocation a unique i in [0, n).
 
 If parallelism <= 0, uses GOMAXPROCS instead.
 
 
-<h2><a id="DoContext"></a><pre>func <a href="#DoContext">DoContext</a>(ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, parallelism int, n int, f (ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, i int) error) error</pre></h2>
+<h2><a id="DoContext"></a><samp>func <a href="#DoContext">DoContext</a>(ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, parallelism int, n int, f (ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, i int) error) error</samp></h2>
 
 DoContext calls f from parallelism goroutines n times, providing each invocation a unique i in
 [0, n).
@@ -74,7 +74,7 @@ calls to f are made, and Do returns the first error encountered.
 If parallelism <= 0, uses GOMAXPROCS instead.
 
 
-<h2><a id="Map"></a><pre>func <a href="#Map">Map</a>[T any, U any](parallelism int, in []T, f (in T) U) []U</pre></h2>
+<h2><a id="Map"></a><samp>func <a href="#Map">Map</a>[T any, U any](parallelism int, in []T, f (in T) U) []U</samp></h2>
 
 Map uses parallelism goroutines to call f once for each element of in. out[i] is the
 result of f for in[i].
@@ -82,7 +82,7 @@ result of f for in[i].
 If parallelism <= 0, uses GOMAXPROCS instead.
 
 
-<h2><a id="MapContext"></a><pre>func <a href="#MapContext">MapContext</a>[T any, U any](ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, parallelism int, in []T, f (ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, in T) (U, error)) ([]U, error)</pre></h2>
+<h2><a id="MapContext"></a><samp>func <a href="#MapContext">MapContext</a>[T any, U any](ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, parallelism int, in []T, f (ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, in T) (U, error)) ([]U, error)</samp></h2>
 
 MapContext uses parallelism goroutines to call f once for each element of in. out[i] is the
 result of f for in[i].
@@ -93,7 +93,7 @@ calls to f are made, and Map returns the first error encountered.
 If parallelism <= 0, uses GOMAXPROCS instead.
 
 
-<h2><a id="MapIterator"></a><pre>func <a href="#MapIterator">MapIterator</a>[T any, U any](iter <a href="./iterator.md#Iterator">iterator.Iterator</a>[T], parallelism int, bufferSize int, f (T) U) <a href="./iterator.md#Iterator">iterator.Iterator</a>[U]</pre></h2>
+<h2><a id="MapIterator"></a><samp>func <a href="#MapIterator">MapIterator</a>[T any, U any](iter <a href="./iterator.md#Iterator">iterator.Iterator</a>[T], parallelism int, bufferSize int, f (T) U) <a href="./iterator.md#Iterator">iterator.Iterator</a>[U]</samp></h2>
 
 MapIterator uses parallelism goroutines to call f once for each element yielded by iter. The
 returned iterator returns these results in the same order that iter yielded them in.
@@ -106,7 +106,7 @@ bufferSize is the size of the work buffer for each goroutine. A larger buffer us
 but gives better throughput in the face of larger variance in the processing time for f.
 
 
-<h2><a id="MapStream"></a><pre>func <a href="#MapStream">MapStream</a>[T any, U any](s <a href="./stream.md#Stream">stream.Stream</a>[T], parallelism int, bufferSize int, f (<a href="https://pkg.go.dev/context#Context">context.Context</a>, T) (U, error)) <a href="./stream.md#Stream">stream.Stream</a>[U]</pre></h2>
+<h2><a id="MapStream"></a><samp>func <a href="#MapStream">MapStream</a>[T any, U any](s <a href="./stream.md#Stream">stream.Stream</a>[T], parallelism int, bufferSize int, f (<a href="https://pkg.go.dev/context#Context">context.Context</a>, T) (U, error)) <a href="./stream.md#Stream">stream.Stream</a>[U]</samp></h2>
 
 MapStream uses parallelism goroutines to call f once for each element yielded by s. The returned
 stream returns these results in the same order that s yielded them in.

@@ -10,35 +10,35 @@ import "github.com/bradenaw/juniper/slices"
 
 # Index
 
-<pre><a href="#All">func All[T any](x []T, f func(T) bool) bool</a></pre>
-<pre><a href="#Any">func Any[T any](x []T, f func(T) bool) bool</a></pre>
-<pre><a href="#Chunk">func Chunk[T any](x []T, chunkSize int) [][]T</a></pre>
-<pre><a href="#Clear">func Clear[T any](x []T)</a></pre>
-<pre><a href="#Clone">func Clone[T any](x []T) []T</a></pre>
-<pre><a href="#Compact">func Compact[T comparable](x []T) []T</a></pre>
-<pre><a href="#CompactFunc">func CompactFunc[T any](x []T, eq func(T, T) bool) []T</a></pre>
-<pre><a href="#Count">func Count[T comparable](a []T, item T) int</a></pre>
-<pre><a href="#CountFunc">func CountFunc[T any](a []T, f func(T) bool) int</a></pre>
-<pre><a href="#Equal">func Equal[T comparable](a, b []T) bool</a></pre>
-<pre><a href="#Fill">func Fill[T any](a []T, x T)</a></pre>
-<pre><a href="#Filter">func Filter[T any](x []T, keep func(t T) bool) []T</a></pre>
-<pre><a href="#Flatten">func Flatten[T any](x [][]T) []T</a></pre>
-<pre><a href="#Grow">func Grow[T any](x []T, n int) []T</a></pre>
-<pre><a href="#Index">func Index[T comparable](a []T, item T) int</a></pre>
-<pre><a href="#IndexFunc">func IndexFunc[T any](a []T, f func(T) bool) int</a></pre>
-<pre><a href="#Insert">func Insert[T any](x []T, idx int, values ...T) []T</a></pre>
-<pre><a href="#Join">func Join[T any](in ...[]T) []T</a></pre>
-<pre><a href="#LastIndex">func LastIndex[T comparable](a []T, item T) int</a></pre>
-<pre><a href="#LastIndexFunc">func LastIndexFunc[T any](a []T, f func(T) bool) int</a></pre>
-<pre><a href="#Map">func Map[T any, U any](x []T, f func(T) U) []U</a></pre>
-<pre><a href="#Partition">func Partition[T any](x []T, f func(t T) bool)</a></pre>
-<pre><a href="#Reduce">func Reduce[T any, U any](x []T, initial U, f func(U, T) U) U</a></pre>
-<pre><a href="#Remove">func Remove[T any](x []T, idx int, n int) []T</a></pre>
-<pre><a href="#Repeat">func Repeat[T any](x T, n int) []T</a></pre>
-<pre><a href="#Reverse">func Reverse[T any](x []T)</a></pre>
-<pre><a href="#Runs">func Runs[T any](x []T, same func(a, b T) bool) [][]T</a></pre>
-<pre><a href="#Shrink">func Shrink[T any](x []T, n int) []T</a></pre>
-<pre><a href="#Unique">func Unique[T comparable](x []T) []T</a></pre>
+<samp><a href="#All">func All[T any](x []T, f func(T) bool) bool</a></samp>
+<samp><a href="#Any">func Any[T any](x []T, f func(T) bool) bool</a></samp>
+<samp><a href="#Chunk">func Chunk[T any](x []T, chunkSize int) [][]T</a></samp>
+<samp><a href="#Clear">func Clear[T any](x []T)</a></samp>
+<samp><a href="#Clone">func Clone[T any](x []T) []T</a></samp>
+<samp><a href="#Compact">func Compact[T comparable](x []T) []T</a></samp>
+<samp><a href="#CompactFunc">func CompactFunc[T any](x []T, eq func(T, T) bool) []T</a></samp>
+<samp><a href="#Count">func Count[T comparable](a []T, item T) int</a></samp>
+<samp><a href="#CountFunc">func CountFunc[T any](a []T, f func(T) bool) int</a></samp>
+<samp><a href="#Equal">func Equal[T comparable](a, b []T) bool</a></samp>
+<samp><a href="#Fill">func Fill[T any](a []T, x T)</a></samp>
+<samp><a href="#Filter">func Filter[T any](x []T, keep func(t T) bool) []T</a></samp>
+<samp><a href="#Flatten">func Flatten[T any](x [][]T) []T</a></samp>
+<samp><a href="#Grow">func Grow[T any](x []T, n int) []T</a></samp>
+<samp><a href="#Index">func Index[T comparable](a []T, item T) int</a></samp>
+<samp><a href="#IndexFunc">func IndexFunc[T any](a []T, f func(T) bool) int</a></samp>
+<samp><a href="#Insert">func Insert[T any](x []T, idx int, values ...T) []T</a></samp>
+<samp><a href="#Join">func Join[T any](in ...[]T) []T</a></samp>
+<samp><a href="#LastIndex">func LastIndex[T comparable](a []T, item T) int</a></samp>
+<samp><a href="#LastIndexFunc">func LastIndexFunc[T any](a []T, f func(T) bool) int</a></samp>
+<samp><a href="#Map">func Map[T any, U any](x []T, f func(T) U) []U</a></samp>
+<samp><a href="#Partition">func Partition[T any](x []T, f func(t T) bool)</a></samp>
+<samp><a href="#Reduce">func Reduce[T any, U any](x []T, initial U, f func(U, T) U) U</a></samp>
+<samp><a href="#Remove">func Remove[T any](x []T, idx int, n int) []T</a></samp>
+<samp><a href="#Repeat">func Repeat[T any](x T, n int) []T</a></samp>
+<samp><a href="#Reverse">func Reverse[T any](x []T)</a></samp>
+<samp><a href="#Runs">func Runs[T any](x []T, same func(a, b T) bool) [][]T</a></samp>
+<samp><a href="#Shrink">func Shrink[T any](x []T, n int) []T</a></samp>
+<samp><a href="#Unique">func Unique[T comparable](x []T) []T</a></samp>
 
 # Constants
 
@@ -50,7 +50,7 @@ This section is empty.
 
 # Functions
 
-<h2><a id="All"></a><pre>func <a href="#All">All</a>[T any](x []T, f (T) bool) bool</pre></h2>
+<h2><a id="All"></a><samp>func <a href="#All">All</a>[T any](x []T, f (T) bool) bool</samp></h2>
 
 All returns true if f(x[i]) returns true for all i. Trivially, returns true if x is empty.
 
@@ -76,7 +76,7 @@ Output:
 true
 false
 ```
-<h2><a id="Any"></a><pre>func <a href="#Any">Any</a>[T any](x []T, f (T) bool) bool</pre></h2>
+<h2><a id="Any"></a><samp>func <a href="#Any">Any</a>[T any](x []T, f (T) bool) bool</samp></h2>
 
 Any returns true if f(x[i]) returns true for any i. Trivially, returns false if x is empty.
 
@@ -102,7 +102,7 @@ Output:
 true
 false
 ```
-<h2><a id="Chunk"></a><pre>func <a href="#Chunk">Chunk</a>[T any](x []T, chunkSize int) [][]T</pre></h2>
+<h2><a id="Chunk"></a><samp>func <a href="#Chunk">Chunk</a>[T any](x []T, chunkSize int) [][]T</samp></h2>
 
 Chunk returns non-overlapping chunks of x. The last chunk will be smaller than chunkSize if
 len(x) is not a multiple of chunkSize.
@@ -124,7 +124,7 @@ Output:
 ```text
 [[a b c] [d e f] [g h]]
 ```
-<h2><a id="Clear"></a><pre>func <a href="#Clear">Clear</a>[T any](x []T)</pre></h2>
+<h2><a id="Clear"></a><samp>func <a href="#Clear">Clear</a>[T any](x []T)</samp></h2>
 
 Clear fills x with the zero value of T.
 
@@ -143,7 +143,7 @@ Output:
 ```text
 [0 0 0]
 ```
-<h2><a id="Clone"></a><pre>func <a href="#Clone">Clone</a>[T any](x []T) []T</pre></h2>
+<h2><a id="Clone"></a><samp>func <a href="#Clone">Clone</a>[T any](x []T) []T</samp></h2>
 
 Clone creates a new slice and copies the elements of x into it.
 
@@ -162,7 +162,7 @@ Output:
 ```text
 [1 2 3]
 ```
-<h2><a id="Compact"></a><pre>func <a href="#Compact">Compact</a>[T comparable](x []T) []T</pre></h2>
+<h2><a id="Compact"></a><samp>func <a href="#Compact">Compact</a>[T comparable](x []T) []T</samp></h2>
 
 Compact removes adjacent duplicates from x in-place and returns the modified slice.
 
@@ -181,7 +181,7 @@ Output:
 ```text
 [a b c a]
 ```
-<h2><a id="CompactFunc"></a><pre>func <a href="#CompactFunc">CompactFunc</a>[T any](x []T, eq (T, T) bool) []T</pre></h2>
+<h2><a id="CompactFunc"></a><samp>func <a href="#CompactFunc">CompactFunc</a>[T any](x []T, eq (T, T) bool) []T</samp></h2>
 
 CompactFunc removes adjacent duplicates from x in-place, preserving the first occurrence, using
 the supplied eq function and returns the modified slice.
@@ -211,7 +211,7 @@ Output:
 ```text
 [bank ghost yaw]
 ```
-<h2><a id="Count"></a><pre>func <a href="#Count">Count</a>[T comparable](a []T, item T) int</pre></h2>
+<h2><a id="Count"></a><samp>func <a href="#Count">Count</a>[T comparable](a []T, item T) int</samp></h2>
 
 Count returns the number of times item appears in a.
 
@@ -230,12 +230,12 @@ Output:
 ```text
 3
 ```
-<h2><a id="CountFunc"></a><pre>func <a href="#CountFunc">CountFunc</a>[T any](a []T, f (T) bool) int</pre></h2>
+<h2><a id="CountFunc"></a><samp>func <a href="#CountFunc">CountFunc</a>[T any](a []T, f (T) bool) int</samp></h2>
 
 Count returns the number of items in a for which f returns true.
 
 
-<h2><a id="Equal"></a><pre>func <a href="#Equal">Equal</a>[T comparable](a, b []T) bool</pre></h2>
+<h2><a id="Equal"></a><samp>func <a href="#Equal">Equal</a>[T comparable](a, b []T) bool</samp></h2>
 
 Equal returns true if a and b contain the same items in the same order.
 
@@ -260,7 +260,7 @@ true
 false
 false
 ```
-<h2><a id="Fill"></a><pre>func <a href="#Fill">Fill</a>[T any](a []T, x T)</pre></h2>
+<h2><a id="Fill"></a><samp>func <a href="#Fill">Fill</a>[T any](a []T, x T)</samp></h2>
 
 Fill fills a with copies of x.
 
@@ -279,7 +279,7 @@ Output:
 ```text
 [5 5 5]
 ```
-<h2><a id="Filter"></a><pre>func <a href="#Filter">Filter</a>[T any](x []T, keep (t T) bool) []T</pre></h2>
+<h2><a id="Filter"></a><samp>func <a href="#Filter">Filter</a>[T any](x []T, keep (t T) bool) []T</samp></h2>
 
 Filter filters the contents of x to only those for which keep() returns true. This is done
 in-place and so modifies the contents of x. The modified slice is returned.
@@ -301,7 +301,7 @@ Output:
 ```text
 [5 1 8 3]
 ```
-<h2><a id="Flatten"></a><pre>func <a href="#Flatten">Flatten</a>[T any](x [][]T) []T</pre></h2>
+<h2><a id="Flatten"></a><samp>func <a href="#Flatten">Flatten</a>[T any](x [][]T) []T</samp></h2>
 
 Flatten returns a slice containing all of the elements of all elements of x.
 
@@ -326,7 +326,7 @@ Output:
 [[0 1 2] [3 4 5 6] [7]]
 [0 1 2 3 4 5 6 7]
 ```
-<h2><a id="Grow"></a><pre>func <a href="#Grow">Grow</a>[T any](x []T, n int) []T</pre></h2>
+<h2><a id="Grow"></a><samp>func <a href="#Grow">Grow</a>[T any](x []T, n int) []T</samp></h2>
 
 Grow grows x's capacity by reallocating, if necessary, to fit n more elements and returns the
 modified slice. This does not change the length of x. After Grow(x, n), the following n
@@ -360,7 +360,7 @@ true
 true
 true
 ```
-<h2><a id="Index"></a><pre>func <a href="#Index">Index</a>[T comparable](a []T, item T) int</pre></h2>
+<h2><a id="Index"></a><samp>func <a href="#Index">Index</a>[T comparable](a []T, item T) int</samp></h2>
 
 Index returns the first index of item in a, or -1 if item is not in a.
 
@@ -381,13 +381,13 @@ Output:
 1
 -1
 ```
-<h2><a id="IndexFunc"></a><pre>func <a href="#IndexFunc">IndexFunc</a>[T any](a []T, f (T) bool) int</pre></h2>
+<h2><a id="IndexFunc"></a><samp>func <a href="#IndexFunc">IndexFunc</a>[T any](a []T, f (T) bool) int</samp></h2>
 
 Index returns the first index in a for which f(a[i]) returns true, or -1 if there are no such
 items.
 
 
-<h2><a id="Insert"></a><pre>func <a href="#Insert">Insert</a>[T any](x []T, idx int, values ...) []T</pre></h2>
+<h2><a id="Insert"></a><samp>func <a href="#Insert">Insert</a>[T any](x []T, idx int, values ...) []T</samp></h2>
 
 Insert inserts the given values starting at index idx, shifting elements after idx to the right
 and growing the slice to make room. Insert will expand the length of the slice up to its capacity
@@ -412,7 +412,7 @@ Output:
 ```text
 [a b c f g d e]
 ```
-<h2><a id="Join"></a><pre>func <a href="#Join">Join</a>[T any](in ...) []T</pre></h2>
+<h2><a id="Join"></a><samp>func <a href="#Join">Join</a>[T any](in ...) []T</samp></h2>
 
 Join joins together the contents of each in.
 
@@ -435,7 +435,7 @@ Output:
 ```text
 [a b c x y l m n o]
 ```
-<h2><a id="LastIndex"></a><pre>func <a href="#LastIndex">LastIndex</a>[T comparable](a []T, item T) int</pre></h2>
+<h2><a id="LastIndex"></a><samp>func <a href="#LastIndex">LastIndex</a>[T comparable](a []T, item T) int</samp></h2>
 
 LastIndex returns the last index of item in a, or -1 if item is not in a.
 
@@ -456,13 +456,13 @@ Output:
 3
 -1
 ```
-<h2><a id="LastIndexFunc"></a><pre>func <a href="#LastIndexFunc">LastIndexFunc</a>[T any](a []T, f (T) bool) int</pre></h2>
+<h2><a id="LastIndexFunc"></a><samp>func <a href="#LastIndexFunc">LastIndexFunc</a>[T any](a []T, f (T) bool) int</samp></h2>
 
 LastIndexFunc returns the last index in a for which f(a[i]) returns true, or -1 if there are no
 such items.
 
 
-<h2><a id="Map"></a><pre>func <a href="#Map">Map</a>[T any, U any](x []T, f (T) U) []U</pre></h2>
+<h2><a id="Map"></a><samp>func <a href="#Map">Map</a>[T any, U any](x []T, f (T) U) []U</samp></h2>
 
 Map creates a new slice by applying f to each element of x.
 
@@ -485,7 +485,7 @@ Output:
 ```text
 [0.5 1 1.5]
 ```
-<h2><a id="Partition"></a><pre>func <a href="#Partition">Partition</a>[T any](x []T, f (t T) bool)</pre></h2>
+<h2><a id="Partition"></a><samp>func <a href="#Partition">Partition</a>[T any](x []T, f (t T) bool)</samp></h2>
 
 Partition moves elements of x such that all elements for which f returns false are at the
 beginning and all elements for which f returns true are at the end. It makes no other guarantees
@@ -508,7 +508,7 @@ Output:
 ```text
 [11 3 1 7 2 8 0 4 14]
 ```
-<h2><a id="Reduce"></a><pre>func <a href="#Reduce">Reduce</a>[T any, U any](x []T, initial U, f (U, T) U) U</pre></h2>
+<h2><a id="Reduce"></a><samp>func <a href="#Reduce">Reduce</a>[T any, U any](x []T, initial U, f (U, T) U) U</samp></h2>
 
 Reduce reduces x to a single value using the reduction function f.
 
@@ -532,7 +532,7 @@ Output:
 6
 1
 ```
-<h2><a id="Remove"></a><pre>func <a href="#Remove">Remove</a>[T any](x []T, idx int, n int) []T</pre></h2>
+<h2><a id="Remove"></a><samp>func <a href="#Remove">Remove</a>[T any](x []T, idx int, n int) []T</samp></h2>
 
 Remove removes n elements from x starting at index idx and returns the modified slice. This
 requires shifting the elements after the removed elements over, and so its cost is linear in the
@@ -553,7 +553,7 @@ Output:
 ```text
 [1 4 5]
 ```
-<h2><a id="Repeat"></a><pre>func <a href="#Repeat">Repeat</a>[T any](x T, n int) []T</pre></h2>
+<h2><a id="Repeat"></a><samp>func <a href="#Repeat">Repeat</a>[T any](x T, n int) []T</samp></h2>
 
 Repeat returns a slice with length n where every item is x.
 
@@ -570,7 +570,7 @@ Repeat returns a slice with length n where every item is x.
 Output:
 ```text
 ```
-<h2><a id="Reverse"></a><pre>func <a href="#Reverse">Reverse</a>[T any](x []T)</pre></h2>
+<h2><a id="Reverse"></a><samp>func <a href="#Reverse">Reverse</a>[T any](x []T)</samp></h2>
 
 Reverse reverses the elements of x in place.
 
@@ -589,7 +589,7 @@ Output:
 ```text
 [e d c b a]
 ```
-<h2><a id="Runs"></a><pre>func <a href="#Runs">Runs</a>[T any](x []T, same (a, b T) bool) [][]T</pre></h2>
+<h2><a id="Runs"></a><samp>func <a href="#Runs">Runs</a>[T any](x []T, same (a, b T) bool) [][]T</samp></h2>
 
 Runs returns a slice of slices. The inner slices are contiguous runs of elements from x such
 that same(a, b) returns true for any a and b in the run.
@@ -618,12 +618,12 @@ Output:
 ```text
 [[2 4 0] [7 1 3 9] [2 8]]
 ```
-<h2><a id="Shrink"></a><pre>func <a href="#Shrink">Shrink</a>[T any](x []T, n int) []T</pre></h2>
+<h2><a id="Shrink"></a><samp>func <a href="#Shrink">Shrink</a>[T any](x []T, n int) []T</samp></h2>
 
 Shrink shrinks x's capacity by reallocating, if necessary, so that cap(x) <= len(x) + n.
 
 
-<h2><a id="Unique"></a><pre>func <a href="#Unique">Unique</a>[T comparable](x []T) []T</pre></h2>
+<h2><a id="Unique"></a><samp>func <a href="#Unique">Unique</a>[T comparable](x []T) []T</samp></h2>
 
 Unique removes duplicates from x in-place, preserving order, and returns the modified slice.
 

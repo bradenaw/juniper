@@ -11,10 +11,10 @@ package sets contains set operations like union, intersection, and difference.
 
 # Index
 
-<pre><a href="#Set">type Set</a></pre>
-<pre>    <a href="#Difference">func Difference[T comparable](out, a, b Set[T]) Set[T]</a></pre>
-<pre>    <a href="#Intersection">func Intersection[T comparable](out Set[T], sets ...Set[T]) Set[T]</a></pre>
-<pre>    <a href="#Union">func Union[T any](out Set[T], sets ...Set[T]) Set[T]</a></pre>
+<samp><a href="#Set">type Set</a></samp>
+<samp>    <a href="#Difference">func Difference[T comparable](out, a, b Set[T]) Set[T]</a></samp>
+<samp>    <a href="#Intersection">func Intersection[T comparable](out Set[T], sets ...Set[T]) Set[T]</a></samp>
+<samp>    <a href="#Union">func Union[T any](out Set[T], sets ...Set[T]) Set[T]</a></samp>
 
 # Constants
 
@@ -28,7 +28,7 @@ This section is empty.
 
 # Types
 
-## <a id="Set"></a><pre>type Set</pre>
+<h2><a id="Set"></a><samp>type Set</samp></h2>
 ```go
 type Set[T any] interface {
 	Add(item T)
@@ -41,7 +41,7 @@ type Set[T any] interface {
 
 
 
-<h2><a id="Difference"></a><pre>func Difference[T comparable](out, a, b <a href="#Set">Set</a>[T]) <a href="#Set">Set</a>[T]</pre></h2>
+<h2><a id="Difference"></a><samp>func Difference[T comparable](out, a, b <a href="#Set">Set</a>[T]) <a href="#Set">Set</a>[T]</samp></h2>
 
 Difference adds to out all items that appear in a but not in b and returns out.
 
@@ -72,7 +72,7 @@ Output:
 ```text
 map[1:{} 5:{}]
 ```
-<h2><a id="Intersection"></a><pre>func Intersection[T comparable](out <a href="#Set">Set</a>[T], sets ...) <a href="#Set">Set</a>[T]</pre></h2>
+<h2><a id="Intersection"></a><samp>func Intersection[T comparable](out <a href="#Set">Set</a>[T], sets ...) <a href="#Set">Set</a>[T]</samp></h2>
 
 Intersection adds to out all items that appear in all sets and returns out.
 
@@ -109,7 +109,7 @@ Output:
 ```text
 map[1:{} 4:{}]
 ```
-<h2><a id="Union"></a><pre>func Union[T any](out <a href="#Set">Set</a>[T], sets ...) <a href="#Set">Set</a>[T]</pre></h2>
+<h2><a id="Union"></a><samp>func Union[T any](out <a href="#Set">Set</a>[T], sets ...) <a href="#Set">Set</a>[T]</samp></h2>
 
 Union adds to out out all items from sets and returns out.
 

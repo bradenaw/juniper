@@ -10,7 +10,7 @@ import "github.com/bradenaw/juniper/xerrors"
 
 # Index
 
-<pre><a href="#WithStack">func WithStack(err error) error</a></pre>
+<samp><a href="#WithStack">func WithStack(err error) error</a></samp>
 
 # Constants
 
@@ -22,7 +22,7 @@ This section is empty.
 
 # Functions
 
-<h2><a id="WithStack"></a><pre>func <a href="#WithStack">WithStack</a>(err error) error</pre></h2>
+<h2><a id="WithStack"></a><samp>func <a href="#WithStack">WithStack</a>(err error) error</samp></h2>
 
 WithStack returns an error that wraps err and adds the call stack of the call to WithStack to
 Error().

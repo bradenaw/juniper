@@ -12,55 +12,55 @@ built-in, but keep elements in sorted order.
 
 # Index
 
-<pre><a href="#KVPair">type KVPair</a></pre>
-<pre><a href="#Map">type Map</a></pre>
-<pre>    <a href="#NewMap">func NewMap[K any, V any](less xsort.Less[K]) Map[K, V]</a></pre>
-<pre>    <a href="#Contains">func (m Map[K, V]) Contains(k K) bool</a></pre>
-<pre>    <a href="#Cursor">func (m Map[K, V]) Cursor() *MapCursor[K, V]</a></pre>
-<pre>    <a href="#Delete">func (m Map[K, V]) Delete(k K)</a></pre>
-<pre>    <a href="#First">func (m Map[K, V]) First() (K, V)</a></pre>
-<pre>    <a href="#Get">func (m Map[K, V]) Get(k K) V</a></pre>
-<pre>    <a href="#Iterate">func (m Map[K, V]) Iterate() iterator.Iterator[KVPair[K, V]]</a></pre>
-<pre>    <a href="#Last">func (m Map[K, V]) Last() (K, V)</a></pre>
-<pre>    <a href="#Len">func (m Map[K, V]) Len() int</a></pre>
-<pre>    <a href="#Put">func (m Map[K, V]) Put(k K, v V)</a></pre>
-<pre><a href="#MapCursor">type MapCursor</a></pre>
-<pre>    <a href="#Backward">func (c *MapCursor[K, V]) Backward() iterator.Iterator[KVPair[K, V]]</a></pre>
-<pre>    <a href="#Forward">func (c *MapCursor[K, V]) Forward() iterator.Iterator[KVPair[K, V]]</a></pre>
-<pre>    <a href="#Key">func (c *MapCursor[K, V]) Key() K</a></pre>
-<pre>    <a href="#Next">func (c *MapCursor[K, V]) Next()</a></pre>
-<pre>    <a href="#Ok">func (c *MapCursor[K, V]) Ok() bool</a></pre>
-<pre>    <a href="#Prev">func (c *MapCursor[K, V]) Prev()</a></pre>
-<pre>    <a href="#SeekFirst">func (c *MapCursor[K, V]) SeekFirst()</a></pre>
-<pre>    <a href="#SeekFirstGreater">func (c *MapCursor[K, V]) SeekFirstGreater(k K)</a></pre>
-<pre>    <a href="#SeekFirstGreaterOrEqual">func (c *MapCursor[K, V]) SeekFirstGreaterOrEqual(k K)</a></pre>
-<pre>    <a href="#SeekLast">func (c *MapCursor[K, V]) SeekLast()</a></pre>
-<pre>    <a href="#SeekLastLess">func (c *MapCursor[K, V]) SeekLastLess(k K)</a></pre>
-<pre>    <a href="#SeekLastLessOrEqual">func (c *MapCursor[K, V]) SeekLastLessOrEqual(k K)</a></pre>
-<pre>    <a href="#Value">func (c *MapCursor[K, V]) Value() V</a></pre>
-<pre><a href="#Set">type Set</a></pre>
-<pre>    <a href="#NewSet">func NewSet[T any](less xsort.Less[T]) Set[T]</a></pre>
-<pre>    <a href="#Add">func (s Set[T]) Add(item T)</a></pre>
-<pre>    <a href="#Contains">func (s Set[T]) Contains(item T) bool</a></pre>
-<pre>    <a href="#Cursor">func (s Set[T]) Cursor() *SetCursor[T]</a></pre>
-<pre>    <a href="#First">func (s Set[T]) First() T</a></pre>
-<pre>    <a href="#Iterate">func (s Set[T]) Iterate() iterator.Iterator[T]</a></pre>
-<pre>    <a href="#Last">func (s Set[T]) Last() T</a></pre>
-<pre>    <a href="#Len">func (s Set[T]) Len() int</a></pre>
-<pre>    <a href="#Remove">func (s Set[T]) Remove(item T)</a></pre>
-<pre><a href="#SetCursor">type SetCursor</a></pre>
-<pre>    <a href="#Backward">func (c *SetCursor[T]) Backward() iterator.Iterator[T]</a></pre>
-<pre>    <a href="#Forward">func (c *SetCursor[T]) Forward() iterator.Iterator[T]</a></pre>
-<pre>    <a href="#Item">func (c *SetCursor[T]) Item() T</a></pre>
-<pre>    <a href="#Next">func (c *SetCursor[T]) Next()</a></pre>
-<pre>    <a href="#Ok">func (c *SetCursor[T]) Ok() bool</a></pre>
-<pre>    <a href="#Prev">func (c *SetCursor[T]) Prev()</a></pre>
-<pre>    <a href="#SeekFirst">func (c *SetCursor[T]) SeekFirst()</a></pre>
-<pre>    <a href="#SeekFirstGreater">func (c *SetCursor[T]) SeekFirstGreater(x T)</a></pre>
-<pre>    <a href="#SeekFirstGreaterOrEqual">func (c *SetCursor[T]) SeekFirstGreaterOrEqual(x T)</a></pre>
-<pre>    <a href="#SeekLast">func (c *SetCursor[T]) SeekLast()</a></pre>
-<pre>    <a href="#SeekLastLess">func (c *SetCursor[T]) SeekLastLess(x T)</a></pre>
-<pre>    <a href="#SeekLastLessOrEqual">func (c *SetCursor[T]) SeekLastLessOrEqual(x T)</a></pre>
+<samp><a href="#KVPair">type KVPair</a></samp>
+<samp><a href="#Map">type Map</a></samp>
+<samp>    <a href="#NewMap">func NewMap[K any, V any](less xsort.Less[K]) Map[K, V]</a></samp>
+<samp>    <a href="#Contains">func (m Map[K, V]) Contains(k K) bool</a></samp>
+<samp>    <a href="#Cursor">func (m Map[K, V]) Cursor() *MapCursor[K, V]</a></samp>
+<samp>    <a href="#Delete">func (m Map[K, V]) Delete(k K)</a></samp>
+<samp>    <a href="#First">func (m Map[K, V]) First() (K, V)</a></samp>
+<samp>    <a href="#Get">func (m Map[K, V]) Get(k K) V</a></samp>
+<samp>    <a href="#Iterate">func (m Map[K, V]) Iterate() iterator.Iterator[KVPair[K, V]]</a></samp>
+<samp>    <a href="#Last">func (m Map[K, V]) Last() (K, V)</a></samp>
+<samp>    <a href="#Len">func (m Map[K, V]) Len() int</a></samp>
+<samp>    <a href="#Put">func (m Map[K, V]) Put(k K, v V)</a></samp>
+<samp><a href="#MapCursor">type MapCursor</a></samp>
+<samp>    <a href="#Backward">func (c *MapCursor[K, V]) Backward() iterator.Iterator[KVPair[K, V]]</a></samp>
+<samp>    <a href="#Forward">func (c *MapCursor[K, V]) Forward() iterator.Iterator[KVPair[K, V]]</a></samp>
+<samp>    <a href="#Key">func (c *MapCursor[K, V]) Key() K</a></samp>
+<samp>    <a href="#Next">func (c *MapCursor[K, V]) Next()</a></samp>
+<samp>    <a href="#Ok">func (c *MapCursor[K, V]) Ok() bool</a></samp>
+<samp>    <a href="#Prev">func (c *MapCursor[K, V]) Prev()</a></samp>
+<samp>    <a href="#SeekFirst">func (c *MapCursor[K, V]) SeekFirst()</a></samp>
+<samp>    <a href="#SeekFirstGreater">func (c *MapCursor[K, V]) SeekFirstGreater(k K)</a></samp>
+<samp>    <a href="#SeekFirstGreaterOrEqual">func (c *MapCursor[K, V]) SeekFirstGreaterOrEqual(k K)</a></samp>
+<samp>    <a href="#SeekLast">func (c *MapCursor[K, V]) SeekLast()</a></samp>
+<samp>    <a href="#SeekLastLess">func (c *MapCursor[K, V]) SeekLastLess(k K)</a></samp>
+<samp>    <a href="#SeekLastLessOrEqual">func (c *MapCursor[K, V]) SeekLastLessOrEqual(k K)</a></samp>
+<samp>    <a href="#Value">func (c *MapCursor[K, V]) Value() V</a></samp>
+<samp><a href="#Set">type Set</a></samp>
+<samp>    <a href="#NewSet">func NewSet[T any](less xsort.Less[T]) Set[T]</a></samp>
+<samp>    <a href="#Add">func (s Set[T]) Add(item T)</a></samp>
+<samp>    <a href="#Contains">func (s Set[T]) Contains(item T) bool</a></samp>
+<samp>    <a href="#Cursor">func (s Set[T]) Cursor() *SetCursor[T]</a></samp>
+<samp>    <a href="#First">func (s Set[T]) First() T</a></samp>
+<samp>    <a href="#Iterate">func (s Set[T]) Iterate() iterator.Iterator[T]</a></samp>
+<samp>    <a href="#Last">func (s Set[T]) Last() T</a></samp>
+<samp>    <a href="#Len">func (s Set[T]) Len() int</a></samp>
+<samp>    <a href="#Remove">func (s Set[T]) Remove(item T)</a></samp>
+<samp><a href="#SetCursor">type SetCursor</a></samp>
+<samp>    <a href="#Backward">func (c *SetCursor[T]) Backward() iterator.Iterator[T]</a></samp>
+<samp>    <a href="#Forward">func (c *SetCursor[T]) Forward() iterator.Iterator[T]</a></samp>
+<samp>    <a href="#Item">func (c *SetCursor[T]) Item() T</a></samp>
+<samp>    <a href="#Next">func (c *SetCursor[T]) Next()</a></samp>
+<samp>    <a href="#Ok">func (c *SetCursor[T]) Ok() bool</a></samp>
+<samp>    <a href="#Prev">func (c *SetCursor[T]) Prev()</a></samp>
+<samp>    <a href="#SeekFirst">func (c *SetCursor[T]) SeekFirst()</a></samp>
+<samp>    <a href="#SeekFirstGreater">func (c *SetCursor[T]) SeekFirstGreater(x T)</a></samp>
+<samp>    <a href="#SeekFirstGreaterOrEqual">func (c *SetCursor[T]) SeekFirstGreaterOrEqual(x T)</a></samp>
+<samp>    <a href="#SeekLast">func (c *SetCursor[T]) SeekLast()</a></samp>
+<samp>    <a href="#SeekLastLess">func (c *SetCursor[T]) SeekLastLess(x T)</a></samp>
+<samp>    <a href="#SeekLastLessOrEqual">func (c *SetCursor[T]) SeekLastLessOrEqual(x T)</a></samp>
 
 # Constants
 
@@ -74,7 +74,7 @@ This section is empty.
 
 # Types
 
-## <a id="KVPair"></a><pre>type KVPair</pre>
+<h2><a id="KVPair"></a><samp>type KVPair</samp></h2>
 ```go
 type KVPair[K any, V any] struct {
 	Key   K
@@ -84,7 +84,7 @@ type KVPair[K any, V any] struct {
 
 
 
-## <a id="Map"></a><pre>type Map</pre>
+<h2><a id="Map"></a><samp>type Map</samp></h2>
 ```go
 type Map[K any, V any] struct {
 	// contains filtered or unexported fields
@@ -95,40 +95,40 @@ Map is a tree-structured key-value map, similar to Go's built-in map but keeps e
 order by key.
 
 
-<h2><a id="NewMap"></a><pre>func NewMap[K any, V any](less <a href="../xsort.md#Less">xsort.Less</a>[K]) <a href="#Map">Map</a>[K, V]</pre></h2>
+<h2><a id="NewMap"></a><samp>func NewMap[K any, V any](less <a href="../xsort.md#Less">xsort.Less</a>[K]) <a href="#Map">Map</a>[K, V]</samp></h2>
 
 NewMap returns a Map that uses less to determine the sort order of keys. If !less(a, b) &&
 !less(b, a), then a and b are considered the same key. The output of less must not change for any
 pair of keys while they are in the map.
 
 
-<h2><a id="Contains"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Contains(k K) bool</pre></h2>
+<h2><a id="Contains"></a><samp>func (m <a href="#Map">Map</a>[K, V]) Contains(k K) bool</samp></h2>
 
 Contains returns true if the given key is present in the map.
 
 
-<h2><a id="Cursor"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Cursor() *<a href="#MapCursor">MapCursor</a>[K, V]</pre></h2>
+<h2><a id="Cursor"></a><samp>func (m <a href="#Map">Map</a>[K, V]) Cursor() *<a href="#MapCursor">MapCursor</a>[K, V]</samp></h2>
 
 Cursor returns a cursor into the map placed at the first element.
 
 
-<h2><a id="Delete"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Delete(k K)</pre></h2>
+<h2><a id="Delete"></a><samp>func (m <a href="#Map">Map</a>[K, V]) Delete(k K)</samp></h2>
 
 Delete removes the given key from the map.
 
 
-<h2><a id="First"></a><pre>func (m <a href="#Map">Map</a>[K, V]) First() (K, V)</pre></h2>
+<h2><a id="First"></a><samp>func (m <a href="#Map">Map</a>[K, V]) First() (K, V)</samp></h2>
 
 First returns the lowest-keyed entry in the map according to less.
 
 
-<h2><a id="Get"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Get(k K) V</pre></h2>
+<h2><a id="Get"></a><samp>func (m <a href="#Map">Map</a>[K, V]) Get(k K) V</samp></h2>
 
 Get returns the value associated with the given key if it is present in the map. Otherwise, it
 returns the zero-value of V.
 
 
-<h2><a id="Iterate"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Iterate() <a href="../iterator.md#Iterator">iterator.Iterator</a>[<a href="#KVPair">KVPair</a>[K, V]]</pre></h2>
+<h2><a id="Iterate"></a><samp>func (m <a href="#Map">Map</a>[K, V]) Iterate() <a href="../iterator.md#Iterator">iterator.Iterator</a>[<a href="#KVPair">KVPair</a>[K, V]]</samp></h2>
 
 Iterate returns an iterator that yields the elements of the map in sorted order by key.
 
@@ -137,23 +137,23 @@ next-lowest key. Thus if the map is modified, the iterator will not necessarily 
 the keys present in the map.
 
 
-<h2><a id="Last"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Last() (K, V)</pre></h2>
+<h2><a id="Last"></a><samp>func (m <a href="#Map">Map</a>[K, V]) Last() (K, V)</samp></h2>
 
 Last returns the highest-keyed entry in the map according to less.
 
 
-<h2><a id="Len"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Len() int</pre></h2>
+<h2><a id="Len"></a><samp>func (m <a href="#Map">Map</a>[K, V]) Len() int</samp></h2>
 
 Len returns the number of elements in the map.
 
 
-<h2><a id="Put"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Put(k K, v V)</pre></h2>
+<h2><a id="Put"></a><samp>func (m <a href="#Map">Map</a>[K, V]) Put(k K, v V)</samp></h2>
 
 Put inserts the key-value pair into the map, overwriting the value for the key if it already
 exists.
 
 
-## <a id="MapCursor"></a><pre>type MapCursor</pre>
+<h2><a id="MapCursor"></a><samp>type MapCursor</samp></h2>
 ```go
 type MapCursor[K any, V any] struct {
 	// contains filtered or unexported fields
@@ -166,7 +166,7 @@ A cursor is usable while a map is being modified. If the element the cursor is a
 cursor will still return the old value.
 
 
-<h2><a id="Backward"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Backward() <a href="../iterator.md#Iterator">iterator.Iterator</a>[<a href="#KVPair">KVPair</a>[K, V]]</pre></h2>
+<h2><a id="Backward"></a><samp>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Backward() <a href="../iterator.md#Iterator">iterator.Iterator</a>[<a href="#KVPair">KVPair</a>[K, V]]</samp></h2>
 
 Backward returns an iterator that starts from the cursor's position and yields all of the
 elements less than or equal to the cursor in descending order.
@@ -175,7 +175,7 @@ This iterator's Next method is amoritized O(1), unless the map changes in which 
 following Next is O(log(n)) where n is the number of elements in the map.
 
 
-<h2><a id="Forward"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Forward() <a href="../iterator.md#Iterator">iterator.Iterator</a>[<a href="#KVPair">KVPair</a>[K, V]]</pre></h2>
+<h2><a id="Forward"></a><samp>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Forward() <a href="../iterator.md#Iterator">iterator.Iterator</a>[<a href="#KVPair">KVPair</a>[K, V]]</samp></h2>
 
 Forward returns an iterator that starts from the cursor's position and yields all of the elements
 greater than or equal to the cursor in ascending order.
@@ -184,12 +184,12 @@ This iterator's Next method is amoritized O(1), unless the map changes in which 
 following Next is O(log(n)) where n is the number of elements in the map.
 
 
-<h2><a id="Key"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Key() K</pre></h2>
+<h2><a id="Key"></a><samp>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Key() K</samp></h2>
 
 Key returns the key of the element that the cursor is at. Panics if Ok is false.
 
 
-<h2><a id="Next"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Next()</pre></h2>
+<h2><a id="Next"></a><samp>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Next()</samp></h2>
 
 Next moves the cursor to the next element in the map.
 
@@ -197,13 +197,13 @@ Next is amoritized O(1) unless the map has been modified since the last cursor m
 case it's O(log(n)).
 
 
-<h2><a id="Ok"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Ok() bool</pre></h2>
+<h2><a id="Ok"></a><samp>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Ok() bool</samp></h2>
 
 Ok returns false if the cursor is not currently placed at an element, for example if Next
 advances past the last element.
 
 
-<h2><a id="Prev"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Prev()</pre></h2>
+<h2><a id="Prev"></a><samp>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Prev()</samp></h2>
 
 Prev moves the cursor to the previous element in the map.
 
@@ -211,21 +211,21 @@ Prev is amoritized O(1) unless the map has been modified since the last cursor m
 case it's O(log(n)).
 
 
-<h2><a id="SeekFirst"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekFirst()</pre></h2>
+<h2><a id="SeekFirst"></a><samp>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekFirst()</samp></h2>
 
 SeekFirst moves the cursor to the first element in the map.
 
 SeekFirst is O(log(n)).
 
 
-<h2><a id="SeekFirstGreater"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekFirstGreater(k K)</pre></h2>
+<h2><a id="SeekFirstGreater"></a><samp>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekFirstGreater(k K)</samp></h2>
 
 SeekFirstGreater moves the cursor to the element in the map just after k.
 
 SeekFirstGreater is O(log(n)).
 
 
-<h2><a id="SeekFirstGreaterOrEqual"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekFirstGreaterOrEqual(k K)</pre></h2>
+<h2><a id="SeekFirstGreaterOrEqual"></a><samp>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekFirstGreaterOrEqual(k K)</samp></h2>
 
 SeekFirstGreaterOrEqual moves the cursor to the element in the map with the least key that is
 greater than or equal to k.
@@ -233,21 +233,21 @@ greater than or equal to k.
 SeetFirstGreaterOrEqual is O(log(n)).
 
 
-<h2><a id="SeekLast"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekLast()</pre></h2>
+<h2><a id="SeekLast"></a><samp>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekLast()</samp></h2>
 
 SeekLast moves the cursor to the last element in the map.
 
 SeekLast is O(log(n)).
 
 
-<h2><a id="SeekLastLess"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekLastLess(k K)</pre></h2>
+<h2><a id="SeekLastLess"></a><samp>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekLastLess(k K)</samp></h2>
 
 SeekLastLess moves the cursor to the element in the map just before k.
 
 SeekLastLess is O(log(n)).
 
 
-<h2><a id="SeekLastLessOrEqual"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekLastLessOrEqual(k K)</pre></h2>
+<h2><a id="SeekLastLessOrEqual"></a><samp>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekLastLessOrEqual(k K)</samp></h2>
 
 SeekLastLessOrEqual moves the cursor to the element in the map with the greatest key that is less
 than or equal to k.
@@ -255,12 +255,12 @@ than or equal to k.
 SeekLastLessOrEqual is O(log(n)).
 
 
-<h2><a id="Value"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Value() V</pre></h2>
+<h2><a id="Value"></a><samp>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Value() V</samp></h2>
 
 Value returns the value of the element that the cursor is at. Panics if Ok is false.
 
 
-## <a id="Set"></a><pre>type Set</pre>
+<h2><a id="Set"></a><samp>type Set</samp></h2>
 ```go
 type Set[T any] struct {
 	// contains filtered or unexported fields
@@ -271,34 +271,34 @@ Set is a tree-structured set. Sets are a collection of unique elements. Similar 
 map[T]struct{} but keeps elements in sorted order.
 
 
-<h2><a id="NewSet"></a><pre>func NewSet[T any](less <a href="../xsort.md#Less">xsort.Less</a>[T]) <a href="#Set">Set</a>[T]</pre></h2>
+<h2><a id="NewSet"></a><samp>func NewSet[T any](less <a href="../xsort.md#Less">xsort.Less</a>[T]) <a href="#Set">Set</a>[T]</samp></h2>
 
 NewSet returns a Set that uses less to determine the sort order of items. If !less(a, b) &&
 !less(b, a), then a and b are considered the same item. The output of less must not change for
 any pair of items while they are in the set.
 
 
-<h2><a id="Add"></a><pre>func (s <a href="#Set">Set</a>[T]) Add(item T)</pre></h2>
+<h2><a id="Add"></a><samp>func (s <a href="#Set">Set</a>[T]) Add(item T)</samp></h2>
 
 Add adds item to the set if it is not already present.
 
 
-<h2><a id="Contains"></a><pre>func (s <a href="#Set">Set</a>[T]) Contains(item T) bool</pre></h2>
+<h2><a id="Contains"></a><samp>func (s <a href="#Set">Set</a>[T]) Contains(item T) bool</samp></h2>
 
 Contains returns true if item is present in the set.
 
 
-<h2><a id="Cursor"></a><pre>func (s <a href="#Set">Set</a>[T]) Cursor() *<a href="#SetCursor">SetCursor</a>[T]</pre></h2>
+<h2><a id="Cursor"></a><samp>func (s <a href="#Set">Set</a>[T]) Cursor() *<a href="#SetCursor">SetCursor</a>[T]</samp></h2>
 
 Cursor returns a cursor into the set placed at the first item.
 
 
-<h2><a id="First"></a><pre>func (s <a href="#Set">Set</a>[T]) First() T</pre></h2>
+<h2><a id="First"></a><samp>func (s <a href="#Set">Set</a>[T]) First() T</samp></h2>
 
 First returns the lowest item in the set according to less.
 
 
-<h2><a id="Iterate"></a><pre>func (s <a href="#Set">Set</a>[T]) Iterate() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</pre></h2>
+<h2><a id="Iterate"></a><samp>func (s <a href="#Set">Set</a>[T]) Iterate() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</samp></h2>
 
 Iterate returns an iterator that yields the elements of the set in sorted order.
 
@@ -307,22 +307,22 @@ next-lowest item. Thus if the set is modified, the iterator will not necessarily
 the items present in the set.
 
 
-<h2><a id="Last"></a><pre>func (s <a href="#Set">Set</a>[T]) Last() T</pre></h2>
+<h2><a id="Last"></a><samp>func (s <a href="#Set">Set</a>[T]) Last() T</samp></h2>
 
 Last returns the highest item in the set according to less.
 
 
-<h2><a id="Len"></a><pre>func (s <a href="#Set">Set</a>[T]) Len() int</pre></h2>
+<h2><a id="Len"></a><samp>func (s <a href="#Set">Set</a>[T]) Len() int</samp></h2>
 
 Len returns the number of elements in the set.
 
 
-<h2><a id="Remove"></a><pre>func (s <a href="#Set">Set</a>[T]) Remove(item T)</pre></h2>
+<h2><a id="Remove"></a><samp>func (s <a href="#Set">Set</a>[T]) Remove(item T)</samp></h2>
 
 Remove removes item from the set if it is present, and does nothing otherwise.
 
 
-## <a id="SetCursor"></a><pre>type SetCursor</pre>
+<h2><a id="SetCursor"></a><samp>type SetCursor</samp></h2>
 ```go
 type SetCursor[T any] struct {
 	// contains filtered or unexported fields
@@ -335,7 +335,7 @@ A cursor is usable while a set is being modified. If the item the cursor is at i
 cursor will still return the old item.
 
 
-<h2><a id="Backward"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) Backward() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</pre></h2>
+<h2><a id="Backward"></a><samp>func (c *<a href="#SetCursor">SetCursor</a>[T]) Backward() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</samp></h2>
 
 Backward returns an iterator that starts from the cursor's position and yields all of the
 elements less than or equal to the cursor in descending order.
@@ -344,7 +344,7 @@ This iterator's Next method is amoritized O(1), unless the map changes in which 
 following Next is O(log(n)) where n is the number of elements in the map.
 
 
-<h2><a id="Forward"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) Forward() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</pre></h2>
+<h2><a id="Forward"></a><samp>func (c *<a href="#SetCursor">SetCursor</a>[T]) Forward() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</samp></h2>
 
 Forward returns an iterator that starts from the cursor's position and yields all of the elements
 greater than or equal to the cursor in ascending order.
@@ -353,12 +353,12 @@ This iterator's Next method is amoritized O(1), unless the map changes in which 
 following Next is O(log(n)) where n is the number of elements in the map.
 
 
-<h2><a id="Item"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) Item() T</pre></h2>
+<h2><a id="Item"></a><samp>func (c *<a href="#SetCursor">SetCursor</a>[T]) Item() T</samp></h2>
 
 Item returns the item that the cursor is at. Panics if Ok is false.
 
 
-<h2><a id="Next"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) Next()</pre></h2>
+<h2><a id="Next"></a><samp>func (c *<a href="#SetCursor">SetCursor</a>[T]) Next()</samp></h2>
 
 Next moves the cursor to the next item in the set.
 
@@ -366,13 +366,13 @@ Next is amoritized O(1) unless the map has been modified since the last cursor m
 case it's O(log(n)).
 
 
-<h2><a id="Ok"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) Ok() bool</pre></h2>
+<h2><a id="Ok"></a><samp>func (c *<a href="#SetCursor">SetCursor</a>[T]) Ok() bool</samp></h2>
 
 Ok returns false if the cursor is not currently placed at an item, for example if Next advances
 past the last item.
 
 
-<h2><a id="Prev"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) Prev()</pre></h2>
+<h2><a id="Prev"></a><samp>func (c *<a href="#SetCursor">SetCursor</a>[T]) Prev()</samp></h2>
 
 Prev moves the cursor to the previous item in the set.
 
@@ -380,21 +380,21 @@ Prev is amoritized O(1) unless the map has been modified since the last cursor m
 case it's O(log(n)).
 
 
-<h2><a id="SeekFirst"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekFirst()</pre></h2>
+<h2><a id="SeekFirst"></a><samp>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekFirst()</samp></h2>
 
 SeekFirst moves the cursor to the first item in the set.
 
 SeekFirst is O(log(n)).
 
 
-<h2><a id="SeekFirstGreater"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekFirstGreater(x T)</pre></h2>
+<h2><a id="SeekFirstGreater"></a><samp>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekFirstGreater(x T)</samp></h2>
 
 SeekFirstGreater moves the cursor to the item in the set just after x.
 
 SeekFirstGreater is O(log(n)).
 
 
-<h2><a id="SeekFirstGreaterOrEqual"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekFirstGreaterOrEqual(x T)</pre></h2>
+<h2><a id="SeekFirstGreaterOrEqual"></a><samp>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekFirstGreaterOrEqual(x T)</samp></h2>
 
 SeekFirstGreaterOrEqual moves the cursor to the least item in the set that is greater than or
 equal to x.
@@ -402,21 +402,21 @@ equal to x.
 SeetFirstGreaterOrEqual is O(log(n)).
 
 
-<h2><a id="SeekLast"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekLast()</pre></h2>
+<h2><a id="SeekLast"></a><samp>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekLast()</samp></h2>
 
 SeekLast moves the cursor to the last item in the set.
 
 SeekLast is O(log(n)).
 
 
-<h2><a id="SeekLastLess"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekLastLess(x T)</pre></h2>
+<h2><a id="SeekLastLess"></a><samp>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekLastLess(x T)</samp></h2>
 
 SeekLastLess moves the cursor to the item in the set just before x.
 
 SeekLastLess is O(log(n)).
 
 
-<h2><a id="SeekLastLessOrEqual"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekLastLessOrEqual(x T)</pre></h2>
+<h2><a id="SeekLastLessOrEqual"></a><samp>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekLastLessOrEqual(x T)</samp></h2>
 
 SeekLastLessOrEqual moves the cursor to the greatest item in the set that is less than or equal
 to x.

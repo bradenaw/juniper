@@ -117,17 +117,17 @@ func main2(packageDir string) error {
 		if err != nil {
 			return err
 		}
-		fmt.Println("<pre>" + l + "</pre>")
+		fmt.Println("<samp>" + l + "</samp>")
 	}
 	for _, type_ := range docPkg.Types {
 		if !token.IsExported(type_.Name) {
 			continue
 		}
-		fmt.Print("<pre><a href=\"")
+		fmt.Print("<samp><a href=\"")
 		fmt.Print(localSymbolLink(type_.Name))
 		fmt.Print("\">type ")
 		fmt.Print(type_.Name)
-		fmt.Println("</a></pre>")
+		fmt.Println("</a></samp>")
 
 		for _, funcs := range [][]*doc.Func{type_.Funcs, type_.Methods} {
 			for _, func_ := range funcs {
@@ -135,7 +135,7 @@ func main2(packageDir string) error {
 				if err != nil {
 					return err
 				}
-				fmt.Println("<pre>" + indent(l, 4) + "</pre>")
+				fmt.Println("<samp>" + indent(l, 4) + "</samp>")
 			}
 		}
 	}
@@ -194,11 +194,11 @@ func main2(packageDir string) error {
 		if !token.IsExported(type_.Name) {
 			continue
 		}
-		fmt.Print("## <a id=\"")
+		fmt.Print("<h2><a id=\"")
 		fmt.Print(type_.Name)
-		fmt.Print("\"></a><pre>type ")
+		fmt.Print("\"></a><samp>type ")
 		fmt.Print(type_.Name)
-		fmt.Println("</pre>")
+		fmt.Println("</samp></h2>")
 		type_.Decl.Doc = nil
 		fmt.Println("```go")
 		err := format.Node(os.Stdout, fset, type_.Decl)
@@ -232,9 +232,9 @@ func printFunc(
 ) {
 	fmt.Print("<h2><a id=\"")
 	fmt.Print(func_.Name)
-	fmt.Print("\"></a><pre>")
+	fmt.Print("\"></a><samp>")
 	fmt.Print(strWithLinks(fset, importPath, imports, localSymbols, func_.Decl))
-	fmt.Println("</pre></h2>")
+	fmt.Println("</samp></h2>")
 	fmt.Println()
 	fmt.Println(func_.Doc)
 	fmt.Println()

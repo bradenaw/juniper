@@ -11,11 +11,11 @@ Package xatomic contains extensions to the standard library package sync/atomic.
 
 # Index
 
-<pre><a href="#Value">type Value</a></pre>
-<pre>    <a href="#CompareAndSwap">func (v *Value[T]) CompareAndSwap(old, new T) (swapped bool)</a></pre>
-<pre>    <a href="#Load">func (v *Value[T]) Load() T</a></pre>
-<pre>    <a href="#Store">func (v *Value[T]) Store(t T)</a></pre>
-<pre>    <a href="#Swap">func (v *Value[T]) Swap(new T) (old T)</a></pre>
+<samp><a href="#Value">type Value</a></samp>
+<samp>    <a href="#CompareAndSwap">func (v *Value[T]) CompareAndSwap(old, new T) (swapped bool)</a></samp>
+<samp>    <a href="#Load">func (v *Value[T]) Load() T</a></samp>
+<samp>    <a href="#Store">func (v *Value[T]) Store(t T)</a></samp>
+<samp>    <a href="#Swap">func (v *Value[T]) Swap(new T) (old T)</a></samp>
 
 # Constants
 
@@ -29,7 +29,7 @@ This section is empty.
 
 # Types
 
-## <a id="Value"></a><pre>type Value</pre>
+<h2><a id="Value"></a><samp>type Value</samp></h2>
 ```go
 type Value[T any] struct {
 	// contains filtered or unexported fields
@@ -39,19 +39,19 @@ type Value[T any] struct {
 Value is equivalent to sync/atomic.Value, except strongly typed.
 
 
-<h2><a id="CompareAndSwap"></a><pre>func (v *<a href="#Value">Value</a>[T]) CompareAndSwap(old, new T) swapped bool</pre></h2>
+<h2><a id="CompareAndSwap"></a><samp>func (v *<a href="#Value">Value</a>[T]) CompareAndSwap(old, new T) swapped bool</samp></h2>
 
 
 
-<h2><a id="Load"></a><pre>func (v *<a href="#Value">Value</a>[T]) Load() T</pre></h2>
+<h2><a id="Load"></a><samp>func (v *<a href="#Value">Value</a>[T]) Load() T</samp></h2>
 
 
 
-<h2><a id="Store"></a><pre>func (v *<a href="#Value">Value</a>[T]) Store(t T)</pre></h2>
+<h2><a id="Store"></a><samp>func (v *<a href="#Value">Value</a>[T]) Store(t T)</samp></h2>
 
 
 
-<h2><a id="Swap"></a><pre>func (v *<a href="#Value">Value</a>[T]) Swap(new T) old T</pre></h2>
+<h2><a id="Swap"></a><samp>func (v *<a href="#Value">Value</a>[T]) Swap(new T) old T</samp></h2>
 
 
 
