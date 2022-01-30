@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -145,4 +146,39 @@ func TestBatch(t *testing.T) {
 	batches = Batch(receiver, 0, 2)
 	_, err = batches.Next(context.Background())
 	require2.NoError(t, err)
+}
+
+func TestPipeConcurrentSend(t *testing.T) {
+	ctx := context.Background()
+	sender, receiver := Pipe[int](0)
+
+	var wg sync.WaitGroup
+	errs := make([]error, 4)
+	for i := 0; i < 4; i++ {
+		i := i
+		wg.Add(1)
+		go func() {
+			errs[i] = sender.Send(ctx, i)
+			wg.Done()
+		}()
+	}
+
+	time.Sleep(2 * time.Millisecond)
+
+	results := make([]bool, 4)
+
+	item, err := receiver.Next(ctx)
+	require2.NoError(t, err)
+	results[item] = true
+
+	item, err = receiver.Next(ctx)
+	require2.NoError(t, err)
+	results[item] = true
+
+	sender.Close(intError(5))
+	wg.Wait()
+
+	for i := range results {
+		require2.True(t, results[i] || errors.Is(errs[i], intError(5)))
+	}
 }

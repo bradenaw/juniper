@@ -100,16 +100,19 @@ func (s *iteratorStream[T]) Close() {}
 // same meaning as for the built-in make(chan).
 func Pipe[T any](bufferSize int) (*PipeSender[T], Stream[T]) {
 	c := make(chan T, bufferSize)
-	senderDone := make(chan error, 1)
+	senderDone := make(chan struct{})
+	senderErr := new(error)
 	streamDone := make(chan struct{})
 
 	sender := &PipeSender[T]{
 		c:          c,
+		senderErr:  senderErr,
 		senderDone: senderDone,
 		streamDone: streamDone,
 	}
 	receiver := &pipeStream[T]{
 		c:          c,
+		senderErr:  senderErr,
 		senderDone: senderDone,
 		streamDone: streamDone,
 	}
@@ -120,7 +123,8 @@ func Pipe[T any](bufferSize int) (*PipeSender[T], Stream[T]) {
 // PipeSender is the send half of a pipe returned by Pipe.
 type PipeSender[T any] struct {
 	c          chan<- T
-	senderDone chan<- error
+	senderErr  *error
+	senderDone chan struct{}
 	streamDone <-chan struct{}
 }
 
@@ -129,27 +133,34 @@ type PipeSender[T any] struct {
 //
 // A nil return does not necessarily mean that the receiver will see x, since the receiver may close
 // early.
+//
+// Send may be called concurrently with other Sends and with Close.
 func (s *PipeSender[T]) Send(ctx context.Context, x T) error {
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
 	case <-s.streamDone:
 		return ErrClosedPipe
+	case <-s.senderDone:
+		return *s.senderErr
 	case s.c <- x:
 		return nil
 	}
 }
 
 // Close closes the PipeSender, signalling to the receiver that no more values will be sent. If an
-// error is provided, it will surface when closing the receiver.
+// error is provided, it will surface to the receiver's Next and to any concurrent Sends.
+//
+// Close may only be called once.
 func (s *PipeSender[T]) Close(err error) {
-	s.senderDone <- err
-	close(s.c)
+	*s.senderErr = err
+	close(s.senderDone)
 }
 
 type pipeStream[T any] struct {
 	c          <-chan T
-	senderDone <-chan error
+	senderErr  *error
+	senderDone <-chan struct{}
 	streamDone chan<- struct{}
 }
 
@@ -158,15 +169,14 @@ func (s *pipeStream[T]) Next(ctx context.Context) (T, error) {
 	select {
 	case <-ctx.Done():
 		return zero, ctx.Err()
-	case item, ok := <-s.c:
-		if !ok {
-			err := <-s.senderDone
-			if err != nil {
-				return zero, err
-			}
-			return zero, End
-		}
+	case item := <-s.c:
 		return item, nil
+	case <-s.senderDone:
+		err := *s.senderErr
+		if err != nil {
+			return zero, err
+		}
+		return zero, End
 	}
 }
 
