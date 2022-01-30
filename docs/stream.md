@@ -39,13 +39,9 @@ package stream allows iterating over sequences of values where iteration may fai
 <samp>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Batch">func Batch[T any](s Stream[T], maxWait time.Duration, batchSize int) Stream[[]T]</a></samp>
 
 <samp>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BatchFunc">func BatchFunc[T any](
-
 &nbsp;&nbsp;&nbsp;&nbsp;	s Stream[T],
-
 &nbsp;&nbsp;&nbsp;&nbsp;	maxWait time.Duration,
-
 &nbsp;&nbsp;&nbsp;&nbsp;	full func(batch []T) bool,
-
 &nbsp;&nbsp;&nbsp;&nbsp;) Stream[[]T]</a></samp>
 
 <samp>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Chan">func Chan[T any](c &lt;-chan T) Stream[T]</a></samp>

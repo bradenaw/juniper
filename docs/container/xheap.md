@@ -32,11 +32,8 @@ Package xheap contains extensions to the standard library package container/heap
 <samp><a href="#PriorityQueue">type PriorityQueue</a></samp>
 
 <samp>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#NewPriorityQueue">func NewPriorityQueue[K comparable, P any](
-
 &nbsp;&nbsp;&nbsp;&nbsp;	less xsort.Less[P],
-
 &nbsp;&nbsp;&nbsp;&nbsp;	initial []KP[K, P],
-
 &nbsp;&nbsp;&nbsp;&nbsp;) PriorityQueue[K, P]</a></samp>
 
 <samp>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Contains">func (h *PriorityQueue[K, P]) Contains(k K) bool</a></samp>
