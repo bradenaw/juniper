@@ -10,11 +10,10 @@ import (
 func ExampleSample() {
 	r := rand.New(rand.NewSource(0))
 
-	sample := xrand.Sample(r, 100, 5)
+	sample := xrand.RSample(r, 100, 5)
 
 	fmt.Println(sample)
 
+	// Output:
+	// [45 71 88 93 60]
 }
-
-// Output:
-// [32 78 43 58 72]

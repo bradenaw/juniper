@@ -229,7 +229,9 @@ PipeSender is the send half of a pipe returned by Pipe.
 <h3><a id="Close"></a><samp>func (s *<a href="#PipeSender">PipeSender</a>[T]) Close(err error)</samp></h3>
 
 Close closes the PipeSender, signalling to the receiver that no more values will be sent. If an
-error is provided, it will surface when closing the receiver.
+error is provided, it will surface to the receiver's Next and to any concurrent Sends.
+
+Close may only be called once.
 
 
 <h3><a id="Send"></a><samp>func (s *<a href="#PipeSender">PipeSender</a>[T]) Send(ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, x T) error</samp></h3>
@@ -239,6 +241,8 @@ ErrClosedPipe immediately. If ctx expires before x can be sent, returns ctx.Err(
 
 A nil return does not necessarily mean that the receiver will see x, since the receiver may close
 early.
+
+Send may be called concurrently with other Sends and with Close.
 
 
 <h3><a id="Stream"></a><samp>type Stream</samp></h3>

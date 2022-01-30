@@ -106,6 +106,16 @@ func FuzzBatch(f *testing.F) {
 				t.Log("s.Next(ctx)")
 
 				batch, err := s.Next(context.Background())
+				// because of the select, this can produce either error or success for a little
+				// while
+				if sendClosed && err != nil {
+					if sendClosedErr == nil {
+						require2.Equal(t, End, err)
+					} else {
+						require2.Equal(t, sendClosedErr, err)
+					}
+					return
+				}
 				require2.NoError(t, err)
 
 				// Unfortunately we can't actually tell if the receiver has received everything that

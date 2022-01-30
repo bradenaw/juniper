@@ -14,38 +14,49 @@ import (
 	"github.com/bradenaw/juniper/stream"
 )
 
+type fuzzRand struct {
+	t *testing.T
+	b []byte
+}
+
+func (r *fuzzRand) Intn(n int) int {
+	if len(r.b) < 4 {
+		return 0
+	}
+	x := binary.BigEndian.Uint32(r.b[:4])
+	r.b = r.b[4:]
+	return int(x) % n
+}
+func (r *fuzzRand) Float64() float64 {
+	if len(r.b) < 8 {
+		return 0
+	}
+	x := binary.BigEndian.Uint64(r.b[:8])
+	r.b = r.b[8:]
+	out := float64(x) / math.MaxUint64
+	if out == 1 {
+		out = math.Nextafter(out, 0)
+	}
+	require2.GreaterOrEqual(r.t, out, float64(0))
+	require2.Less(r.t, out, float64(1))
+	r.t.Logf("%f", out)
+	return out
+}
+func (r *fuzzRand) Shuffle(int, func(int, int)) {
+	panic("unimplemented")
+}
+
 func FuzzSampleInner(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte, k int) {
 		if k <= 0 {
 			return
 		}
-		randIntn := func(n int) int {
-			if len(b) < 4 {
-				return 0
-			}
-			x := binary.BigEndian.Uint32(b[:4])
-			b = b[4:]
-			return int(x) % n
-		}
-		randFloat64 := func() float64 {
-			if len(b) < 8 {
-				return 0
-			}
-			x := binary.BigEndian.Uint64(b[:8])
-			b = b[8:]
-			out := float64(x) / math.MaxUint64
-			if out == 1 {
-				out = math.Nextafter(out, 0)
-			}
-			require2.GreaterOrEqual(t, out, float64(0))
-			require2.Less(t, out, float64(1))
-			t.Logf("%f", out)
-			return out
-		}
 
 		t.Logf("k %d", k)
 
-		sampler := sampleInner(randFloat64, randIntn, k)
+		r := &fuzzRand{t, b}
+
+		sampler := sampleInner(r, k)
 		prev := 0
 		for i := 0; i < 100; i++ {
 			next, replace := sampler()
@@ -110,26 +121,26 @@ func testSample(t *testing.T, f func(r *rand.Rand) []int) {
 }
 func TestSample(t *testing.T) {
 	testSample(t, func(r *rand.Rand) []int {
-		return Sample(r, 20, 5)
+		return RSample(r, 20, 5)
 	})
 }
 
 func TestSampleSlice(t *testing.T) {
 	a := iterator.Collect(iterator.Counter(20))
 	testSample(t, func(r *rand.Rand) []int {
-		return SampleSlice(r, a, 5)
+		return RSampleSlice(r, a, 5)
 	})
 }
 
 func TestSampleIterator(t *testing.T) {
 	testSample(t, func(r *rand.Rand) []int {
-		return SampleIterator(r, iterator.Counter(20), 5)
+		return RSampleIterator(r, iterator.Counter(20), 5)
 	})
 }
 
 func TestSampleStream(t *testing.T) {
 	testSample(t, func(r *rand.Rand) []int {
-		out, err := SampleStream(
+		out, err := RSampleStream(
 			context.Background(),
 			r,
 			stream.FromIterator(iterator.Counter(20)),
