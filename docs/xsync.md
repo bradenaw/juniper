@@ -90,7 +90,7 @@ This section is empty.
 
 ## Functions
 
-<h3><a id="Lazy"></a><samp>func <a href="#Lazy">Lazy</a>[T any](f () T) () T</samp></h3>
+<h3><a id="Lazy"></a><samp>func <a href="#Lazy">Lazy</a>[T any](f func() T) func() T</samp></h3>
 
 Lazy makes a lazily-initialized value. On first access, it uses f to create the value. Later
 accesses all receive the same value.
@@ -214,17 +214,17 @@ NewGroup returns a Group ready for use. The context passed to any of the f funct
 descendant of ctx.
 
 
-<h3><a id="Once"></a><samp>func (g *<a href="#Group">Group</a>) Once(f (ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>))</samp></h3>
+<h3><a id="Once"></a><samp>func (g *<a href="#Group">Group</a>) Once(f func(ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>))</samp></h3>
 
 Once calls f once from another goroutine.
 
 
-<h3><a id="Periodic"></a><samp>func (g *<a href="#Group">Group</a>) Periodic(interval <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, jitter <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, f (ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>))</samp></h3>
+<h3><a id="Periodic"></a><samp>func (g *<a href="#Group">Group</a>) Periodic(interval <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, jitter <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, f func(ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>))</samp></h3>
 
 Periodic spawns a goroutine that calls f once per interval +/- jitter.
 
 
-<h3><a id="PeriodicOrTrigger"></a><samp>func (g *<a href="#Group">Group</a>) PeriodicOrTrigger(interval <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, jitter <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, f (ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>)) ()</samp></h3>
+<h3><a id="PeriodicOrTrigger"></a><samp>func (g *<a href="#Group">Group</a>) PeriodicOrTrigger(interval <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, jitter <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, f func(ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>)) func()</samp></h3>
 
 PeriodicOrTrigger spawns a goroutine which calls f whenever the returned function is called.  If
 f is already running when triggered, f will run again immediately when it finishes. Also calls f
@@ -236,7 +236,7 @@ when it has been interval+/-jitter since the last trigger.
 Stop cancels the context passed to spawned goroutines.
 
 
-<h3><a id="Trigger"></a><samp>func (g *<a href="#Group">Group</a>) Trigger(f (ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>)) ()</samp></h3>
+<h3><a id="Trigger"></a><samp>func (g *<a href="#Group">Group</a>) Trigger(f func(ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>)) func()</samp></h3>
 
 Trigger spawns a goroutine which calls f whenever the returned function is called. If f is
 already running when triggered, f will run again immediately when it finishes.
@@ -276,7 +276,7 @@ Map is a typesafe wrapper over sync.Map.
 
 
 
-<h3><a id="Range"></a><samp>func (m *<a href="#Map">Map</a>[K, V]) Range(f (key K, value V) bool)</samp></h3>
+<h3><a id="Range"></a><samp>func (m *<a href="#Map">Map</a>[K, V]) Range(f func(key K, value V) bool)</samp></h3>
 
 
 
@@ -294,7 +294,7 @@ type Pool[T any] struct {
 Pool is a typesafe wrapper over sync.Pool.
 
 
-<h3><a id="NewPool"></a><samp>func NewPool[T any](new_ () T) <a href="#Pool">Pool</a>[T]</samp></h3>
+<h3><a id="NewPool"></a><samp>func NewPool[T any](new_ func() T) <a href="#Pool">Pool</a>[T]</samp></h3>
 
 
 

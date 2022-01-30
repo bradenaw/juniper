@@ -127,7 +127,7 @@ Output:
 [7 8 9]
 [0 1]
 ```
-<h3><a id="Reduce"></a><samp>func <a href="#Reduce">Reduce</a>[T any, U any](iter <a href="#Iterator">Iterator</a>[T], initial U, f (U, T) U) U</samp></h3>
+<h3><a id="Reduce"></a><samp>func <a href="#Reduce">Reduce</a>[T any, U any](iter <a href="#Iterator">Iterator</a>[T], initial U, f func(U, T) U) U</samp></h3>
 
 Reduce reduces iter to a single value using the reduction function f.
 
@@ -226,7 +226,7 @@ Output:
 ```text
 [a b c a]
 ```
-<h3><a id="CompactFunc"></a><samp>func CompactFunc[T any](iter <a href="#Iterator">Iterator</a>[T], eq (T, T) bool) <a href="#Iterator">Iterator</a>[T]</samp></h3>
+<h3><a id="CompactFunc"></a><samp>func CompactFunc[T any](iter <a href="#Iterator">Iterator</a>[T], eq func(T, T) bool) <a href="#Iterator">Iterator</a>[T]</samp></h3>
 
 CompactFunc elides adjacent duplicates from iter, using eq to determine duplicates.
 
@@ -275,7 +275,7 @@ The following are equivalent:
   }
 
 
-<h3><a id="Filter"></a><samp>func Filter[T any](iter <a href="#Iterator">Iterator</a>[T], keep (T) bool) <a href="#Iterator">Iterator</a>[T]</samp></h3>
+<h3><a id="Filter"></a><samp>func Filter[T any](iter <a href="#Iterator">Iterator</a>[T], keep func(T) bool) <a href="#Iterator">Iterator</a>[T]</samp></h3>
 
 Filter returns an iterator that yields only the items from iter for which keep returns true.
 
@@ -364,7 +364,7 @@ Output:
 ```text
 [0 1 2 0 1 2 3 4 0 1]
 ```
-<h3><a id="Map"></a><samp>func Map[T any, U any](iter <a href="#Iterator">Iterator</a>[T], f (t T) U) <a href="#Iterator">Iterator</a>[U]</samp></h3>
+<h3><a id="Map"></a><samp>func Map[T any, U any](iter <a href="#Iterator">Iterator</a>[T], f func(t T) U) <a href="#Iterator">Iterator</a>[U]</samp></h3>
 
 Map transforms the results of iter using the conversion f.
 
@@ -387,7 +387,7 @@ Output:
 ```text
 [a a a a]
 ```
-<h3><a id="Runs"></a><samp>func Runs[T any](iter <a href="#Iterator">Iterator</a>[T], same (a, b T) bool) <a href="#Iterator">Iterator</a>[<a href="#Iterator">Iterator</a>[T]]</samp></h3>
+<h3><a id="Runs"></a><samp>func Runs[T any](iter <a href="#Iterator">Iterator</a>[T], same func(a, b T) bool) <a href="#Iterator">Iterator</a>[<a href="#Iterator">Iterator</a>[T]]</samp></h3>
 
 Runs returns an iterator of iterators. The inner iterators yield contiguous elements from iter
 such that same(a, b) returns true for any a and b in the run.
@@ -420,7 +420,7 @@ Output:
 Slice returns an iterator over the elements of s.
 
 
-<h3><a id="While"></a><samp>func While[T any](iter <a href="#Iterator">Iterator</a>[T], f (T) bool) <a href="#Iterator">Iterator</a>[T]</samp></h3>
+<h3><a id="While"></a><samp>func While[T any](iter <a href="#Iterator">Iterator</a>[T], f func(T) bool) <a href="#Iterator">Iterator</a>[T]</samp></h3>
 
 While returns an iterator that terminates before the first item from iter for which f returns
 false.

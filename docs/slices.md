@@ -79,7 +79,7 @@ This section is empty.
 
 ## Functions
 
-<h3><a id="All"></a><samp>func <a href="#All">All</a>[T any](x []T, f (T) bool) bool</samp></h3>
+<h3><a id="All"></a><samp>func <a href="#All">All</a>[T any](x []T, f func(T) bool) bool</samp></h3>
 
 All returns true if f(x[i]) returns true for all i. Trivially, returns true if x is empty.
 
@@ -105,7 +105,7 @@ Output:
 true
 false
 ```
-<h3><a id="Any"></a><samp>func <a href="#Any">Any</a>[T any](x []T, f (T) bool) bool</samp></h3>
+<h3><a id="Any"></a><samp>func <a href="#Any">Any</a>[T any](x []T, f func(T) bool) bool</samp></h3>
 
 Any returns true if f(x[i]) returns true for any i. Trivially, returns false if x is empty.
 
@@ -210,7 +210,7 @@ Output:
 ```text
 [a b c a]
 ```
-<h3><a id="CompactFunc"></a><samp>func <a href="#CompactFunc">CompactFunc</a>[T any](x []T, eq (T, T) bool) []T</samp></h3>
+<h3><a id="CompactFunc"></a><samp>func <a href="#CompactFunc">CompactFunc</a>[T any](x []T, eq func(T, T) bool) []T</samp></h3>
 
 CompactFunc removes adjacent duplicates from x in-place, preserving the first occurrence, using
 the supplied eq function and returns the modified slice.
@@ -259,7 +259,7 @@ Output:
 ```text
 3
 ```
-<h3><a id="CountFunc"></a><samp>func <a href="#CountFunc">CountFunc</a>[T any](a []T, f (T) bool) int</samp></h3>
+<h3><a id="CountFunc"></a><samp>func <a href="#CountFunc">CountFunc</a>[T any](a []T, f func(T) bool) int</samp></h3>
 
 Count returns the number of items in a for which f returns true.
 
@@ -308,7 +308,7 @@ Output:
 ```text
 [5 5 5]
 ```
-<h3><a id="Filter"></a><samp>func <a href="#Filter">Filter</a>[T any](x []T, keep (t T) bool) []T</samp></h3>
+<h3><a id="Filter"></a><samp>func <a href="#Filter">Filter</a>[T any](x []T, keep func(t T) bool) []T</samp></h3>
 
 Filter filters the contents of x to only those for which keep() returns true. This is done
 in-place and so modifies the contents of x. The modified slice is returned.
@@ -410,7 +410,7 @@ Output:
 1
 -1
 ```
-<h3><a id="IndexFunc"></a><samp>func <a href="#IndexFunc">IndexFunc</a>[T any](a []T, f (T) bool) int</samp></h3>
+<h3><a id="IndexFunc"></a><samp>func <a href="#IndexFunc">IndexFunc</a>[T any](a []T, f func(T) bool) int</samp></h3>
 
 Index returns the first index in a for which f(a[i]) returns true, or -1 if there are no such
 items.
@@ -485,13 +485,13 @@ Output:
 3
 -1
 ```
-<h3><a id="LastIndexFunc"></a><samp>func <a href="#LastIndexFunc">LastIndexFunc</a>[T any](a []T, f (T) bool) int</samp></h3>
+<h3><a id="LastIndexFunc"></a><samp>func <a href="#LastIndexFunc">LastIndexFunc</a>[T any](a []T, f func(T) bool) int</samp></h3>
 
 LastIndexFunc returns the last index in a for which f(a[i]) returns true, or -1 if there are no
 such items.
 
 
-<h3><a id="Map"></a><samp>func <a href="#Map">Map</a>[T any, U any](x []T, f (T) U) []U</samp></h3>
+<h3><a id="Map"></a><samp>func <a href="#Map">Map</a>[T any, U any](x []T, f func(T) U) []U</samp></h3>
 
 Map creates a new slice by applying f to each element of x.
 
@@ -514,7 +514,7 @@ Output:
 ```text
 [0.5 1 1.5]
 ```
-<h3><a id="Partition"></a><samp>func <a href="#Partition">Partition</a>[T any](x []T, f (t T) bool)</samp></h3>
+<h3><a id="Partition"></a><samp>func <a href="#Partition">Partition</a>[T any](x []T, f func(t T) bool)</samp></h3>
 
 Partition moves elements of x such that all elements for which f returns false are at the
 beginning and all elements for which f returns true are at the end. It makes no other guarantees
@@ -537,7 +537,7 @@ Output:
 ```text
 [11 3 1 7 2 8 0 4 14]
 ```
-<h3><a id="Reduce"></a><samp>func <a href="#Reduce">Reduce</a>[T any, U any](x []T, initial U, f (U, T) U) U</samp></h3>
+<h3><a id="Reduce"></a><samp>func <a href="#Reduce">Reduce</a>[T any, U any](x []T, initial U, f func(U, T) U) U</samp></h3>
 
 Reduce reduces x to a single value using the reduction function f.
 
@@ -618,7 +618,7 @@ Output:
 ```text
 [e d c b a]
 ```
-<h3><a id="Runs"></a><samp>func <a href="#Runs">Runs</a>[T any](x []T, same (a, b T) bool) [][]T</samp></h3>
+<h3><a id="Runs"></a><samp>func <a href="#Runs">Runs</a>[T any](x []T, same func(a, b T) bool) [][]T</samp></h3>
 
 Runs returns a slice of slices. The inner slices are contiguous runs of elements from x such
 that same(a, b) returns true for any a and b in the run.

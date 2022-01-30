@@ -190,7 +190,7 @@ Output:
 1
 stream ended with error: oops
 ```
-<h3><a id="Reduce"></a><samp>func <a href="#Reduce">Reduce</a>[T any, U any](ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, s <a href="#Stream">Stream</a>[T], initial U, f (U, T) (U, error)) (U, error)</samp></h3>
+<h3><a id="Reduce"></a><samp>func <a href="#Reduce">Reduce</a>[T any, U any](ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, s <a href="#Stream">Stream</a>[T], initial U, f func(U, T) (U, error)) (U, error)</samp></h3>
 
 Reduce reduces s to a single value using the reduction function f.
 
@@ -314,7 +314,7 @@ Output:
 ```text
 [[a b] [c d e] [f]]
 ```
-<h3><a id="BatchFunc"></a><samp>func BatchFunc[T any](s <a href="#Stream">Stream</a>[T], maxWait <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, full (batch []T) bool) <a href="#Stream">Stream</a>[[]T]</samp></h3>
+<h3><a id="BatchFunc"></a><samp>func BatchFunc[T any](s <a href="#Stream">Stream</a>[T], maxWait <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, full func(batch []T) bool) <a href="#Stream">Stream</a>[[]T]</samp></h3>
 
 BatchFunc returns a stream of non-overlapping batches from s, using full to determine when a
 batch is full. BatchFunc is similar to Chunk with the added feature that an underfilled batch
@@ -337,12 +337,12 @@ smaller than chunkSize if the stream does not contain an even multiple.
 Compact elides adjacent duplicates from s.
 
 
-<h3><a id="CompactFunc"></a><samp>func CompactFunc[T comparable](s <a href="#Stream">Stream</a>[T], eq (T, T) bool) <a href="#Stream">Stream</a>[T]</samp></h3>
+<h3><a id="CompactFunc"></a><samp>func CompactFunc[T comparable](s <a href="#Stream">Stream</a>[T], eq func(T, T) bool) <a href="#Stream">Stream</a>[T]</samp></h3>
 
 CompactFunc elides adjacent duplicates from s, using eq to determine duplicates.
 
 
-<h3><a id="Filter"></a><samp>func Filter[T any](s <a href="#Stream">Stream</a>[T], keep (T) (bool, error)) <a href="#Stream">Stream</a>[T]</samp></h3>
+<h3><a id="Filter"></a><samp>func Filter[T any](s <a href="#Stream">Stream</a>[T], keep func(T) (bool, error)) <a href="#Stream">Stream</a>[T]</samp></h3>
 
 Filter returns a Stream that yields only the items from s for which keep returns true. If keep
 returns an error, terminates the stream early.
@@ -370,13 +370,13 @@ Join returns a Stream that yields all elements from streams[0], then all element
 streams[1], and so on.
 
 
-<h3><a id="Map"></a><samp>func Map[T any, U any](s <a href="#Stream">Stream</a>[T], f (t T) (U, error)) <a href="#Stream">Stream</a>[U]</samp></h3>
+<h3><a id="Map"></a><samp>func Map[T any, U any](s <a href="#Stream">Stream</a>[T], f func(t T) (U, error)) <a href="#Stream">Stream</a>[U]</samp></h3>
 
 Map transforms the values of s using the conversion f. If f returns an error, terminates the
 stream early.
 
 
-<h3><a id="Runs"></a><samp>func Runs[T any](s <a href="#Stream">Stream</a>[T], same (a, b T) bool) <a href="#Stream">Stream</a>[<a href="#Stream">Stream</a>[T]]</samp></h3>
+<h3><a id="Runs"></a><samp>func Runs[T any](s <a href="#Stream">Stream</a>[T], same func(a, b T) bool) <a href="#Stream">Stream</a>[<a href="#Stream">Stream</a>[T]]</samp></h3>
 
 Runs returns a stream of streams. The inner streams yield contiguous elements from s such that
 same(a, b) returns true for any a and b in the run.
@@ -387,7 +387,7 @@ same(a, a) must return true. If same(a, b) and same(b, c) both return true, then
 also.
 
 
-<h3><a id="While"></a><samp>func While[T any](s <a href="#Stream">Stream</a>[T], f (T) (bool, error)) <a href="#Stream">Stream</a>[T]</samp></h3>
+<h3><a id="While"></a><samp>func While[T any](s <a href="#Stream">Stream</a>[T], f func(T) (bool, error)) <a href="#Stream">Stream</a>[T]</samp></h3>
 
 While returns a Stream that terminates before the first item from s for which f returns false.
 If f returns an error, terminates the stream early.

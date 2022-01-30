@@ -335,6 +335,29 @@ func strWithLinks(
 ) string {
 	var sb strings.Builder
 	var visit func(node ast.Node)
+
+	visitFuncParams := func(node *ast.FuncType) {
+		if node.TypeParams != nil {
+			sb.WriteString("[")
+			visit(node.TypeParams)
+			sb.WriteString("]")
+		}
+		sb.WriteString("(")
+		visit(node.Params)
+		sb.WriteString(")")
+		if node.Results != nil {
+			sb.WriteString(" ")
+			needParens := len(node.Results.List) > 1 ||
+				(len(node.Results.List) == 1 && len(node.Results.List[0].Names) > 1)
+			if needParens {
+				sb.WriteString("(")
+			}
+			visit(node.Results)
+			if needParens {
+				sb.WriteString(")")
+			}
+		}
+	}
 	visit = func(node ast.Node) {
 		switch node := node.(type) {
 		case *ast.ArrayType:
@@ -365,28 +388,10 @@ func strWithLinks(
 				sb.WriteString(") ")
 			}
 			visit(node.Name)
-			visit(node.Type)
+			visitFuncParams(node.Type)
 		case *ast.FuncType:
-			if node.TypeParams != nil {
-				sb.WriteString("[")
-				visit(node.TypeParams)
-				sb.WriteString("]")
-			}
-			sb.WriteString("(")
-			visit(node.Params)
-			sb.WriteString(")")
-			if node.Results != nil {
-				sb.WriteString(" ")
-				needParens := len(node.Results.List) > 1 ||
-					(len(node.Results.List) == 1 && len(node.Results.List[0].Names) > 1)
-				if needParens {
-					sb.WriteString("(")
-				}
-				visit(node.Results)
-				if needParens {
-					sb.WriteString(")")
-				}
-			}
+			sb.WriteString("func")
+			visitFuncParams(node)
 		case *ast.Field:
 			for i, name := range node.Names {
 				if i != 0 {
