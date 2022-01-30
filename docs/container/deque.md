@@ -12,16 +12,27 @@ Package deque contains a double-ended queue.
 # Index
 
 <samp><a href="#Deque">type Deque</a></samp>
-<samp>    <a href="#Back">func (r *Deque[T]) Back() T</a></samp>
-<samp>    <a href="#Front">func (r *Deque[T]) Front() T</a></samp>
-<samp>    <a href="#Grow">func (r *Deque[T]) Grow(n int)</a></samp>
-<samp>    <a href="#Item">func (r *Deque[T]) Item(i int) T</a></samp>
-<samp>    <a href="#Iterate">func (r *Deque[T]) Iterate() iterator.Iterator[T]</a></samp>
-<samp>    <a href="#Len">func (r *Deque[T]) Len() int</a></samp>
-<samp>    <a href="#PopBack">func (r *Deque[T]) PopBack() T</a></samp>
-<samp>    <a href="#PopFront">func (r *Deque[T]) PopFront() T</a></samp>
-<samp>    <a href="#PushBack">func (r *Deque[T]) PushBack(item T)</a></samp>
-<samp>    <a href="#PushFront">func (r *Deque[T]) PushFront(item T)</a></samp>
+
+<samp>        <a href="#Back">func (r *Deque[T]) Back() T</a></samp>
+
+<samp>        <a href="#Front">func (r *Deque[T]) Front() T</a></samp>
+
+<samp>        <a href="#Grow">func (r *Deque[T]) Grow(n int)</a></samp>
+
+<samp>        <a href="#Item">func (r *Deque[T]) Item(i int) T</a></samp>
+
+<samp>        <a href="#Iterate">func (r *Deque[T]) Iterate() iterator.Iterator[T]</a></samp>
+
+<samp>        <a href="#Len">func (r *Deque[T]) Len() int</a></samp>
+
+<samp>        <a href="#PopBack">func (r *Deque[T]) PopBack() T</a></samp>
+
+<samp>        <a href="#PopFront">func (r *Deque[T]) PopFront() T</a></samp>
+
+<samp>        <a href="#PushBack">func (r *Deque[T]) PushBack(item T)</a></samp>
+
+<samp>        <a href="#PushFront">func (r *Deque[T]) PushFront(item T)</a></samp>
+
 
 # Constants
 

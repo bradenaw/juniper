@@ -128,6 +128,7 @@ func main2(packageDir string) error {
 		fmt.Print("\">type ")
 		fmt.Print(type_.Name)
 		fmt.Println("</a></samp>")
+		fmt.Println()
 
 		for _, funcs := range [][]*doc.Func{type_.Funcs, type_.Methods} {
 			for _, func_ := range funcs {
@@ -135,7 +136,8 @@ func main2(packageDir string) error {
 				if err != nil {
 					return err
 				}
-				fmt.Println("<samp>" + indent(l, 4) + "</samp>")
+				fmt.Println("<samp>    " + indent(l, 4) + "</samp>")
+				fmt.Println()
 			}
 		}
 	}

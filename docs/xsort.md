@@ -24,7 +24,9 @@ Package xsort contains extensions to the standard library package sort.
 <samp><a href="#SliceIsSorted">func SliceIsSorted[T any](x []T, less Less[T]) bool</a></samp>
 <samp><a href="#SliceStable">func SliceStable[T any](x []T, less Less[T])</a></samp>
 <samp><a href="#Less">type Less</a></samp>
-<samp>    <a href="#Reverse">func Reverse[T any](less Less[T]) Less[T]</a></samp>
+
+<samp>        <a href="#Reverse">func Reverse[T any](less Less[T]) Less[T]</a></samp>
+
 
 # Constants
 

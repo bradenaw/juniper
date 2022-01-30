@@ -12,28 +12,48 @@ Package xheap contains extensions to the standard library package container/heap
 # Index
 
 <samp><a href="#Heap">type Heap</a></samp>
-<samp>    <a href="#New">func New[T any](less xsort.Less[T], initial []T) Heap[T]</a></samp>
-<samp>    <a href="#Grow">func (h *Heap[T]) Grow(n int)</a></samp>
-<samp>    <a href="#Iterate">func (h *Heap[T]) Iterate() iterator.Iterator[T]</a></samp>
-<samp>    <a href="#Len">func (h *Heap[T]) Len() int</a></samp>
-<samp>    <a href="#Peek">func (h *Heap[T]) Peek() T</a></samp>
-<samp>    <a href="#Pop">func (h *Heap[T]) Pop() T</a></samp>
-<samp>    <a href="#Push">func (h *Heap[T]) Push(item T)</a></samp>
+
+<samp>        <a href="#New">func New[T any](less xsort.Less[T], initial []T) Heap[T]</a></samp>
+
+<samp>        <a href="#Grow">func (h *Heap[T]) Grow(n int)</a></samp>
+
+<samp>        <a href="#Iterate">func (h *Heap[T]) Iterate() iterator.Iterator[T]</a></samp>
+
+<samp>        <a href="#Len">func (h *Heap[T]) Len() int</a></samp>
+
+<samp>        <a href="#Peek">func (h *Heap[T]) Peek() T</a></samp>
+
+<samp>        <a href="#Pop">func (h *Heap[T]) Pop() T</a></samp>
+
+<samp>        <a href="#Push">func (h *Heap[T]) Push(item T)</a></samp>
+
 <samp><a href="#KP">type KP</a></samp>
+
 <samp><a href="#PriorityQueue">type PriorityQueue</a></samp>
-<samp>    <a href="#NewPriorityQueue">func NewPriorityQueue[K comparable, P any](
+
+<samp>        <a href="#NewPriorityQueue">func NewPriorityQueue[K comparable, P any](
     	less xsort.Less[P],
     	initial []KP[K, P],
     ) PriorityQueue[K, P]</a></samp>
-<samp>    <a href="#Contains">func (h *PriorityQueue[K, P]) Contains(k K) bool</a></samp>
-<samp>    <a href="#Grow">func (h *PriorityQueue[K, P]) Grow(n int)</a></samp>
-<samp>    <a href="#Iterate">func (h *PriorityQueue[K, P]) Iterate() iterator.Iterator[K]</a></samp>
-<samp>    <a href="#Len">func (h *PriorityQueue[K, P]) Len() int</a></samp>
-<samp>    <a href="#Peek">func (h *PriorityQueue[K, P]) Peek() K</a></samp>
-<samp>    <a href="#Pop">func (h *PriorityQueue[K, P]) Pop() K</a></samp>
-<samp>    <a href="#Priority">func (h *PriorityQueue[K, P]) Priority(k K) P</a></samp>
-<samp>    <a href="#Remove">func (h *PriorityQueue[K, P]) Remove(k K)</a></samp>
-<samp>    <a href="#Update">func (h *PriorityQueue[K, P]) Update(k K, p P)</a></samp>
+
+<samp>        <a href="#Contains">func (h *PriorityQueue[K, P]) Contains(k K) bool</a></samp>
+
+<samp>        <a href="#Grow">func (h *PriorityQueue[K, P]) Grow(n int)</a></samp>
+
+<samp>        <a href="#Iterate">func (h *PriorityQueue[K, P]) Iterate() iterator.Iterator[K]</a></samp>
+
+<samp>        <a href="#Len">func (h *PriorityQueue[K, P]) Len() int</a></samp>
+
+<samp>        <a href="#Peek">func (h *PriorityQueue[K, P]) Peek() K</a></samp>
+
+<samp>        <a href="#Pop">func (h *PriorityQueue[K, P]) Pop() K</a></samp>
+
+<samp>        <a href="#Priority">func (h *PriorityQueue[K, P]) Priority(k K) P</a></samp>
+
+<samp>        <a href="#Remove">func (h *PriorityQueue[K, P]) Remove(k K)</a></samp>
+
+<samp>        <a href="#Update">func (h *PriorityQueue[K, P]) Update(k K, p P)</a></samp>
+
 
 # Constants
 

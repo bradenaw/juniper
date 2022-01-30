@@ -21,29 +21,49 @@ package stream allows iterating over sequences of values where iteration may fai
 	f func(U, T) (U, error),
 ) (U, error)</a></samp>
 <samp><a href="#Peekable">type Peekable</a></samp>
-<samp>    <a href="#WithPeek">func WithPeek[T any](s Stream[T]) Peekable[T]</a></samp>
+
+<samp>        <a href="#WithPeek">func WithPeek[T any](s Stream[T]) Peekable[T]</a></samp>
+
 <samp><a href="#PipeSender">type PipeSender</a></samp>
-<samp>    <a href="#Close">func (s *PipeSender[T]) Close(err error)</a></samp>
-<samp>    <a href="#Send">func (s *PipeSender[T]) Send(ctx context.Context, x T) error</a></samp>
+
+<samp>        <a href="#Close">func (s *PipeSender[T]) Close(err error)</a></samp>
+
+<samp>        <a href="#Send">func (s *PipeSender[T]) Send(ctx context.Context, x T) error</a></samp>
+
 <samp><a href="#Stream">type Stream</a></samp>
-<samp>    <a href="#Batch">func Batch[T any](s Stream[T], maxWait time.Duration, batchSize int) Stream[[]T]</a></samp>
-<samp>    <a href="#BatchFunc">func BatchFunc[T any](
+
+<samp>        <a href="#Batch">func Batch[T any](s Stream[T], maxWait time.Duration, batchSize int) Stream[[]T]</a></samp>
+
+<samp>        <a href="#BatchFunc">func BatchFunc[T any](
     	s Stream[T],
     	maxWait time.Duration,
     	full func(batch []T) bool,
     ) Stream[[]T]</a></samp>
-<samp>    <a href="#Chan">func Chan[T any](c &lt;-chan T) Stream[T]</a></samp>
-<samp>    <a href="#Chunk">func Chunk[T any](s Stream[T], chunkSize int) Stream[[]T]</a></samp>
-<samp>    <a href="#Compact">func Compact[T comparable](s Stream[T]) Stream[T]</a></samp>
-<samp>    <a href="#CompactFunc">func CompactFunc[T comparable](s Stream[T], eq func(T, T) bool) Stream[T]</a></samp>
-<samp>    <a href="#Filter">func Filter[T any](s Stream[T], keep func(T) (bool, error)) Stream[T]</a></samp>
-<samp>    <a href="#First">func First[T any](s Stream[T], n int) Stream[T]</a></samp>
-<samp>    <a href="#Flatten">func Flatten[T any](s Stream[Stream[T]]) Stream[T]</a></samp>
-<samp>    <a href="#FromIterator">func FromIterator[T any](iter iterator.Iterator[T]) Stream[T]</a></samp>
-<samp>    <a href="#Join">func Join[T any](streams ...Stream[T]) Stream[T]</a></samp>
-<samp>    <a href="#Map">func Map[T any, U any](s Stream[T], f func(t T) (U, error)) Stream[U]</a></samp>
-<samp>    <a href="#Runs">func Runs[T any](s Stream[T], same func(a, b T) bool) Stream[Stream[T]]</a></samp>
-<samp>    <a href="#While">func While[T any](s Stream[T], f func(T) (bool, error)) Stream[T]</a></samp>
+
+<samp>        <a href="#Chan">func Chan[T any](c &lt;-chan T) Stream[T]</a></samp>
+
+<samp>        <a href="#Chunk">func Chunk[T any](s Stream[T], chunkSize int) Stream[[]T]</a></samp>
+
+<samp>        <a href="#Compact">func Compact[T comparable](s Stream[T]) Stream[T]</a></samp>
+
+<samp>        <a href="#CompactFunc">func CompactFunc[T comparable](s Stream[T], eq func(T, T) bool) Stream[T]</a></samp>
+
+<samp>        <a href="#Filter">func Filter[T any](s Stream[T], keep func(T) (bool, error)) Stream[T]</a></samp>
+
+<samp>        <a href="#First">func First[T any](s Stream[T], n int) Stream[T]</a></samp>
+
+<samp>        <a href="#Flatten">func Flatten[T any](s Stream[Stream[T]]) Stream[T]</a></samp>
+
+<samp>        <a href="#FromIterator">func FromIterator[T any](iter iterator.Iterator[T]) Stream[T]</a></samp>
+
+<samp>        <a href="#Join">func Join[T any](streams ...Stream[T]) Stream[T]</a></samp>
+
+<samp>        <a href="#Map">func Map[T any, U any](s Stream[T], f func(t T) (U, error)) Stream[U]</a></samp>
+
+<samp>        <a href="#Runs">func Runs[T any](s Stream[T], same func(a, b T) bool) Stream[Stream[T]]</a></samp>
+
+<samp>        <a href="#While">func While[T any](s Stream[T], f func(T) (bool, error)) Stream[T]</a></samp>
+
 
 # Constants
 
