@@ -32,6 +32,8 @@ Juniper is a library of extensions to the Go standard library using generics, in
 Packages that overlap directly with a standard library package are named the same but with an `x`
 prefix for "extensions", e.g. `sort` and `xsort`.
 
+See the [docs](https://bradenaw.github.io/juniper/) for more.
+
 A few functions do not require generics (e.g. `parallel.Do` and `xmath/xrand.Sample`), and so this
 library still builds with Go 1.17 and below but with a significantly smaller API. Note that
 pkg.go.dev still builds with 1.17, so the documentation there is incomplete.
