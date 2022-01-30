@@ -63,7 +63,7 @@ Push and Pop take amoritized O(log(n)) time where n is the number of items in th
 Len and Peek take O(1) time.
 
 
-## <a id="New"></a><pre>func New[T any](less <a href="../xsort.md#Less">xsort.Less</a>[T], initial []T) <a href="#Heap">Heap</a>[T]</pre>
+<h2><a id="New"></a><pre>func New[T any](less <a href="../xsort.md#Less">xsort.Less</a>[T], initial []T) <a href="#Heap">Heap</a>[T]</pre></h2>
 
 New returns a new Heap which uses less to determine the minimum element.
 
@@ -72,34 +72,34 @@ Heap, so it should not be used after passing to New(). Passing initial is faster
 creating an empty heap and pushing each item (O(n * log(n))).
 
 
-## <a id="Grow"></a><pre>func (h *<a href="#Heap">Heap</a>[T]) Grow(n int)</pre>
+<h2><a id="Grow"></a><pre>func (h *<a href="#Heap">Heap</a>[T]) Grow(n int)</pre></h2>
 
 Grow allocates sufficient space to add n more elements without needing to reallocate.
 
 
-## <a id="Iterate"></a><pre>func (h *<a href="#Heap">Heap</a>[T]) Iterate() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</pre>
+<h2><a id="Iterate"></a><pre>func (h *<a href="#Heap">Heap</a>[T]) Iterate() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</pre></h2>
 
 Iterate iterates over the elements of the heap.
 
 The iterator panics if the heap has been modified since iteration started.
 
 
-## <a id="Len"></a><pre>func (h *<a href="#Heap">Heap</a>[T]) Len() int</pre>
+<h2><a id="Len"></a><pre>func (h *<a href="#Heap">Heap</a>[T]) Len() int</pre></h2>
 
 Len returns the current number of elements in the heap.
 
 
-## <a id="Peek"></a><pre>func (h *<a href="#Heap">Heap</a>[T]) Peek() T</pre>
+<h2><a id="Peek"></a><pre>func (h *<a href="#Heap">Heap</a>[T]) Peek() T</pre></h2>
 
 Peek returns the minimum item in the heap. It panics if h.Len()==0.
 
 
-## <a id="Pop"></a><pre>func (h *<a href="#Heap">Heap</a>[T]) Pop() T</pre>
+<h2><a id="Pop"></a><pre>func (h *<a href="#Heap">Heap</a>[T]) Pop() T</pre></h2>
 
 Pop removes and returns the minimum item in the heap. It panics if h.Len()==0.
 
 
-## <a id="Push"></a><pre>func (h *<a href="#Heap">Heap</a>[T]) Push(item T)</pre>
+<h2><a id="Push"></a><pre>func (h *<a href="#Heap">Heap</a>[T]) Push(item T)</pre></h2>
 
 Push adds item to the heap.
 
@@ -125,7 +125,7 @@ type PriorityQueue[K comparable, P any] struct {
 PriorityQueue is a queue that yields items in increasing order of priority.
 
 
-## <a id="NewPriorityQueue"></a><pre>func NewPriorityQueue[K comparable, P any](less <a href="../xsort.md#Less">xsort.Less</a>[P], initial []<a href="#KP">KP</a>[K, P]) <a href="#PriorityQueue">PriorityQueue</a>[K, P]</pre>
+<h2><a id="NewPriorityQueue"></a><pre>func NewPriorityQueue[K comparable, P any](less <a href="../xsort.md#Less">xsort.Less</a>[P], initial []<a href="#KP">KP</a>[K, P]) <a href="#PriorityQueue">PriorityQueue</a>[K, P]</pre></h2>
 
 NewPriorityQueue returns a new PriorityQueue which uses less to determine the minimum element.
 
@@ -140,49 +140,49 @@ queue.
 Len, Peek, Contains, and Priority take O(1) time.
 
 
-## <a id="Contains"></a><pre>func (h *<a href="#PriorityQueue">PriorityQueue</a>[K, P]) Contains(k K) bool</pre>
+<h2><a id="Contains"></a><pre>func (h *<a href="#PriorityQueue">PriorityQueue</a>[K, P]) Contains(k K) bool</pre></h2>
 
 Contains returns true if the given key is present in the priority queue.
 
 
-## <a id="Grow"></a><pre>func (h *<a href="#PriorityQueue">PriorityQueue</a>[K, P]) Grow(n int)</pre>
+<h2><a id="Grow"></a><pre>func (h *<a href="#PriorityQueue">PriorityQueue</a>[K, P]) Grow(n int)</pre></h2>
 
 Grow allocates sufficient space to add n more elements without needing to reallocate.
 
 
-## <a id="Iterate"></a><pre>func (h *<a href="#PriorityQueue">PriorityQueue</a>[K, P]) Iterate() <a href="../iterator.md#Iterator">iterator.Iterator</a>[K]</pre>
+<h2><a id="Iterate"></a><pre>func (h *<a href="#PriorityQueue">PriorityQueue</a>[K, P]) Iterate() <a href="../iterator.md#Iterator">iterator.Iterator</a>[K]</pre></h2>
 
 Iterate iterates over the elements of the priority queue.
 
 The iterator panics if the priority queue has been modified since iteration started.
 
 
-## <a id="Len"></a><pre>func (h *<a href="#PriorityQueue">PriorityQueue</a>[K, P]) Len() int</pre>
+<h2><a id="Len"></a><pre>func (h *<a href="#PriorityQueue">PriorityQueue</a>[K, P]) Len() int</pre></h2>
 
 Len returns the current number of elements in the priority queue.
 
 
-## <a id="Peek"></a><pre>func (h *<a href="#PriorityQueue">PriorityQueue</a>[K, P]) Peek() K</pre>
+<h2><a id="Peek"></a><pre>func (h *<a href="#PriorityQueue">PriorityQueue</a>[K, P]) Peek() K</pre></h2>
 
 Peek returns the key of the lowest-P item in the priority queue. It panics if h.Len()==0.
 
 
-## <a id="Pop"></a><pre>func (h *<a href="#PriorityQueue">PriorityQueue</a>[K, P]) Pop() K</pre>
+<h2><a id="Pop"></a><pre>func (h *<a href="#PriorityQueue">PriorityQueue</a>[K, P]) Pop() K</pre></h2>
 
 Pop removes and returns the lowest-P item in the priority queue. It panics if h.Len()==0.
 
 
-## <a id="Priority"></a><pre>func (h *<a href="#PriorityQueue">PriorityQueue</a>[K, P]) Priority(k K) P</pre>
+<h2><a id="Priority"></a><pre>func (h *<a href="#PriorityQueue">PriorityQueue</a>[K, P]) Priority(k K) P</pre></h2>
 
 Priority returns the priority of k, or the zero value of P if k is not present.
 
 
-## <a id="Remove"></a><pre>func (h *<a href="#PriorityQueue">PriorityQueue</a>[K, P]) Remove(k K)</pre>
+<h2><a id="Remove"></a><pre>func (h *<a href="#PriorityQueue">PriorityQueue</a>[K, P]) Remove(k K)</pre></h2>
 
 Remove removes the item with the given key if present.
 
 
-## <a id="Update"></a><pre>func (h *<a href="#PriorityQueue">PriorityQueue</a>[K, P]) Update(k K, p P)</pre>
+<h2><a id="Update"></a><pre>func (h *<a href="#PriorityQueue">PriorityQueue</a>[K, P]) Update(k K, p P)</pre></h2>
 
 Update updates the priority of k to p, or adds it to the priority queue if not present.
 

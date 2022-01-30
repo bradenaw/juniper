@@ -47,54 +47,54 @@ Pushes and pops are amoritized O(1). The zero-value is ready to use. Deque shoul
 after first use.
 
 
-## <a id="Back"></a><pre>func (r *<a href="#Deque">Deque</a>[T]) Back() T</pre>
+<h2><a id="Back"></a><pre>func (r *<a href="#Deque">Deque</a>[T]) Back() T</pre></h2>
 
 Back returns the item at the back of the deque. It panics if the deque is empty.
 
 
-## <a id="Front"></a><pre>func (r *<a href="#Deque">Deque</a>[T]) Front() T</pre>
+<h2><a id="Front"></a><pre>func (r *<a href="#Deque">Deque</a>[T]) Front() T</pre></h2>
 
 Front returns the item at the front of the deque. It panics if the deque is empty.
 
 
-## <a id="Grow"></a><pre>func (r *<a href="#Deque">Deque</a>[T]) Grow(n int)</pre>
+<h2><a id="Grow"></a><pre>func (r *<a href="#Deque">Deque</a>[T]) Grow(n int)</pre></h2>
 
 Grow allocates sufficient space to add n more items without needing to reallocate.
 
 
-## <a id="Item"></a><pre>func (r *<a href="#Deque">Deque</a>[T]) Item(i int) T</pre>
+<h2><a id="Item"></a><pre>func (r *<a href="#Deque">Deque</a>[T]) Item(i int) T</pre></h2>
 
 Item returns the ith item in the deque. 0 is the front and r.Len()-1 is the back.
 
 
-## <a id="Iterate"></a><pre>func (r *<a href="#Deque">Deque</a>[T]) Iterate() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</pre>
+<h2><a id="Iterate"></a><pre>func (r *<a href="#Deque">Deque</a>[T]) Iterate() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</pre></h2>
 
 Iterate iterates over the elements of the deque.
 
 The iterator panics if the deque has been modified since iteration started.
 
 
-## <a id="Len"></a><pre>func (r *<a href="#Deque">Deque</a>[T]) Len() int</pre>
+<h2><a id="Len"></a><pre>func (r *<a href="#Deque">Deque</a>[T]) Len() int</pre></h2>
 
 Len returns the number of items in the deque.
 
 
-## <a id="PopBack"></a><pre>func (r *<a href="#Deque">Deque</a>[T]) PopBack() T</pre>
+<h2><a id="PopBack"></a><pre>func (r *<a href="#Deque">Deque</a>[T]) PopBack() T</pre></h2>
 
 PopBack removes and returns the item at the back of the deque. It panics if the deque is empty.
 
 
-## <a id="PopFront"></a><pre>func (r *<a href="#Deque">Deque</a>[T]) PopFront() T</pre>
+<h2><a id="PopFront"></a><pre>func (r *<a href="#Deque">Deque</a>[T]) PopFront() T</pre></h2>
 
 PopFront removes and returns the item at the front of the deque. It panics if the deque is empty.
 
 
-## <a id="PushBack"></a><pre>func (r *<a href="#Deque">Deque</a>[T]) PushBack(item T)</pre>
+<h2><a id="PushBack"></a><pre>func (r *<a href="#Deque">Deque</a>[T]) PushBack(item T)</pre></h2>
 
 PushFront adds item to the back of the deque.
 
 
-## <a id="PushFront"></a><pre>func (r *<a href="#Deque">Deque</a>[T]) PushFront(item T)</pre>
+<h2><a id="PushFront"></a><pre>func (r *<a href="#Deque">Deque</a>[T]) PushFront(item T)</pre></h2>
 
 PushFront adds item to the front of the deque.
 

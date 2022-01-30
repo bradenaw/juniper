@@ -51,67 +51,67 @@ type List[T any] struct {
 List is a doubly-linked list.
 
 
-## <a id="Back"></a><pre>func (l *<a href="#List">List</a>[T]) Back() *<a href="#Node">Node</a>[T]</pre>
+<h2><a id="Back"></a><pre>func (l *<a href="#List">List</a>[T]) Back() *<a href="#Node">Node</a>[T]</pre></h2>
 
 Back returns the node at the back of the list.
 
 
-## <a id="Clear"></a><pre>func (l *<a href="#List">List</a>[T]) Clear()</pre>
+<h2><a id="Clear"></a><pre>func (l *<a href="#List">List</a>[T]) Clear()</pre></h2>
 
 Clear removes all nodes from the list.
 
 
-## <a id="Front"></a><pre>func (l *<a href="#List">List</a>[T]) Front() *<a href="#Node">Node</a>[T]</pre>
+<h2><a id="Front"></a><pre>func (l *<a href="#List">List</a>[T]) Front() *<a href="#Node">Node</a>[T]</pre></h2>
 
 Front returns the node at the front of the list.
 
 
-## <a id="InsertAfter"></a><pre>func (l *<a href="#List">List</a>[T]) InsertAfter(value T, mark *<a href="#Node">Node</a>[T]) *<a href="#Node">Node</a>[T]</pre>
+<h2><a id="InsertAfter"></a><pre>func (l *<a href="#List">List</a>[T]) InsertAfter(value T, mark *<a href="#Node">Node</a>[T]) *<a href="#Node">Node</a>[T]</pre></h2>
 
 InsertBefore adds a new node with the given value after the node mark.
 
 
-## <a id="InsertBefore"></a><pre>func (l *<a href="#List">List</a>[T]) InsertBefore(value T, mark *<a href="#Node">Node</a>[T]) *<a href="#Node">Node</a>[T]</pre>
+<h2><a id="InsertBefore"></a><pre>func (l *<a href="#List">List</a>[T]) InsertBefore(value T, mark *<a href="#Node">Node</a>[T]) *<a href="#Node">Node</a>[T]</pre></h2>
 
 InsertBefore adds a new node with the given value before the node mark.
 
 
-## <a id="Len"></a><pre>func (l *<a href="#List">List</a>[T]) Len() int</pre>
+<h2><a id="Len"></a><pre>func (l *<a href="#List">List</a>[T]) Len() int</pre></h2>
 
 Len returns the number of items in the list.
 
 
-## <a id="MoveAfter"></a><pre>func (l *<a href="#List">List</a>[T]) MoveAfter(node *<a href="#Node">Node</a>[T], mark *<a href="#Node">Node</a>[T])</pre>
+<h2><a id="MoveAfter"></a><pre>func (l *<a href="#List">List</a>[T]) MoveAfter(node *<a href="#Node">Node</a>[T], mark *<a href="#Node">Node</a>[T])</pre></h2>
 
 MoveAfter moves node just after mark. Afterwards, mark.Next() == node && node.Prev() == mark.
 
 
-## <a id="MoveBefore"></a><pre>func (l *<a href="#List">List</a>[T]) MoveBefore(node *<a href="#Node">Node</a>[T], mark *<a href="#Node">Node</a>[T])</pre>
+<h2><a id="MoveBefore"></a><pre>func (l *<a href="#List">List</a>[T]) MoveBefore(node *<a href="#Node">Node</a>[T], mark *<a href="#Node">Node</a>[T])</pre></h2>
 
 MoveBefore moves node just before mark. Afterwards, mark.Prev() == node && node.Next() == mark.
 
 
-## <a id="MoveToBack"></a><pre>func (l *<a href="#List">List</a>[T]) MoveToBack(node *<a href="#Node">Node</a>[T])</pre>
+<h2><a id="MoveToBack"></a><pre>func (l *<a href="#List">List</a>[T]) MoveToBack(node *<a href="#Node">Node</a>[T])</pre></h2>
 
 MoveToFront moves node to the back of the list.
 
 
-## <a id="MoveToFront"></a><pre>func (l *<a href="#List">List</a>[T]) MoveToFront(node *<a href="#Node">Node</a>[T])</pre>
+<h2><a id="MoveToFront"></a><pre>func (l *<a href="#List">List</a>[T]) MoveToFront(node *<a href="#Node">Node</a>[T])</pre></h2>
 
 MoveToFront moves node to the front of the list.
 
 
-## <a id="PushBack"></a><pre>func (l *<a href="#List">List</a>[T]) PushBack(value T) *<a href="#Node">Node</a>[T]</pre>
+<h2><a id="PushBack"></a><pre>func (l *<a href="#List">List</a>[T]) PushBack(value T) *<a href="#Node">Node</a>[T]</pre></h2>
 
 PushFront adds a new node with the given value to the back of the list.
 
 
-## <a id="PushFront"></a><pre>func (l *<a href="#List">List</a>[T]) PushFront(value T) *<a href="#Node">Node</a>[T]</pre>
+<h2><a id="PushFront"></a><pre>func (l *<a href="#List">List</a>[T]) PushFront(value T) *<a href="#Node">Node</a>[T]</pre></h2>
 
 PushFront adds a new node with the given value to the front of the list.
 
 
-## <a id="Remove"></a><pre>func (l *<a href="#List">List</a>[T]) Remove(node *<a href="#Node">Node</a>[T])</pre>
+<h2><a id="Remove"></a><pre>func (l *<a href="#List">List</a>[T]) Remove(node *<a href="#Node">Node</a>[T])</pre></h2>
 
 Remove removes node from the list.
 
@@ -129,12 +129,12 @@ type Node[T any] struct {
 Node is a node in a linked-list.
 
 
-## <a id="Next"></a><pre>func (n *<a href="#Node">Node</a>[T]) Next() *<a href="#Node">Node</a>[T]</pre>
+<h2><a id="Next"></a><pre>func (n *<a href="#Node">Node</a>[T]) Next() *<a href="#Node">Node</a>[T]</pre></h2>
 
 Next returns the next node in the list that n is a part of, if there is one.
 
 
-## <a id="Prev"></a><pre>func (n *<a href="#Node">Node</a>[T]) Prev() *<a href="#Node">Node</a>[T]</pre>
+<h2><a id="Prev"></a><pre>func (n *<a href="#Node">Node</a>[T]) Prev() *<a href="#Node">Node</a>[T]</pre></h2>
 
 Prev returns the previous node in the list that n is a part of, if there is one.
 

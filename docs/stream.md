@@ -60,7 +60,7 @@ This section is empty.
 
 # Functions
 
-## <a id="Collect"></a><pre>func <a href="#Collect">Collect</a>[T any](ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, s <a href="#Stream">Stream</a>[T]) ([]T, error)</pre>
+<h2><a id="Collect"></a><pre>func <a href="#Collect">Collect</a>[T any](ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, s <a href="#Stream">Stream</a>[T]) ([]T, error)</pre></h2>
 
 Collect advances s to the end and returns all of the items seen as a slice.
 
@@ -82,16 +82,14 @@ Output:
 ```text
 <nil>
 [a b c]
-
 ```
-
-## <a id="Last"></a><pre>func <a href="#Last">Last</a>[T any](ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, s <a href="#Stream">Stream</a>[T], n int) ([]T, error)</pre>
+<h2><a id="Last"></a><pre>func <a href="#Last">Last</a>[T any](ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, s <a href="#Stream">Stream</a>[T], n int) ([]T, error)</pre></h2>
 
 Last consumes s and returns the last n items. If s yields fewer than n items, Last returns
 all of them.
 
 
-## <a id="Pipe"></a><pre>func <a href="#Pipe">Pipe</a>[T any](bufferSize int) (*<a href="#PipeSender">PipeSender</a>[T], <a href="#Stream">Stream</a>[T])</pre>
+<h2><a id="Pipe"></a><pre>func <a href="#Pipe">Pipe</a>[T any](bufferSize int) (*<a href="#PipeSender">PipeSender</a>[T], <a href="#Stream">Stream</a>[T])</pre></h2>
 
 Pipe returns a linked sender and receiver pair. Values sent using sender.Send will be delivered
 to the given Stream. The Stream will terminate when the sender is closed.
@@ -133,9 +131,7 @@ Output:
 1
 2
 3
-
 ```
-
 ### Example error
 ```go
 {
@@ -169,10 +165,8 @@ Output:
 ```text
 1
 stream ended with error: oops
-
 ```
-
-## <a id="Reduce"></a><pre>func <a href="#Reduce">Reduce</a>[T any, U any](ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, s <a href="#Stream">Stream</a>[T], initial U, f (U, T) (U, error)) (U, error)</pre>
+<h2><a id="Reduce"></a><pre>func <a href="#Reduce">Reduce</a>[T any, U any](ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, s <a href="#Stream">Stream</a>[T], initial U, f (U, T) (U, error)) (U, error)</pre></h2>
 
 Reduce reduces s to a single value using the reduction function f.
 
@@ -193,7 +187,7 @@ type Peekable[T any] interface {
 Peekable allows viewing the next item from a stream without consuming it.
 
 
-## <a id="WithPeek"></a><pre>func WithPeek[T any](s <a href="#Stream">Stream</a>[T]) <a href="#Peekable">Peekable</a>[T]</pre>
+<h2><a id="WithPeek"></a><pre>func WithPeek[T any](s <a href="#Stream">Stream</a>[T]) <a href="#Peekable">Peekable</a>[T]</pre></h2>
 
 WithPeek returns iter with a Peek() method attached.
 
@@ -208,13 +202,13 @@ type PipeSender[T any] struct {
 PipeSender is the send half of a pipe returned by Pipe.
 
 
-## <a id="Close"></a><pre>func (s *<a href="#PipeSender">PipeSender</a>[T]) Close(err error)</pre>
+<h2><a id="Close"></a><pre>func (s *<a href="#PipeSender">PipeSender</a>[T]) Close(err error)</pre></h2>
 
 Close closes the PipeSender, signalling to the receiver that no more values will be sent. If an
 error is provided, it will surface when closing the receiver.
 
 
-## <a id="Send"></a><pre>func (s *<a href="#PipeSender">PipeSender</a>[T]) Send(ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, x T) error</pre>
+<h2><a id="Send"></a><pre>func (s *<a href="#PipeSender">PipeSender</a>[T]) Send(ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, x T) error</pre></h2>
 
 Send attempts to send x to the receiver. If the receiver closes before x can be sent, returns
 ErrClosedPipe immediately. If ctx expires before x can be sent, returns ctx.Err().
@@ -246,7 +240,7 @@ that are passed streams expect to be the sole user of that stream going forward,
 handle closing on your behalf so long as all streams they return are closed appropriately.
 
 
-## <a id="Batch"></a><pre>func Batch[T any](s <a href="#Stream">Stream</a>[T], maxWait <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, batchSize int) <a href="#Stream">Stream</a>[[]T]</pre>
+<h2><a id="Batch"></a><pre>func Batch[T any](s <a href="#Stream">Stream</a>[T], maxWait <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, batchSize int) <a href="#Stream">Stream</a>[[]T]</pre></h2>
 
 Batch returns a stream of non-overlapping batches from s of size batchSize. Batch is similar to
 Chunk with the added feature that an underfilled batch will be delivered to the output stream if
@@ -295,72 +289,70 @@ any item has been in the batch for more than maxWait.
 Output:
 ```text
 [[a b] [c d e] [f]]
-
 ```
-
-## <a id="BatchFunc"></a><pre>func BatchFunc[T any](s <a href="#Stream">Stream</a>[T], maxWait <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, full (batch []T) bool) <a href="#Stream">Stream</a>[[]T]</pre>
+<h2><a id="BatchFunc"></a><pre>func BatchFunc[T any](s <a href="#Stream">Stream</a>[T], maxWait <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, full (batch []T) bool) <a href="#Stream">Stream</a>[[]T]</pre></h2>
 
 BatchFunc returns a stream of non-overlapping batches from s, using full to determine when a
 batch is full. BatchFunc is similar to Chunk with the added feature that an underfilled batch
 will be delivered to the output stream if any item has been in the batch for more than maxWait.
 
 
-## <a id="Chan"></a><pre>func Chan[T any](c &lt;-chan T) <a href="#Stream">Stream</a>[T]</pre>
+<h2><a id="Chan"></a><pre>func Chan[T any](c &lt;-chan T) <a href="#Stream">Stream</a>[T]</pre></h2>
 
 Chan returns a Stream that receives values from c.
 
 
-## <a id="Chunk"></a><pre>func Chunk[T any](s <a href="#Stream">Stream</a>[T], chunkSize int) <a href="#Stream">Stream</a>[[]T]</pre>
+<h2><a id="Chunk"></a><pre>func Chunk[T any](s <a href="#Stream">Stream</a>[T], chunkSize int) <a href="#Stream">Stream</a>[[]T]</pre></h2>
 
 Chunk returns a stream of non-overlapping chunks from s of size chunkSize. The last chunk will be
 smaller than chunkSize if the stream does not contain an even multiple.
 
 
-## <a id="Compact"></a><pre>func Compact[T comparable](s <a href="#Stream">Stream</a>[T]) <a href="#Stream">Stream</a>[T]</pre>
+<h2><a id="Compact"></a><pre>func Compact[T comparable](s <a href="#Stream">Stream</a>[T]) <a href="#Stream">Stream</a>[T]</pre></h2>
 
 Compact elides adjacent duplicates from s.
 
 
-## <a id="CompactFunc"></a><pre>func CompactFunc[T comparable](s <a href="#Stream">Stream</a>[T], eq (T, T) bool) <a href="#Stream">Stream</a>[T]</pre>
+<h2><a id="CompactFunc"></a><pre>func CompactFunc[T comparable](s <a href="#Stream">Stream</a>[T], eq (T, T) bool) <a href="#Stream">Stream</a>[T]</pre></h2>
 
 CompactFunc elides adjacent duplicates from s, using eq to determine duplicates.
 
 
-## <a id="Filter"></a><pre>func Filter[T any](s <a href="#Stream">Stream</a>[T], keep (T) (bool, error)) <a href="#Stream">Stream</a>[T]</pre>
+<h2><a id="Filter"></a><pre>func Filter[T any](s <a href="#Stream">Stream</a>[T], keep (T) (bool, error)) <a href="#Stream">Stream</a>[T]</pre></h2>
 
 Filter returns a Stream that yields only the items from s for which keep returns true. If keep
 returns an error, terminates the stream early.
 
 
-## <a id="First"></a><pre>func First[T any](s <a href="#Stream">Stream</a>[T], n int) <a href="#Stream">Stream</a>[T]</pre>
+<h2><a id="First"></a><pre>func First[T any](s <a href="#Stream">Stream</a>[T], n int) <a href="#Stream">Stream</a>[T]</pre></h2>
 
 First returns a Stream that yields the first n items from s.
 
 
-## <a id="Flatten"></a><pre>func Flatten[T any](s <a href="#Stream">Stream</a>[<a href="#Stream">Stream</a>[T]]) <a href="#Stream">Stream</a>[T]</pre>
+<h2><a id="Flatten"></a><pre>func Flatten[T any](s <a href="#Stream">Stream</a>[<a href="#Stream">Stream</a>[T]]) <a href="#Stream">Stream</a>[T]</pre></h2>
 
 Flatten returns a stream that yields all items from all streams yielded by s.
 
 
-## <a id="FromIterator"></a><pre>func FromIterator[T any](iter <a href="./iterator.md#Iterator">iterator.Iterator</a>[T]) <a href="#Stream">Stream</a>[T]</pre>
+<h2><a id="FromIterator"></a><pre>func FromIterator[T any](iter <a href="./iterator.md#Iterator">iterator.Iterator</a>[T]) <a href="#Stream">Stream</a>[T]</pre></h2>
 
 FromIterator returns a Stream that yields the values from iter. This stream ignores the context
 passed to Next during the call to iter.Next.
 
 
-## <a id="Join"></a><pre>func Join[T any](streams ...) <a href="#Stream">Stream</a>[T]</pre>
+<h2><a id="Join"></a><pre>func Join[T any](streams ...) <a href="#Stream">Stream</a>[T]</pre></h2>
 
 Join returns a Stream that yields all elements from streams[0], then all elements from
 streams[1], and so on.
 
 
-## <a id="Map"></a><pre>func Map[T any, U any](s <a href="#Stream">Stream</a>[T], f (t T) (U, error)) <a href="#Stream">Stream</a>[U]</pre>
+<h2><a id="Map"></a><pre>func Map[T any, U any](s <a href="#Stream">Stream</a>[T], f (t T) (U, error)) <a href="#Stream">Stream</a>[U]</pre></h2>
 
 Map transforms the values of s using the conversion f. If f returns an error, terminates the
 stream early.
 
 
-## <a id="Runs"></a><pre>func Runs[T any](s <a href="#Stream">Stream</a>[T], same (a, b T) bool) <a href="#Stream">Stream</a>[<a href="#Stream">Stream</a>[T]]</pre>
+<h2><a id="Runs"></a><pre>func Runs[T any](s <a href="#Stream">Stream</a>[T], same (a, b T) bool) <a href="#Stream">Stream</a>[<a href="#Stream">Stream</a>[T]]</pre></h2>
 
 Runs returns a stream of streams. The inner streams yield contiguous elements from s such that
 same(a, b) returns true for any a and b in the run.
@@ -371,7 +363,7 @@ same(a, a) must return true. If same(a, b) and same(b, c) both return true, then
 also.
 
 
-## <a id="While"></a><pre>func While[T any](s <a href="#Stream">Stream</a>[T], f (T) (bool, error)) <a href="#Stream">Stream</a>[T]</pre>
+<h2><a id="While"></a><pre>func While[T any](s <a href="#Stream">Stream</a>[T], f (T) (bool, error)) <a href="#Stream">Stream</a>[T]</pre></h2>
 
 While returns a Stream that terminates before the first item from s for which f returns false.
 If f returns an error, terminates the stream early.

@@ -36,27 +36,27 @@ This section is empty.
 
 # Functions
 
-## <a id="Equal"></a><pre>func <a href="#Equal">Equal</a>[T any](less <a href="#Less">Less</a>[T], a T, b T) bool</pre>
+<h2><a id="Equal"></a><pre>func <a href="#Equal">Equal</a>[T any](less <a href="#Less">Less</a>[T], a T, b T) bool</pre></h2>
 
 Equal returns true if a == b according to less.
 
 
-## <a id="Greater"></a><pre>func <a href="#Greater">Greater</a>[T any](less <a href="#Less">Less</a>[T], a T, b T) bool</pre>
+<h2><a id="Greater"></a><pre>func <a href="#Greater">Greater</a>[T any](less <a href="#Less">Less</a>[T], a T, b T) bool</pre></h2>
 
 Greater returns true if a > b according to less.
 
 
-## <a id="GreaterOrEqual"></a><pre>func <a href="#GreaterOrEqual">GreaterOrEqual</a>[T any](less <a href="#Less">Less</a>[T], a T, b T) bool</pre>
+<h2><a id="GreaterOrEqual"></a><pre>func <a href="#GreaterOrEqual">GreaterOrEqual</a>[T any](less <a href="#Less">Less</a>[T], a T, b T) bool</pre></h2>
 
 LessOrEqual returns true if a >= b according to less.
 
 
-## <a id="LessOrEqual"></a><pre>func <a href="#LessOrEqual">LessOrEqual</a>[T any](less <a href="#Less">Less</a>[T], a T, b T) bool</pre>
+<h2><a id="LessOrEqual"></a><pre>func <a href="#LessOrEqual">LessOrEqual</a>[T any](less <a href="#Less">Less</a>[T], a T, b T) bool</pre></h2>
 
 LessOrEqual returns true if a <= b according to less.
 
 
-## <a id="Merge"></a><pre>func <a href="#Merge">Merge</a>[T any](less <a href="#Less">Less</a>[T], in ...) <a href="./iterator.md#Iterator">iterator.Iterator</a>[T]</pre>
+<h2><a id="Merge"></a><pre>func <a href="#Merge">Merge</a>[T any](less <a href="#Less">Less</a>[T], in ...) <a href="./iterator.md#Iterator">iterator.Iterator</a>[T]</pre></h2>
 
 Merge returns an iterator that yields all items from in in sorted order.
 
@@ -88,10 +88,8 @@ The time complexity of Next() is O(log(k)) where k is len(in).
 Output:
 ```text
 [a b e f o p s v x z]
-
 ```
-
-## <a id="MergeSlices"></a><pre>func <a href="#MergeSlices">MergeSlices</a>[T any](less <a href="#Less">Less</a>[T], out []T, in ...) []T</pre>
+<h2><a id="MergeSlices"></a><pre>func <a href="#MergeSlices">MergeSlices</a>[T any](less <a href="#Less">Less</a>[T], out []T, in ...) []T</pre></h2>
 
 Merge merges the already-sorted slices of in. Optionally, a pre-allocated out slice can be
 provided to store the result into.
@@ -124,10 +122,8 @@ The time complexity is O(n * log(k)) where n is the total number of items and k 
 Output:
 ```text
 [a b e f o p s v x z]
-
 ```
-
-## <a id="MinK"></a><pre>func <a href="#MinK">MinK</a>[T any](less <a href="#Less">Less</a>[T], iter <a href="./iterator.md#Iterator">iterator.Iterator</a>[T], k int) []T</pre>
+<h2><a id="MinK"></a><pre>func <a href="#MinK">MinK</a>[T any](less <a href="#Less">Less</a>[T], iter <a href="./iterator.md#Iterator">iterator.Iterator</a>[T], k int) []T</pre></h2>
 
 MinK returns the k minimum items according to less from iter in sorted order. If iter yields
 fewer than k items, MinK returns all of them.
@@ -153,15 +149,13 @@ Output:
 ```text
 [0 1 2]
 [9 8 7]
-
 ```
-
-## <a id="OrderedLess"></a><pre>func <a href="#OrderedLess">OrderedLess</a>[T <a href="https://pkg.go.dev/constraints#Ordered">constraints.Ordered</a>](a, b T) bool</pre>
+<h2><a id="OrderedLess"></a><pre>func <a href="#OrderedLess">OrderedLess</a>[T <a href="https://pkg.go.dev/constraints#Ordered">constraints.Ordered</a>](a, b T) bool</pre></h2>
 
 OrderedLess is an implementation of Less for constraints.Ordered types by using the < operator.
 
 
-## <a id="Search"></a><pre>func <a href="#Search">Search</a>[T any](x []T, less <a href="#Less">Less</a>[T], item T) int</pre>
+<h2><a id="Search"></a><pre>func <a href="#Search">Search</a>[T any](x []T, less <a href="#Less">Less</a>[T], item T) int</pre></h2>
 
 Search searches for item in x, assumed sorted according to less, and returns the index. The
 return value is the index to insert item at if it is not present (it could be len(a)).
@@ -182,24 +176,22 @@ Output:
 ```text
 2
 4
-
 ```
-
-## <a id="Slice"></a><pre>func <a href="#Slice">Slice</a>[T any](x []T, less <a href="#Less">Less</a>[T])</pre>
+<h2><a id="Slice"></a><pre>func <a href="#Slice">Slice</a>[T any](x []T, less <a href="#Less">Less</a>[T])</pre></h2>
 
 Slice sorts x in-place using the given less function to compare items.
 
 Follows the same rules as sort.Slice.
 
 
-## <a id="SliceIsSorted"></a><pre>func <a href="#SliceIsSorted">SliceIsSorted</a>[T any](x []T, less <a href="#Less">Less</a>[T]) bool</pre>
+<h2><a id="SliceIsSorted"></a><pre>func <a href="#SliceIsSorted">SliceIsSorted</a>[T any](x []T, less <a href="#Less">Less</a>[T]) bool</pre></h2>
 
 SliceIsSorted returns true if x is in sorted order according to the given less function.
 
 Follows the same rules as sort.SliceIsSorted.
 
 
-## <a id="SliceStable"></a><pre>func <a href="#SliceStable">SliceStable</a>[T any](x []T, less <a href="#Less">Less</a>[T])</pre>
+<h2><a id="SliceStable"></a><pre>func <a href="#SliceStable">SliceStable</a>[T any](x []T, less <a href="#Less">Less</a>[T])</pre></h2>
 
 SliceStable stably sorts x in-place using the given less function to compare items.
 
@@ -216,7 +208,7 @@ type Less[T any] func(a, b T) bool
 Returns true if a is less than b. Must follow the same rules as sort.Interface.Less.
 
 
-## <a id="Reverse"></a><pre>func Reverse[T any](less <a href="#Less">Less</a>[T]) <a href="#Less">Less</a>[T]</pre>
+<h2><a id="Reverse"></a><pre>func Reverse[T any](less <a href="#Less">Less</a>[T]) <a href="#Less">Less</a>[T]</pre></h2>
 
 Reverse returns a Less that orders elements in the opposite order of the provided less.
 

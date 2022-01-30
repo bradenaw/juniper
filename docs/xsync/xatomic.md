@@ -39,19 +39,19 @@ type Value[T any] struct {
 Value is equivalent to sync/atomic.Value, except strongly typed.
 
 
-## <a id="CompareAndSwap"></a><pre>func (v *<a href="#Value">Value</a>[T]) CompareAndSwap(old, new T) swapped bool</pre>
+<h2><a id="CompareAndSwap"></a><pre>func (v *<a href="#Value">Value</a>[T]) CompareAndSwap(old, new T) swapped bool</pre></h2>
 
 
 
-## <a id="Load"></a><pre>func (v *<a href="#Value">Value</a>[T]) Load() T</pre>
+<h2><a id="Load"></a><pre>func (v *<a href="#Value">Value</a>[T]) Load() T</pre></h2>
 
 
 
-## <a id="Store"></a><pre>func (v *<a href="#Value">Value</a>[T]) Store(t T)</pre>
+<h2><a id="Store"></a><pre>func (v *<a href="#Value">Value</a>[T]) Store(t T)</pre></h2>
 
 
 
-## <a id="Swap"></a><pre>func (v *<a href="#Value">Value</a>[T]) Swap(new T) old T</pre>
+<h2><a id="Swap"></a><pre>func (v *<a href="#Value">Value</a>[T]) Swap(new T) old T</pre></h2>
 
 
 

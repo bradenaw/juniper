@@ -60,7 +60,7 @@ This section is empty.
 
 # Functions
 
-## <a id="Lazy"></a><pre>func <a href="#Lazy">Lazy</a>[T any](f () T) () T</pre>
+<h2><a id="Lazy"></a><pre>func <a href="#Lazy">Lazy</a>[T any](f () T) () T</pre></h2>
 
 Lazy makes a lazily-initialized value. On first access, it uses f to create the value. Later
 accesses all receive the same value.
@@ -87,9 +87,7 @@ Output:
 doing expensive init
 foo
 foo
-
 ```
-
 # Types
 
 ## <a id="ContextCond"></a><pre>type ContextCond</pre>
@@ -105,19 +103,19 @@ ContextCond is equivalent to sync.Cond, except its Wait function accepts a conte
 ContextConds should not be copied after first use.
 
 
-## <a id="NewContextCond"></a><pre>func NewContextCond(l <a href="https://pkg.go.dev/sync#Locker">sync.Locker</a>) *<a href="#ContextCond">ContextCond</a></pre>
+<h2><a id="NewContextCond"></a><pre>func NewContextCond(l <a href="https://pkg.go.dev/sync#Locker">sync.Locker</a>) *<a href="#ContextCond">ContextCond</a></pre></h2>
 
 NewContextCond returns a new ContextCond with l as its Locker.
 
 
-## <a id="Broadcast"></a><pre>func (c *<a href="#ContextCond">ContextCond</a>) Broadcast()</pre>
+<h2><a id="Broadcast"></a><pre>func (c *<a href="#ContextCond">ContextCond</a>) Broadcast()</pre></h2>
 
 Broadcast wakes all goroutines blocked in Wait(), if there are any.
 
 It is allowed but not required for the caller to hold c.L during the call.
 
 
-## <a id="Signal"></a><pre>func (c *<a href="#ContextCond">ContextCond</a>) Signal()</pre>
+<h2><a id="Signal"></a><pre>func (c *<a href="#ContextCond">ContextCond</a>) Signal()</pre></h2>
 
 Signal wakes one goroutine blocked in Wait(), if there is any. No guarantee is made as to which
 goroutine will wake.
@@ -125,7 +123,7 @@ goroutine will wake.
 It is allowed but not required for the caller to hold c.L during the call.
 
 
-## <a id="Wait"></a><pre>func (c *<a href="#ContextCond">ContextCond</a>) Wait(ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>) error</pre>
+<h2><a id="Wait"></a><pre>func (c *<a href="#ContextCond">ContextCond</a>) Wait(ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>) error</pre></h2>
 
 Wait is equivalent to sync.Cond.Wait, except it accepts a context.Context. If the context expires
 before this goroutine is woken by Broadcast or Signal, it returns ctx.Err() immediately. If an
@@ -145,12 +143,12 @@ be filled. After filling, Wait() immediately returns the value it was filled wit
 Futures must be created by NewFuture and should not be copied after first use.
 
 
-## <a id="NewFuture"></a><pre>func NewFuture[T any]() *<a href="#Future">Future</a>[T]</pre>
+<h2><a id="NewFuture"></a><pre>func NewFuture[T any]() *<a href="#Future">Future</a>[T]</pre></h2>
 
 NewFuture returns a ready-to-use Future.
 
 
-## <a id="Fill"></a><pre>func (f *<a href="#Future">Future</a>[T]) Fill(x T)</pre>
+<h2><a id="Fill"></a><pre>func (f *<a href="#Future">Future</a>[T]) Fill(x T)</pre></h2>
 
 Fill fills f with value x. All active calls to Wait return x, and all future calls to Wait return
 x immediately.
@@ -158,13 +156,13 @@ x immediately.
 Panics if f has already been filled.
 
 
-## <a id="Wait"></a><pre>func (f *<a href="#Future">Future</a>[T]) Wait() T</pre>
+<h2><a id="Wait"></a><pre>func (f *<a href="#Future">Future</a>[T]) Wait() T</pre></h2>
 
 Wait waits for f to be filled with a value and returns it. Returns immediately if f is already
 filled.
 
 
-## <a id="WaitContext"></a><pre>func (f *<a href="#Future">Future</a>[T]) WaitContext(ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>) (T, error)</pre>
+<h2><a id="WaitContext"></a><pre>func (f *<a href="#Future">Future</a>[T]) WaitContext(ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>) (T, error)</pre></h2>
 
 Wait waits for f to be filled with a value and returns it, or returns ctx.Err() if ctx expires
 before this happens. Returns immediately if f is already filled.
@@ -180,41 +178,41 @@ type Group struct {
 Group manages a group of goroutines.
 
 
-## <a id="NewGroup"></a><pre>func NewGroup(ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>) *<a href="#Group">Group</a></pre>
+<h2><a id="NewGroup"></a><pre>func NewGroup(ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>) *<a href="#Group">Group</a></pre></h2>
 
 NewGroup returns a Group ready for use. The context passed to any of the f functions will be a
 descendant of ctx.
 
 
-## <a id="Once"></a><pre>func (g *<a href="#Group">Group</a>) Once(f (ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>))</pre>
+<h2><a id="Once"></a><pre>func (g *<a href="#Group">Group</a>) Once(f (ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>))</pre></h2>
 
 Once calls f once from another goroutine.
 
 
-## <a id="Periodic"></a><pre>func (g *<a href="#Group">Group</a>) Periodic(interval <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, jitter <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, f (ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>))</pre>
+<h2><a id="Periodic"></a><pre>func (g *<a href="#Group">Group</a>) Periodic(interval <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, jitter <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, f (ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>))</pre></h2>
 
 Periodic spawns a goroutine that calls f once per interval +/- jitter.
 
 
-## <a id="PeriodicOrTrigger"></a><pre>func (g *<a href="#Group">Group</a>) PeriodicOrTrigger(interval <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, jitter <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, f (ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>)) ()</pre>
+<h2><a id="PeriodicOrTrigger"></a><pre>func (g *<a href="#Group">Group</a>) PeriodicOrTrigger(interval <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, jitter <a href="https://pkg.go.dev/time#Duration">time.Duration</a>, f (ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>)) ()</pre></h2>
 
 PeriodicOrTrigger spawns a goroutine which calls f whenever the returned function is called.  If
 f is already running when triggered, f will run again immediately when it finishes. Also calls f
 when it has been interval+/-jitter since the last trigger.
 
 
-## <a id="Stop"></a><pre>func (g *<a href="#Group">Group</a>) Stop()</pre>
+<h2><a id="Stop"></a><pre>func (g *<a href="#Group">Group</a>) Stop()</pre></h2>
 
 Stop cancels the context passed to spawned goroutines.
 
 
-## <a id="Trigger"></a><pre>func (g *<a href="#Group">Group</a>) Trigger(f (ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>)) ()</pre>
+<h2><a id="Trigger"></a><pre>func (g *<a href="#Group">Group</a>) Trigger(f (ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>)) ()</pre></h2>
 
 Trigger spawns a goroutine which calls f whenever the returned function is called. If f is
 already running when triggered, f will run again immediately when it finishes.
 
 
-## <a id="Wait"></a><pre>func (g *<a href="#Group">Group</a>) Wait()</pre>
+<h2><a id="Wait"></a><pre>func (g *<a href="#Group">Group</a>) Wait()</pre></h2>
 
 Wait cancels the context passed to any of the spawned goroutines and waits for all spawned
 goroutines to exit.
@@ -232,27 +230,27 @@ type Map[K comparable, V any] struct {
 Map is a typesafe wrapper over sync.Map.
 
 
-## <a id="Delete"></a><pre>func (m *<a href="#Map">Map</a>[K, V]) Delete(key K)</pre>
+<h2><a id="Delete"></a><pre>func (m *<a href="#Map">Map</a>[K, V]) Delete(key K)</pre></h2>
 
 
 
-## <a id="Load"></a><pre>func (m *<a href="#Map">Map</a>[K, V]) Load(key K) (value V, ok bool)</pre>
+<h2><a id="Load"></a><pre>func (m *<a href="#Map">Map</a>[K, V]) Load(key K) (value V, ok bool)</pre></h2>
 
 
 
-## <a id="LoadAndDelete"></a><pre>func (m *<a href="#Map">Map</a>[K, V]) LoadAndDelete(key K) (value V, loaded bool)</pre>
+<h2><a id="LoadAndDelete"></a><pre>func (m *<a href="#Map">Map</a>[K, V]) LoadAndDelete(key K) (value V, loaded bool)</pre></h2>
 
 
 
-## <a id="LoadOrStore"></a><pre>func (m *<a href="#Map">Map</a>[K, V]) LoadOrStore(key K, value V) (actual V, loaded bool)</pre>
+<h2><a id="LoadOrStore"></a><pre>func (m *<a href="#Map">Map</a>[K, V]) LoadOrStore(key K, value V) (actual V, loaded bool)</pre></h2>
 
 
 
-## <a id="Range"></a><pre>func (m *<a href="#Map">Map</a>[K, V]) Range(f (key K, value V) bool)</pre>
+<h2><a id="Range"></a><pre>func (m *<a href="#Map">Map</a>[K, V]) Range(f (key K, value V) bool)</pre></h2>
 
 
 
-## <a id="Store"></a><pre>func (m *<a href="#Map">Map</a>[K, V]) Store(key K, value V)</pre>
+<h2><a id="Store"></a><pre>func (m *<a href="#Map">Map</a>[K, V]) Store(key K, value V)</pre></h2>
 
 
 
@@ -266,15 +264,15 @@ type Pool[T any] struct {
 Pool is a typesafe wrapper over sync.Pool.
 
 
-## <a id="NewPool"></a><pre>func NewPool[T any](new_ () T) <a href="#Pool">Pool</a>[T]</pre>
+<h2><a id="NewPool"></a><pre>func NewPool[T any](new_ () T) <a href="#Pool">Pool</a>[T]</pre></h2>
 
 
 
-## <a id="Get"></a><pre>func (p *<a href="#Pool">Pool</a>[T]) Get() T</pre>
+<h2><a id="Get"></a><pre>func (p *<a href="#Pool">Pool</a>[T]) Get() T</pre></h2>
 
 
 
-## <a id="Put"></a><pre>func (p *<a href="#Pool">Pool</a>[T]) Put(x T)</pre>
+<h2><a id="Put"></a><pre>func (p *<a href="#Pool">Pool</a>[T]) Put(x T)</pre></h2>
 
 
 

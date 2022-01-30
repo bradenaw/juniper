@@ -44,12 +44,12 @@ This section is empty.
 
 # Functions
 
-## <a id="Collect"></a><pre>func <a href="#Collect">Collect</a>[T any](iter <a href="#Iterator">Iterator</a>[T]) []T</pre>
+<h2><a id="Collect"></a><pre>func <a href="#Collect">Collect</a>[T any](iter <a href="#Iterator">Iterator</a>[T]) []T</pre></h2>
 
 Collect advances iter to the end and returns all of the items seen as a slice.
 
 
-## <a id="Equal"></a><pre>func <a href="#Equal">Equal</a>[T comparable](iters ...) bool</pre>
+<h2><a id="Equal"></a><pre>func <a href="#Equal">Equal</a>[T comparable](iters ...) bool</pre></h2>
 
 Equal returns true if the given iterators yield the same items in the same order. Consumes the
 iterators.
@@ -79,10 +79,8 @@ Output:
 ```text
 true
 false
-
 ```
-
-## <a id="Last"></a><pre>func <a href="#Last">Last</a>[T any](iter <a href="#Iterator">Iterator</a>[T], n int) []T</pre>
+<h2><a id="Last"></a><pre>func <a href="#Last">Last</a>[T any](iter <a href="#Iterator">Iterator</a>[T], n int) []T</pre></h2>
 
 Last consumes iter and returns the last n items. If iter yields fewer than n items, Last returns
 all of them.
@@ -107,10 +105,8 @@ Output:
 ```text
 [7 8 9]
 [0 1]
-
 ```
-
-## <a id="Reduce"></a><pre>func <a href="#Reduce">Reduce</a>[T any, U any](iter <a href="#Iterator">Iterator</a>[T], initial U, f (U, T) U) U</pre>
+<h2><a id="Reduce"></a><pre>func <a href="#Reduce">Reduce</a>[T any, U any](iter <a href="#Iterator">Iterator</a>[T], initial U, f (U, T) U) U</pre></h2>
 
 Reduce reduces iter to a single value using the reduction function f.
 
@@ -135,9 +131,7 @@ Output:
 ```text
 6
 1
-
 ```
-
 # Types
 
 ## <a id="Iterator"></a><pre>type Iterator</pre>
@@ -159,12 +153,12 @@ Iterators do not need to be fully consumed, callers may safely abandon an iterat
 returns false.
 
 
-## <a id="Chan"></a><pre>func Chan[T any](c &lt;-chan T) <a href="#Iterator">Iterator</a>[T]</pre>
+<h2><a id="Chan"></a><pre>func Chan[T any](c &lt;-chan T) <a href="#Iterator">Iterator</a>[T]</pre></h2>
 
 Chan returns an Iterator that yields the values received on c.
 
 
-## <a id="Chunk"></a><pre>func Chunk[T any](iter <a href="#Iterator">Iterator</a>[T], chunkSize int) <a href="#Iterator">Iterator</a>[[]T]</pre>
+<h2><a id="Chunk"></a><pre>func Chunk[T any](iter <a href="#Iterator">Iterator</a>[T], chunkSize int) <a href="#Iterator">Iterator</a>[[]T]</pre></h2>
 
 Chunk returns an iterator over non-overlapping chunks of size chunkSize. The last chunk will be
 smaller than chunkSize if the iterator does not contain an even multiple.
@@ -191,10 +185,8 @@ Output:
 [a b c]
 [d e f]
 [g h]
-
 ```
-
-## <a id="Compact"></a><pre>func Compact[T comparable](iter <a href="#Iterator">Iterator</a>[T]) <a href="#Iterator">Iterator</a>[T]</pre>
+<h2><a id="Compact"></a><pre>func Compact[T comparable](iter <a href="#Iterator">Iterator</a>[T]) <a href="#Iterator">Iterator</a>[T]</pre></h2>
 
 Compact elides adjacent duplicates from iter.
 
@@ -212,10 +204,8 @@ Compact elides adjacent duplicates from iter.
 Output:
 ```text
 [a b c a]
-
 ```
-
-## <a id="CompactFunc"></a><pre>func CompactFunc[T any](iter <a href="#Iterator">Iterator</a>[T], eq (T, T) bool) <a href="#Iterator">Iterator</a>[T]</pre>
+<h2><a id="CompactFunc"></a><pre>func CompactFunc[T any](iter <a href="#Iterator">Iterator</a>[T], eq (T, T) bool) <a href="#Iterator">Iterator</a>[T]</pre></h2>
 
 CompactFunc elides adjacent duplicates from iter, using eq to determine duplicates.
 
@@ -243,10 +233,8 @@ CompactFunc elides adjacent duplicates from iter, using eq to determine duplicat
 Output:
 ```text
 [bank ghost yaw]
-
 ```
-
-## <a id="Counter"></a><pre>func Counter(n int) <a href="#Iterator">Iterator</a>[int]</pre>
+<h2><a id="Counter"></a><pre>func Counter(n int) <a href="#Iterator">Iterator</a>[int]</pre></h2>
 
 Counter returns an iterator that counts up from 0, yielding n items.
 
@@ -266,7 +254,7 @@ The following are equivalent:
   }
 
 
-## <a id="Filter"></a><pre>func Filter[T any](iter <a href="#Iterator">Iterator</a>[T], keep (T) bool) <a href="#Iterator">Iterator</a>[T]</pre>
+<h2><a id="Filter"></a><pre>func Filter[T any](iter <a href="#Iterator">Iterator</a>[T], keep (T) bool) <a href="#Iterator">Iterator</a>[T]</pre></h2>
 
 Filter returns an iterator that yields only the items from iter for which keep returns true.
 
@@ -285,10 +273,8 @@ Filter returns an iterator that yields only the items from iter for which keep r
 Output:
 ```text
 [2 4 6]
-
 ```
-
-## <a id="First"></a><pre>func First[T any](iter <a href="#Iterator">Iterator</a>[T], n int) <a href="#Iterator">Iterator</a>[T]</pre>
+<h2><a id="First"></a><pre>func First[T any](iter <a href="#Iterator">Iterator</a>[T], n int) <a href="#Iterator">Iterator</a>[T]</pre></h2>
 
 First returns an iterator that yields the first n items from iter.
 
@@ -307,10 +293,8 @@ First returns an iterator that yields the first n items from iter.
 Output:
 ```text
 [a b c]
-
 ```
-
-## <a id="Flatten"></a><pre>func Flatten[T any](iter <a href="#Iterator">Iterator</a>[<a href="#Iterator">Iterator</a>[T]]) <a href="#Iterator">Iterator</a>[T]</pre>
+<h2><a id="Flatten"></a><pre>func Flatten[T any](iter <a href="#Iterator">Iterator</a>[<a href="#Iterator">Iterator</a>[T]]) <a href="#Iterator">Iterator</a>[T]</pre></h2>
 
 Flatten returns an iterator that yields all items from all iterators yielded by iter.
 
@@ -334,10 +318,8 @@ Flatten returns an iterator that yields all items from all iterators yielded by 
 Output:
 ```text
 [0 1 2 3 4 5 6 7]
-
 ```
-
-## <a id="Join"></a><pre>func Join[T any](iters ...) <a href="#Iterator">Iterator</a>[T]</pre>
+<h2><a id="Join"></a><pre>func Join[T any](iters ...) <a href="#Iterator">Iterator</a>[T]</pre></h2>
 
 Join returns an Iterator that returns all elements of iters[0], then all elements of iters[1],
 and so on.
@@ -360,15 +342,13 @@ and so on.
 Output:
 ```text
 [0 1 2 0 1 2 3 4 0 1]
-
 ```
-
-## <a id="Map"></a><pre>func Map[T any, U any](iter <a href="#Iterator">Iterator</a>[T], f (t T) U) <a href="#Iterator">Iterator</a>[U]</pre>
+<h2><a id="Map"></a><pre>func Map[T any, U any](iter <a href="#Iterator">Iterator</a>[T], f (t T) U) <a href="#Iterator">Iterator</a>[U]</pre></h2>
 
 Map transforms the results of iter using the conversion f.
 
 
-## <a id="Repeat"></a><pre>func Repeat[T any](item T, n int) <a href="#Iterator">Iterator</a>[T]</pre>
+<h2><a id="Repeat"></a><pre>func Repeat[T any](item T, n int) <a href="#Iterator">Iterator</a>[T]</pre></h2>
 
 Repeat returns an iterator that yields item n times.
 
@@ -385,10 +365,8 @@ Repeat returns an iterator that yields item n times.
 Output:
 ```text
 [a a a a]
-
 ```
-
-## <a id="Runs"></a><pre>func Runs[T any](iter <a href="#Iterator">Iterator</a>[T], same (a, b T) bool) <a href="#Iterator">Iterator</a>[<a href="#Iterator">Iterator</a>[T]]</pre>
+<h2><a id="Runs"></a><pre>func Runs[T any](iter <a href="#Iterator">Iterator</a>[T], same (a, b T) bool) <a href="#Iterator">Iterator</a>[<a href="#Iterator">Iterator</a>[T]]</pre></h2>
 
 Runs returns an iterator of iterators. The inner iterators yield contiguous elements from iter
 such that same(a, b) returns true for any a and b in the run.
@@ -415,15 +393,13 @@ also.
 Output:
 ```text
 [[2 4 0] [7 1 3 9] [2 8]]
-
 ```
-
-## <a id="Slice"></a><pre>func Slice[T any](s []T) <a href="#Iterator">Iterator</a>[T]</pre>
+<h2><a id="Slice"></a><pre>func Slice[T any](s []T) <a href="#Iterator">Iterator</a>[T]</pre></h2>
 
 Slice returns an iterator over the elements of s.
 
 
-## <a id="While"></a><pre>func While[T any](iter <a href="#Iterator">Iterator</a>[T], f (T) bool) <a href="#Iterator">Iterator</a>[T]</pre>
+<h2><a id="While"></a><pre>func While[T any](iter <a href="#Iterator">Iterator</a>[T], f (T) bool) <a href="#Iterator">Iterator</a>[T]</pre></h2>
 
 While returns an iterator that terminates before the first item from iter for which f returns
 false.
@@ -443,7 +419,7 @@ type Peekable[T any] interface {
 Peekable allows viewing the next item from an iterator without consuming it.
 
 
-## <a id="WithPeek"></a><pre>func WithPeek[T any](iter <a href="#Iterator">Iterator</a>[T]) <a href="#Peekable">Peekable</a>[T]</pre>
+<h2><a id="WithPeek"></a><pre>func WithPeek[T any](iter <a href="#Iterator">Iterator</a>[T]) <a href="#Peekable">Peekable</a>[T]</pre></h2>
 
 WithPeek returns iter with a Peek() method attached.
 

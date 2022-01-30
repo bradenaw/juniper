@@ -22,7 +22,7 @@ This section is empty.
 
 # Functions
 
-## <a id="WithStack"></a><pre>func <a href="#WithStack">WithStack</a>(err error) error</pre>
+<h2><a id="WithStack"></a><pre>func <a href="#WithStack">WithStack</a>(err error) error</pre></h2>
 
 WithStack returns an error that wraps err and adds the call stack of the call to WithStack to
 Error().
@@ -44,8 +44,6 @@ Output:
 foo
 
 github.com/bradenaw/juniper/xerrors.ExampleWithStack(...)
-
 ```
-
 # Types
 

@@ -56,14 +56,14 @@ This section is empty.
 
 # Functions
 
-## <a id="Do"></a><pre>func <a href="#Do">Do</a>(parallelism int, n int, f (i int))</pre>
+<h2><a id="Do"></a><pre>func <a href="#Do">Do</a>(parallelism int, n int, f (i int))</pre></h2>
 
 Do calls f from parallelism goroutines n times, providing each invocation a unique i in [0, n).
 
 If parallelism <= 0, uses GOMAXPROCS instead.
 
 
-## <a id="DoContext"></a><pre>func <a href="#DoContext">DoContext</a>(ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, parallelism int, n int, f (ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, i int) error) error</pre>
+<h2><a id="DoContext"></a><pre>func <a href="#DoContext">DoContext</a>(ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, parallelism int, n int, f (ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, i int) error) error</pre></h2>
 
 DoContext calls f from parallelism goroutines n times, providing each invocation a unique i in
 [0, n).
@@ -74,7 +74,7 @@ calls to f are made, and Do returns the first error encountered.
 If parallelism <= 0, uses GOMAXPROCS instead.
 
 
-## <a id="Map"></a><pre>func <a href="#Map">Map</a>[T any, U any](parallelism int, in []T, f (in T) U) []U</pre>
+<h2><a id="Map"></a><pre>func <a href="#Map">Map</a>[T any, U any](parallelism int, in []T, f (in T) U) []U</pre></h2>
 
 Map uses parallelism goroutines to call f once for each element of in. out[i] is the
 result of f for in[i].
@@ -82,7 +82,7 @@ result of f for in[i].
 If parallelism <= 0, uses GOMAXPROCS instead.
 
 
-## <a id="MapContext"></a><pre>func <a href="#MapContext">MapContext</a>[T any, U any](ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, parallelism int, in []T, f (ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, in T) (U, error)) ([]U, error)</pre>
+<h2><a id="MapContext"></a><pre>func <a href="#MapContext">MapContext</a>[T any, U any](ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, parallelism int, in []T, f (ctx <a href="https://pkg.go.dev/context#Context">context.Context</a>, in T) (U, error)) ([]U, error)</pre></h2>
 
 MapContext uses parallelism goroutines to call f once for each element of in. out[i] is the
 result of f for in[i].
@@ -93,7 +93,7 @@ calls to f are made, and Map returns the first error encountered.
 If parallelism <= 0, uses GOMAXPROCS instead.
 
 
-## <a id="MapIterator"></a><pre>func <a href="#MapIterator">MapIterator</a>[T any, U any](iter <a href="./iterator.md#Iterator">iterator.Iterator</a>[T], parallelism int, bufferSize int, f (T) U) <a href="./iterator.md#Iterator">iterator.Iterator</a>[U]</pre>
+<h2><a id="MapIterator"></a><pre>func <a href="#MapIterator">MapIterator</a>[T any, U any](iter <a href="./iterator.md#Iterator">iterator.Iterator</a>[T], parallelism int, bufferSize int, f (T) U) <a href="./iterator.md#Iterator">iterator.Iterator</a>[U]</pre></h2>
 
 MapIterator uses parallelism goroutines to call f once for each element yielded by iter. The
 returned iterator returns these results in the same order that iter yielded them in.
@@ -106,7 +106,7 @@ bufferSize is the size of the work buffer for each goroutine. A larger buffer us
 but gives better throughput in the face of larger variance in the processing time for f.
 
 
-## <a id="MapStream"></a><pre>func <a href="#MapStream">MapStream</a>[T any, U any](s <a href="./stream.md#Stream">stream.Stream</a>[T], parallelism int, bufferSize int, f (<a href="https://pkg.go.dev/context#Context">context.Context</a>, T) (U, error)) <a href="./stream.md#Stream">stream.Stream</a>[U]</pre>
+<h2><a id="MapStream"></a><pre>func <a href="#MapStream">MapStream</a>[T any, U any](s <a href="./stream.md#Stream">stream.Stream</a>[T], parallelism int, bufferSize int, f (<a href="https://pkg.go.dev/context#Context">context.Context</a>, T) (U, error)) <a href="./stream.md#Stream">stream.Stream</a>[U]</pre></h2>
 
 MapStream uses parallelism goroutines to call f once for each element yielded by s. The returned
 stream returns these results in the same order that s yielded them in.

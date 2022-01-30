@@ -41,7 +41,7 @@ type Set[T any] interface {
 
 
 
-## <a id="Difference"></a><pre>func Difference[T comparable](out, a, b <a href="#Set">Set</a>[T]) <a href="#Set">Set</a>[T]</pre>
+<h2><a id="Difference"></a><pre>func Difference[T comparable](out, a, b <a href="#Set">Set</a>[T]) <a href="#Set">Set</a>[T]</pre></h2>
 
 Difference adds to out all items that appear in a but not in b and returns out.
 
@@ -71,10 +71,8 @@ Difference adds to out all items that appear in a but not in b and returns out.
 Output:
 ```text
 map[1:{} 5:{}]
-
 ```
-
-## <a id="Intersection"></a><pre>func Intersection[T comparable](out <a href="#Set">Set</a>[T], sets ...) <a href="#Set">Set</a>[T]</pre>
+<h2><a id="Intersection"></a><pre>func Intersection[T comparable](out <a href="#Set">Set</a>[T], sets ...) <a href="#Set">Set</a>[T]</pre></h2>
 
 Intersection adds to out all items that appear in all sets and returns out.
 
@@ -110,10 +108,8 @@ Intersection adds to out all items that appear in all sets and returns out.
 Output:
 ```text
 map[1:{} 4:{}]
-
 ```
-
-## <a id="Union"></a><pre>func Union[T any](out <a href="#Set">Set</a>[T], sets ...) <a href="#Set">Set</a>[T]</pre>
+<h2><a id="Union"></a><pre>func Union[T any](out <a href="#Set">Set</a>[T], sets ...) <a href="#Set">Set</a>[T]</pre></h2>
 
 Union adds to out out all items from sets and returns out.
 
@@ -146,6 +142,4 @@ Union adds to out out all items from sets and returns out.
 Output:
 ```text
 map[1:{} 3:{} 4:{} 5:{}]
-
 ```
-

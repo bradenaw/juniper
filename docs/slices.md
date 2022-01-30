@@ -50,7 +50,7 @@ This section is empty.
 
 # Functions
 
-## <a id="All"></a><pre>func <a href="#All">All</a>[T any](x []T, f (T) bool) bool</pre>
+<h2><a id="All"></a><pre>func <a href="#All">All</a>[T any](x []T, f (T) bool) bool</pre></h2>
 
 All returns true if f(x[i]) returns true for all i. Trivially, returns true if x is empty.
 
@@ -75,10 +75,8 @@ Output:
 ```text
 true
 false
-
 ```
-
-## <a id="Any"></a><pre>func <a href="#Any">Any</a>[T any](x []T, f (T) bool) bool</pre>
+<h2><a id="Any"></a><pre>func <a href="#Any">Any</a>[T any](x []T, f (T) bool) bool</pre></h2>
 
 Any returns true if f(x[i]) returns true for any i. Trivially, returns false if x is empty.
 
@@ -103,10 +101,8 @@ Output:
 ```text
 true
 false
-
 ```
-
-## <a id="Chunk"></a><pre>func <a href="#Chunk">Chunk</a>[T any](x []T, chunkSize int) [][]T</pre>
+<h2><a id="Chunk"></a><pre>func <a href="#Chunk">Chunk</a>[T any](x []T, chunkSize int) [][]T</pre></h2>
 
 Chunk returns non-overlapping chunks of x. The last chunk will be smaller than chunkSize if
 len(x) is not a multiple of chunkSize.
@@ -127,10 +123,8 @@ Returns an empty slice if len(x)==0. Panics if chunkSize <= 0.
 Output:
 ```text
 [[a b c] [d e f] [g h]]
-
 ```
-
-## <a id="Clear"></a><pre>func <a href="#Clear">Clear</a>[T any](x []T)</pre>
+<h2><a id="Clear"></a><pre>func <a href="#Clear">Clear</a>[T any](x []T)</pre></h2>
 
 Clear fills x with the zero value of T.
 
@@ -148,10 +142,8 @@ Clear fills x with the zero value of T.
 Output:
 ```text
 [0 0 0]
-
 ```
-
-## <a id="Clone"></a><pre>func <a href="#Clone">Clone</a>[T any](x []T) []T</pre>
+<h2><a id="Clone"></a><pre>func <a href="#Clone">Clone</a>[T any](x []T) []T</pre></h2>
 
 Clone creates a new slice and copies the elements of x into it.
 
@@ -169,10 +161,8 @@ Clone creates a new slice and copies the elements of x into it.
 Output:
 ```text
 [1 2 3]
-
 ```
-
-## <a id="Compact"></a><pre>func <a href="#Compact">Compact</a>[T comparable](x []T) []T</pre>
+<h2><a id="Compact"></a><pre>func <a href="#Compact">Compact</a>[T comparable](x []T) []T</pre></h2>
 
 Compact removes adjacent duplicates from x in-place and returns the modified slice.
 
@@ -190,10 +180,8 @@ Compact removes adjacent duplicates from x in-place and returns the modified sli
 Output:
 ```text
 [a b c a]
-
 ```
-
-## <a id="CompactFunc"></a><pre>func <a href="#CompactFunc">CompactFunc</a>[T any](x []T, eq (T, T) bool) []T</pre>
+<h2><a id="CompactFunc"></a><pre>func <a href="#CompactFunc">CompactFunc</a>[T any](x []T, eq (T, T) bool) []T</pre></h2>
 
 CompactFunc removes adjacent duplicates from x in-place, preserving the first occurrence, using
 the supplied eq function and returns the modified slice.
@@ -222,10 +210,8 @@ the supplied eq function and returns the modified slice.
 Output:
 ```text
 [bank ghost yaw]
-
 ```
-
-## <a id="Count"></a><pre>func <a href="#Count">Count</a>[T comparable](a []T, item T) int</pre>
+<h2><a id="Count"></a><pre>func <a href="#Count">Count</a>[T comparable](a []T, item T) int</pre></h2>
 
 Count returns the number of times item appears in a.
 
@@ -243,15 +229,13 @@ Count returns the number of times item appears in a.
 Output:
 ```text
 3
-
 ```
-
-## <a id="CountFunc"></a><pre>func <a href="#CountFunc">CountFunc</a>[T any](a []T, f (T) bool) int</pre>
+<h2><a id="CountFunc"></a><pre>func <a href="#CountFunc">CountFunc</a>[T any](a []T, f (T) bool) int</pre></h2>
 
 Count returns the number of items in a for which f returns true.
 
 
-## <a id="Equal"></a><pre>func <a href="#Equal">Equal</a>[T comparable](a, b []T) bool</pre>
+<h2><a id="Equal"></a><pre>func <a href="#Equal">Equal</a>[T comparable](a, b []T) bool</pre></h2>
 
 Equal returns true if a and b contain the same items in the same order.
 
@@ -275,10 +259,8 @@ Output:
 true
 false
 false
-
 ```
-
-## <a id="Fill"></a><pre>func <a href="#Fill">Fill</a>[T any](a []T, x T)</pre>
+<h2><a id="Fill"></a><pre>func <a href="#Fill">Fill</a>[T any](a []T, x T)</pre></h2>
 
 Fill fills a with copies of x.
 
@@ -296,10 +278,8 @@ Fill fills a with copies of x.
 Output:
 ```text
 [5 5 5]
-
 ```
-
-## <a id="Filter"></a><pre>func <a href="#Filter">Filter</a>[T any](x []T, keep (t T) bool) []T</pre>
+<h2><a id="Filter"></a><pre>func <a href="#Filter">Filter</a>[T any](x []T, keep (t T) bool) []T</pre></h2>
 
 Filter filters the contents of x to only those for which keep() returns true. This is done
 in-place and so modifies the contents of x. The modified slice is returned.
@@ -320,10 +300,8 @@ in-place and so modifies the contents of x. The modified slice is returned.
 Output:
 ```text
 [5 1 8 3]
-
 ```
-
-## <a id="Flatten"></a><pre>func <a href="#Flatten">Flatten</a>[T any](x [][]T) []T</pre>
+<h2><a id="Flatten"></a><pre>func <a href="#Flatten">Flatten</a>[T any](x [][]T) []T</pre></h2>
 
 Flatten returns a slice containing all of the elements of all elements of x.
 
@@ -347,10 +325,8 @@ Output:
 ```text
 [[0 1 2] [3 4 5 6] [7]]
 [0 1 2 3 4 5 6 7]
-
 ```
-
-## <a id="Grow"></a><pre>func <a href="#Grow">Grow</a>[T any](x []T, n int) []T</pre>
+<h2><a id="Grow"></a><pre>func <a href="#Grow">Grow</a>[T any](x []T, n int) []T</pre></h2>
 
 Grow grows x's capacity by reallocating, if necessary, to fit n more elements and returns the
 modified slice. This does not change the length of x. After Grow(x, n), the following n
@@ -383,10 +359,8 @@ Output:
 true
 true
 true
-
 ```
-
-## <a id="Index"></a><pre>func <a href="#Index">Index</a>[T comparable](a []T, item T) int</pre>
+<h2><a id="Index"></a><pre>func <a href="#Index">Index</a>[T comparable](a []T, item T) int</pre></h2>
 
 Index returns the first index of item in a, or -1 if item is not in a.
 
@@ -406,16 +380,14 @@ Output:
 ```text
 1
 -1
-
 ```
-
-## <a id="IndexFunc"></a><pre>func <a href="#IndexFunc">IndexFunc</a>[T any](a []T, f (T) bool) int</pre>
+<h2><a id="IndexFunc"></a><pre>func <a href="#IndexFunc">IndexFunc</a>[T any](a []T, f (T) bool) int</pre></h2>
 
 Index returns the first index in a for which f(a[i]) returns true, or -1 if there are no such
 items.
 
 
-## <a id="Insert"></a><pre>func <a href="#Insert">Insert</a>[T any](x []T, idx int, values ...) []T</pre>
+<h2><a id="Insert"></a><pre>func <a href="#Insert">Insert</a>[T any](x []T, idx int, values ...) []T</pre></h2>
 
 Insert inserts the given values starting at index idx, shifting elements after idx to the right
 and growing the slice to make room. Insert will expand the length of the slice up to its capacity
@@ -439,10 +411,8 @@ The time cost is O(n+m) where n is len(values) and m is len(x[idx:]).
 Output:
 ```text
 [a b c f g d e]
-
 ```
-
-## <a id="Join"></a><pre>func <a href="#Join">Join</a>[T any](in ...) []T</pre>
+<h2><a id="Join"></a><pre>func <a href="#Join">Join</a>[T any](in ...) []T</pre></h2>
 
 Join joins together the contents of each in.
 
@@ -464,10 +434,8 @@ Join joins together the contents of each in.
 Output:
 ```text
 [a b c x y l m n o]
-
 ```
-
-## <a id="LastIndex"></a><pre>func <a href="#LastIndex">LastIndex</a>[T comparable](a []T, item T) int</pre>
+<h2><a id="LastIndex"></a><pre>func <a href="#LastIndex">LastIndex</a>[T comparable](a []T, item T) int</pre></h2>
 
 LastIndex returns the last index of item in a, or -1 if item is not in a.
 
@@ -487,16 +455,14 @@ Output:
 ```text
 3
 -1
-
 ```
-
-## <a id="LastIndexFunc"></a><pre>func <a href="#LastIndexFunc">LastIndexFunc</a>[T any](a []T, f (T) bool) int</pre>
+<h2><a id="LastIndexFunc"></a><pre>func <a href="#LastIndexFunc">LastIndexFunc</a>[T any](a []T, f (T) bool) int</pre></h2>
 
 LastIndexFunc returns the last index in a for which f(a[i]) returns true, or -1 if there are no
 such items.
 
 
-## <a id="Map"></a><pre>func <a href="#Map">Map</a>[T any, U any](x []T, f (T) U) []U</pre>
+<h2><a id="Map"></a><pre>func <a href="#Map">Map</a>[T any, U any](x []T, f (T) U) []U</pre></h2>
 
 Map creates a new slice by applying f to each element of x.
 
@@ -518,10 +484,8 @@ Map creates a new slice by applying f to each element of x.
 Output:
 ```text
 [0.5 1 1.5]
-
 ```
-
-## <a id="Partition"></a><pre>func <a href="#Partition">Partition</a>[T any](x []T, f (t T) bool)</pre>
+<h2><a id="Partition"></a><pre>func <a href="#Partition">Partition</a>[T any](x []T, f (t T) bool)</pre></h2>
 
 Partition moves elements of x such that all elements for which f returns false are at the
 beginning and all elements for which f returns true are at the end. It makes no other guarantees
@@ -543,10 +507,8 @@ about the final order of elements.
 Output:
 ```text
 [11 3 1 7 2 8 0 4 14]
-
 ```
-
-## <a id="Reduce"></a><pre>func <a href="#Reduce">Reduce</a>[T any, U any](x []T, initial U, f (U, T) U) U</pre>
+<h2><a id="Reduce"></a><pre>func <a href="#Reduce">Reduce</a>[T any, U any](x []T, initial U, f (U, T) U) U</pre></h2>
 
 Reduce reduces x to a single value using the reduction function f.
 
@@ -569,10 +531,8 @@ Output:
 ```text
 6
 1
-
 ```
-
-## <a id="Remove"></a><pre>func <a href="#Remove">Remove</a>[T any](x []T, idx int, n int) []T</pre>
+<h2><a id="Remove"></a><pre>func <a href="#Remove">Remove</a>[T any](x []T, idx int, n int) []T</pre></h2>
 
 Remove removes n elements from x starting at index idx and returns the modified slice. This
 requires shifting the elements after the removed elements over, and so its cost is linear in the
@@ -592,10 +552,8 @@ number of elements shifted.
 Output:
 ```text
 [1 4 5]
-
 ```
-
-## <a id="Repeat"></a><pre>func <a href="#Repeat">Repeat</a>[T any](x T, n int) []T</pre>
+<h2><a id="Repeat"></a><pre>func <a href="#Repeat">Repeat</a>[T any](x T, n int) []T</pre></h2>
 
 Repeat returns a slice with length n where every item is x.
 
@@ -611,10 +569,8 @@ Repeat returns a slice with length n where every item is x.
 
 Output:
 ```text
-
 ```
-
-## <a id="Reverse"></a><pre>func <a href="#Reverse">Reverse</a>[T any](x []T)</pre>
+<h2><a id="Reverse"></a><pre>func <a href="#Reverse">Reverse</a>[T any](x []T)</pre></h2>
 
 Reverse reverses the elements of x in place.
 
@@ -632,10 +588,8 @@ Reverse reverses the elements of x in place.
 Output:
 ```text
 [e d c b a]
-
 ```
-
-## <a id="Runs"></a><pre>func <a href="#Runs">Runs</a>[T any](x []T, same (a, b T) bool) [][]T</pre>
+<h2><a id="Runs"></a><pre>func <a href="#Runs">Runs</a>[T any](x []T, same (a, b T) bool) [][]T</pre></h2>
 
 Runs returns a slice of slices. The inner slices are contiguous runs of elements from x such
 that same(a, b) returns true for any a and b in the run.
@@ -663,15 +617,13 @@ The returned slices use the same underlying array as x.
 Output:
 ```text
 [[2 4 0] [7 1 3 9] [2 8]]
-
 ```
-
-## <a id="Shrink"></a><pre>func <a href="#Shrink">Shrink</a>[T any](x []T, n int) []T</pre>
+<h2><a id="Shrink"></a><pre>func <a href="#Shrink">Shrink</a>[T any](x []T, n int) []T</pre></h2>
 
 Shrink shrinks x's capacity by reallocating, if necessary, so that cap(x) <= len(x) + n.
 
 
-## <a id="Unique"></a><pre>func <a href="#Unique">Unique</a>[T comparable](x []T) []T</pre>
+<h2><a id="Unique"></a><pre>func <a href="#Unique">Unique</a>[T comparable](x []T) []T</pre></h2>
 
 Unique removes duplicates from x in-place, preserving order, and returns the modified slice.
 
@@ -692,8 +644,6 @@ order.
 Output:
 ```text
 [a b c]
-
 ```
-
 # Types
 

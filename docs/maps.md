@@ -29,12 +29,12 @@ This section is empty.
 
 # Functions
 
-## <a id="Keys"></a><pre>func <a href="#Keys">Keys</a>[K comparable, V any](m map[K]V) []K</pre>
+<h2><a id="Keys"></a><pre>func <a href="#Keys">Keys</a>[K comparable, V any](m map[K]V) []K</pre></h2>
 
 Keys returns the keys of m as a slice.
 
 
-## <a id="Values"></a><pre>func <a href="#Values">Values</a>[K comparable, V any](m map[K]V) []V</pre>
+<h2><a id="Values"></a><pre>func <a href="#Values">Values</a>[K comparable, V any](m map[K]V) []V</pre></h2>
 
 Values returns the values of m as a slice.
 
@@ -49,23 +49,23 @@ type Set[T comparable] map[T]struct{}
 Set implements sets.Set for map[T]struct{}.
 
 
-## <a id="Add"></a><pre>func (s <a href="#Set">Set</a>[T]) Add(item T)</pre>
+<h2><a id="Add"></a><pre>func (s <a href="#Set">Set</a>[T]) Add(item T)</pre></h2>
 
 
 
-## <a id="Contains"></a><pre>func (s <a href="#Set">Set</a>[T]) Contains(item T) bool</pre>
+<h2><a id="Contains"></a><pre>func (s <a href="#Set">Set</a>[T]) Contains(item T) bool</pre></h2>
 
 
 
-## <a id="Iterate"></a><pre>func (s <a href="#Set">Set</a>[T]) Iterate() <a href="./iterator.md#Iterator">iterator.Iterator</a>[T]</pre>
+<h2><a id="Iterate"></a><pre>func (s <a href="#Set">Set</a>[T]) Iterate() <a href="./iterator.md#Iterator">iterator.Iterator</a>[T]</pre></h2>
 
 
 
-## <a id="Len"></a><pre>func (s <a href="#Set">Set</a>[T]) Len() int</pre>
+<h2><a id="Len"></a><pre>func (s <a href="#Set">Set</a>[T]) Len() int</pre></h2>
 
 
 
-## <a id="Remove"></a><pre>func (s <a href="#Set">Set</a>[T]) Remove(item T)</pre>
+<h2><a id="Remove"></a><pre>func (s <a href="#Set">Set</a>[T]) Remove(item T)</pre></h2>
 
 
 

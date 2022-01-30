@@ -95,40 +95,40 @@ Map is a tree-structured key-value map, similar to Go's built-in map but keeps e
 order by key.
 
 
-## <a id="NewMap"></a><pre>func NewMap[K any, V any](less <a href="../xsort.md#Less">xsort.Less</a>[K]) <a href="#Map">Map</a>[K, V]</pre>
+<h2><a id="NewMap"></a><pre>func NewMap[K any, V any](less <a href="../xsort.md#Less">xsort.Less</a>[K]) <a href="#Map">Map</a>[K, V]</pre></h2>
 
 NewMap returns a Map that uses less to determine the sort order of keys. If !less(a, b) &&
 !less(b, a), then a and b are considered the same key. The output of less must not change for any
 pair of keys while they are in the map.
 
 
-## <a id="Contains"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Contains(k K) bool</pre>
+<h2><a id="Contains"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Contains(k K) bool</pre></h2>
 
 Contains returns true if the given key is present in the map.
 
 
-## <a id="Cursor"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Cursor() *<a href="#MapCursor">MapCursor</a>[K, V]</pre>
+<h2><a id="Cursor"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Cursor() *<a href="#MapCursor">MapCursor</a>[K, V]</pre></h2>
 
 Cursor returns a cursor into the map placed at the first element.
 
 
-## <a id="Delete"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Delete(k K)</pre>
+<h2><a id="Delete"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Delete(k K)</pre></h2>
 
 Delete removes the given key from the map.
 
 
-## <a id="First"></a><pre>func (m <a href="#Map">Map</a>[K, V]) First() (K, V)</pre>
+<h2><a id="First"></a><pre>func (m <a href="#Map">Map</a>[K, V]) First() (K, V)</pre></h2>
 
 First returns the lowest-keyed entry in the map according to less.
 
 
-## <a id="Get"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Get(k K) V</pre>
+<h2><a id="Get"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Get(k K) V</pre></h2>
 
 Get returns the value associated with the given key if it is present in the map. Otherwise, it
 returns the zero-value of V.
 
 
-## <a id="Iterate"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Iterate() <a href="../iterator.md#Iterator">iterator.Iterator</a>[<a href="#KVPair">KVPair</a>[K, V]]</pre>
+<h2><a id="Iterate"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Iterate() <a href="../iterator.md#Iterator">iterator.Iterator</a>[<a href="#KVPair">KVPair</a>[K, V]]</pre></h2>
 
 Iterate returns an iterator that yields the elements of the map in sorted order by key.
 
@@ -137,17 +137,17 @@ next-lowest key. Thus if the map is modified, the iterator will not necessarily 
 the keys present in the map.
 
 
-## <a id="Last"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Last() (K, V)</pre>
+<h2><a id="Last"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Last() (K, V)</pre></h2>
 
 Last returns the highest-keyed entry in the map according to less.
 
 
-## <a id="Len"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Len() int</pre>
+<h2><a id="Len"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Len() int</pre></h2>
 
 Len returns the number of elements in the map.
 
 
-## <a id="Put"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Put(k K, v V)</pre>
+<h2><a id="Put"></a><pre>func (m <a href="#Map">Map</a>[K, V]) Put(k K, v V)</pre></h2>
 
 Put inserts the key-value pair into the map, overwriting the value for the key if it already
 exists.
@@ -166,7 +166,7 @@ A cursor is usable while a map is being modified. If the element the cursor is a
 cursor will still return the old value.
 
 
-## <a id="Backward"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Backward() <a href="../iterator.md#Iterator">iterator.Iterator</a>[<a href="#KVPair">KVPair</a>[K, V]]</pre>
+<h2><a id="Backward"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Backward() <a href="../iterator.md#Iterator">iterator.Iterator</a>[<a href="#KVPair">KVPair</a>[K, V]]</pre></h2>
 
 Backward returns an iterator that starts from the cursor's position and yields all of the
 elements less than or equal to the cursor in descending order.
@@ -175,7 +175,7 @@ This iterator's Next method is amoritized O(1), unless the map changes in which 
 following Next is O(log(n)) where n is the number of elements in the map.
 
 
-## <a id="Forward"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Forward() <a href="../iterator.md#Iterator">iterator.Iterator</a>[<a href="#KVPair">KVPair</a>[K, V]]</pre>
+<h2><a id="Forward"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Forward() <a href="../iterator.md#Iterator">iterator.Iterator</a>[<a href="#KVPair">KVPair</a>[K, V]]</pre></h2>
 
 Forward returns an iterator that starts from the cursor's position and yields all of the elements
 greater than or equal to the cursor in ascending order.
@@ -184,12 +184,12 @@ This iterator's Next method is amoritized O(1), unless the map changes in which 
 following Next is O(log(n)) where n is the number of elements in the map.
 
 
-## <a id="Key"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Key() K</pre>
+<h2><a id="Key"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Key() K</pre></h2>
 
 Key returns the key of the element that the cursor is at. Panics if Ok is false.
 
 
-## <a id="Next"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Next()</pre>
+<h2><a id="Next"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Next()</pre></h2>
 
 Next moves the cursor to the next element in the map.
 
@@ -197,13 +197,13 @@ Next is amoritized O(1) unless the map has been modified since the last cursor m
 case it's O(log(n)).
 
 
-## <a id="Ok"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Ok() bool</pre>
+<h2><a id="Ok"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Ok() bool</pre></h2>
 
 Ok returns false if the cursor is not currently placed at an element, for example if Next
 advances past the last element.
 
 
-## <a id="Prev"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Prev()</pre>
+<h2><a id="Prev"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Prev()</pre></h2>
 
 Prev moves the cursor to the previous element in the map.
 
@@ -211,21 +211,21 @@ Prev is amoritized O(1) unless the map has been modified since the last cursor m
 case it's O(log(n)).
 
 
-## <a id="SeekFirst"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekFirst()</pre>
+<h2><a id="SeekFirst"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekFirst()</pre></h2>
 
 SeekFirst moves the cursor to the first element in the map.
 
 SeekFirst is O(log(n)).
 
 
-## <a id="SeekFirstGreater"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekFirstGreater(k K)</pre>
+<h2><a id="SeekFirstGreater"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekFirstGreater(k K)</pre></h2>
 
 SeekFirstGreater moves the cursor to the element in the map just after k.
 
 SeekFirstGreater is O(log(n)).
 
 
-## <a id="SeekFirstGreaterOrEqual"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekFirstGreaterOrEqual(k K)</pre>
+<h2><a id="SeekFirstGreaterOrEqual"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekFirstGreaterOrEqual(k K)</pre></h2>
 
 SeekFirstGreaterOrEqual moves the cursor to the element in the map with the least key that is
 greater than or equal to k.
@@ -233,21 +233,21 @@ greater than or equal to k.
 SeetFirstGreaterOrEqual is O(log(n)).
 
 
-## <a id="SeekLast"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekLast()</pre>
+<h2><a id="SeekLast"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekLast()</pre></h2>
 
 SeekLast moves the cursor to the last element in the map.
 
 SeekLast is O(log(n)).
 
 
-## <a id="SeekLastLess"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekLastLess(k K)</pre>
+<h2><a id="SeekLastLess"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekLastLess(k K)</pre></h2>
 
 SeekLastLess moves the cursor to the element in the map just before k.
 
 SeekLastLess is O(log(n)).
 
 
-## <a id="SeekLastLessOrEqual"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekLastLessOrEqual(k K)</pre>
+<h2><a id="SeekLastLessOrEqual"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) SeekLastLessOrEqual(k K)</pre></h2>
 
 SeekLastLessOrEqual moves the cursor to the element in the map with the greatest key that is less
 than or equal to k.
@@ -255,7 +255,7 @@ than or equal to k.
 SeekLastLessOrEqual is O(log(n)).
 
 
-## <a id="Value"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Value() V</pre>
+<h2><a id="Value"></a><pre>func (c *<a href="#MapCursor">MapCursor</a>[K, V]) Value() V</pre></h2>
 
 Value returns the value of the element that the cursor is at. Panics if Ok is false.
 
@@ -271,34 +271,34 @@ Set is a tree-structured set. Sets are a collection of unique elements. Similar 
 map[T]struct{} but keeps elements in sorted order.
 
 
-## <a id="NewSet"></a><pre>func NewSet[T any](less <a href="../xsort.md#Less">xsort.Less</a>[T]) <a href="#Set">Set</a>[T]</pre>
+<h2><a id="NewSet"></a><pre>func NewSet[T any](less <a href="../xsort.md#Less">xsort.Less</a>[T]) <a href="#Set">Set</a>[T]</pre></h2>
 
 NewSet returns a Set that uses less to determine the sort order of items. If !less(a, b) &&
 !less(b, a), then a and b are considered the same item. The output of less must not change for
 any pair of items while they are in the set.
 
 
-## <a id="Add"></a><pre>func (s <a href="#Set">Set</a>[T]) Add(item T)</pre>
+<h2><a id="Add"></a><pre>func (s <a href="#Set">Set</a>[T]) Add(item T)</pre></h2>
 
 Add adds item to the set if it is not already present.
 
 
-## <a id="Contains"></a><pre>func (s <a href="#Set">Set</a>[T]) Contains(item T) bool</pre>
+<h2><a id="Contains"></a><pre>func (s <a href="#Set">Set</a>[T]) Contains(item T) bool</pre></h2>
 
 Contains returns true if item is present in the set.
 
 
-## <a id="Cursor"></a><pre>func (s <a href="#Set">Set</a>[T]) Cursor() *<a href="#SetCursor">SetCursor</a>[T]</pre>
+<h2><a id="Cursor"></a><pre>func (s <a href="#Set">Set</a>[T]) Cursor() *<a href="#SetCursor">SetCursor</a>[T]</pre></h2>
 
 Cursor returns a cursor into the set placed at the first item.
 
 
-## <a id="First"></a><pre>func (s <a href="#Set">Set</a>[T]) First() T</pre>
+<h2><a id="First"></a><pre>func (s <a href="#Set">Set</a>[T]) First() T</pre></h2>
 
 First returns the lowest item in the set according to less.
 
 
-## <a id="Iterate"></a><pre>func (s <a href="#Set">Set</a>[T]) Iterate() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</pre>
+<h2><a id="Iterate"></a><pre>func (s <a href="#Set">Set</a>[T]) Iterate() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</pre></h2>
 
 Iterate returns an iterator that yields the elements of the set in sorted order.
 
@@ -307,17 +307,17 @@ next-lowest item. Thus if the set is modified, the iterator will not necessarily
 the items present in the set.
 
 
-## <a id="Last"></a><pre>func (s <a href="#Set">Set</a>[T]) Last() T</pre>
+<h2><a id="Last"></a><pre>func (s <a href="#Set">Set</a>[T]) Last() T</pre></h2>
 
 Last returns the highest item in the set according to less.
 
 
-## <a id="Len"></a><pre>func (s <a href="#Set">Set</a>[T]) Len() int</pre>
+<h2><a id="Len"></a><pre>func (s <a href="#Set">Set</a>[T]) Len() int</pre></h2>
 
 Len returns the number of elements in the set.
 
 
-## <a id="Remove"></a><pre>func (s <a href="#Set">Set</a>[T]) Remove(item T)</pre>
+<h2><a id="Remove"></a><pre>func (s <a href="#Set">Set</a>[T]) Remove(item T)</pre></h2>
 
 Remove removes item from the set if it is present, and does nothing otherwise.
 
@@ -335,7 +335,7 @@ A cursor is usable while a set is being modified. If the item the cursor is at i
 cursor will still return the old item.
 
 
-## <a id="Backward"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) Backward() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</pre>
+<h2><a id="Backward"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) Backward() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</pre></h2>
 
 Backward returns an iterator that starts from the cursor's position and yields all of the
 elements less than or equal to the cursor in descending order.
@@ -344,7 +344,7 @@ This iterator's Next method is amoritized O(1), unless the map changes in which 
 following Next is O(log(n)) where n is the number of elements in the map.
 
 
-## <a id="Forward"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) Forward() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</pre>
+<h2><a id="Forward"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) Forward() <a href="../iterator.md#Iterator">iterator.Iterator</a>[T]</pre></h2>
 
 Forward returns an iterator that starts from the cursor's position and yields all of the elements
 greater than or equal to the cursor in ascending order.
@@ -353,12 +353,12 @@ This iterator's Next method is amoritized O(1), unless the map changes in which 
 following Next is O(log(n)) where n is the number of elements in the map.
 
 
-## <a id="Item"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) Item() T</pre>
+<h2><a id="Item"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) Item() T</pre></h2>
 
 Item returns the item that the cursor is at. Panics if Ok is false.
 
 
-## <a id="Next"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) Next()</pre>
+<h2><a id="Next"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) Next()</pre></h2>
 
 Next moves the cursor to the next item in the set.
 
@@ -366,13 +366,13 @@ Next is amoritized O(1) unless the map has been modified since the last cursor m
 case it's O(log(n)).
 
 
-## <a id="Ok"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) Ok() bool</pre>
+<h2><a id="Ok"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) Ok() bool</pre></h2>
 
 Ok returns false if the cursor is not currently placed at an item, for example if Next advances
 past the last item.
 
 
-## <a id="Prev"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) Prev()</pre>
+<h2><a id="Prev"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) Prev()</pre></h2>
 
 Prev moves the cursor to the previous item in the set.
 
@@ -380,21 +380,21 @@ Prev is amoritized O(1) unless the map has been modified since the last cursor m
 case it's O(log(n)).
 
 
-## <a id="SeekFirst"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekFirst()</pre>
+<h2><a id="SeekFirst"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekFirst()</pre></h2>
 
 SeekFirst moves the cursor to the first item in the set.
 
 SeekFirst is O(log(n)).
 
 
-## <a id="SeekFirstGreater"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekFirstGreater(x T)</pre>
+<h2><a id="SeekFirstGreater"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekFirstGreater(x T)</pre></h2>
 
 SeekFirstGreater moves the cursor to the item in the set just after x.
 
 SeekFirstGreater is O(log(n)).
 
 
-## <a id="SeekFirstGreaterOrEqual"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekFirstGreaterOrEqual(x T)</pre>
+<h2><a id="SeekFirstGreaterOrEqual"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekFirstGreaterOrEqual(x T)</pre></h2>
 
 SeekFirstGreaterOrEqual moves the cursor to the least item in the set that is greater than or
 equal to x.
@@ -402,21 +402,21 @@ equal to x.
 SeetFirstGreaterOrEqual is O(log(n)).
 
 
-## <a id="SeekLast"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekLast()</pre>
+<h2><a id="SeekLast"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekLast()</pre></h2>
 
 SeekLast moves the cursor to the last item in the set.
 
 SeekLast is O(log(n)).
 
 
-## <a id="SeekLastLess"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekLastLess(x T)</pre>
+<h2><a id="SeekLastLess"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekLastLess(x T)</pre></h2>
 
 SeekLastLess moves the cursor to the item in the set just before x.
 
 SeekLastLess is O(log(n)).
 
 
-## <a id="SeekLastLessOrEqual"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekLastLessOrEqual(x T)</pre>
+<h2><a id="SeekLastLessOrEqual"></a><pre>func (c *<a href="#SetCursor">SetCursor</a>[T]) SeekLastLessOrEqual(x T)</pre></h2>
 
 SeekLastLessOrEqual moves the cursor to the greatest item in the set that is less than or equal
 to x.
