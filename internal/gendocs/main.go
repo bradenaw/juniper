@@ -136,7 +136,7 @@ func main2(packageDir string) error {
 				if err != nil {
 					return err
 				}
-				fmt.Println("<samp>    " + indent(l, 4) + "</samp>")
+				fmt.Println("<samp>&nbsp;&nbsp;&nbsp;&nbsp;" + indent(l, 4) + "</samp>")
 				fmt.Println()
 			}
 		}
@@ -509,6 +509,6 @@ func strWithLinks(
 }
 
 func indent(s string, by int) string {
-	indentation := strings.Repeat(" ", by)
+	indentation := strings.Repeat("&nbsp;&nbsp;&nbsp;&nbsp;", by)
 	return indentation + strings.ReplaceAll(s, "\n", "\n"+indentation)
 }

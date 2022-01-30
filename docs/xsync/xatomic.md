@@ -13,13 +13,13 @@ Package xatomic contains extensions to the standard library package sync/atomic.
 
 <samp><a href="#Value">type Value</a></samp>
 
-<samp>        <a href="#CompareAndSwap">func (v *Value[T]) CompareAndSwap(old, new T) (swapped bool)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CompareAndSwap">func (v *Value[T]) CompareAndSwap(old, new T) (swapped bool)</a></samp>
 
-<samp>        <a href="#Load">func (v *Value[T]) Load() T</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Load">func (v *Value[T]) Load() T</a></samp>
 
-<samp>        <a href="#Store">func (v *Value[T]) Store(t T)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Store">func (v *Value[T]) Store(t T)</a></samp>
 
-<samp>        <a href="#Swap">func (v *Value[T]) Swap(new T) (old T)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Swap">func (v *Value[T]) Swap(new T) (old T)</a></samp>
 
 
 # Constants

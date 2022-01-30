@@ -14,15 +14,15 @@ import "github.com/bradenaw/juniper/maps"
 <samp><a href="#Values">func Values[K comparable, V any](m map[K]V) []V</a></samp>
 <samp><a href="#Set">type Set</a></samp>
 
-<samp>        <a href="#Add">func (s Set[T]) Add(item T)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Add">func (s Set[T]) Add(item T)</a></samp>
 
-<samp>        <a href="#Contains">func (s Set[T]) Contains(item T) bool</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Contains">func (s Set[T]) Contains(item T) bool</a></samp>
 
-<samp>        <a href="#Iterate">func (s Set[T]) Iterate() iterator.Iterator[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Iterate">func (s Set[T]) Iterate() iterator.Iterator[T]</a></samp>
 
-<samp>        <a href="#Len">func (s Set[T]) Len() int</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Len">func (s Set[T]) Len() int</a></samp>
 
-<samp>        <a href="#Remove">func (s Set[T]) Remove(item T)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Remove">func (s Set[T]) Remove(item T)</a></samp>
 
 
 # Constants

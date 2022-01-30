@@ -16,99 +16,99 @@ built-in, but keep elements in sorted order.
 
 <samp><a href="#Map">type Map</a></samp>
 
-<samp>        <a href="#NewMap">func NewMap[K any, V any](less xsort.Less[K]) Map[K, V]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#NewMap">func NewMap[K any, V any](less xsort.Less[K]) Map[K, V]</a></samp>
 
-<samp>        <a href="#Contains">func (m Map[K, V]) Contains(k K) bool</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Contains">func (m Map[K, V]) Contains(k K) bool</a></samp>
 
-<samp>        <a href="#Cursor">func (m Map[K, V]) Cursor() *MapCursor[K, V]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Cursor">func (m Map[K, V]) Cursor() *MapCursor[K, V]</a></samp>
 
-<samp>        <a href="#Delete">func (m Map[K, V]) Delete(k K)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Delete">func (m Map[K, V]) Delete(k K)</a></samp>
 
-<samp>        <a href="#First">func (m Map[K, V]) First() (K, V)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#First">func (m Map[K, V]) First() (K, V)</a></samp>
 
-<samp>        <a href="#Get">func (m Map[K, V]) Get(k K) V</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Get">func (m Map[K, V]) Get(k K) V</a></samp>
 
-<samp>        <a href="#Iterate">func (m Map[K, V]) Iterate() iterator.Iterator[KVPair[K, V]]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Iterate">func (m Map[K, V]) Iterate() iterator.Iterator[KVPair[K, V]]</a></samp>
 
-<samp>        <a href="#Last">func (m Map[K, V]) Last() (K, V)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Last">func (m Map[K, V]) Last() (K, V)</a></samp>
 
-<samp>        <a href="#Len">func (m Map[K, V]) Len() int</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Len">func (m Map[K, V]) Len() int</a></samp>
 
-<samp>        <a href="#Put">func (m Map[K, V]) Put(k K, v V)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Put">func (m Map[K, V]) Put(k K, v V)</a></samp>
 
 <samp><a href="#MapCursor">type MapCursor</a></samp>
 
-<samp>        <a href="#Backward">func (c *MapCursor[K, V]) Backward() iterator.Iterator[KVPair[K, V]]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Backward">func (c *MapCursor[K, V]) Backward() iterator.Iterator[KVPair[K, V]]</a></samp>
 
-<samp>        <a href="#Forward">func (c *MapCursor[K, V]) Forward() iterator.Iterator[KVPair[K, V]]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Forward">func (c *MapCursor[K, V]) Forward() iterator.Iterator[KVPair[K, V]]</a></samp>
 
-<samp>        <a href="#Key">func (c *MapCursor[K, V]) Key() K</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Key">func (c *MapCursor[K, V]) Key() K</a></samp>
 
-<samp>        <a href="#Next">func (c *MapCursor[K, V]) Next()</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Next">func (c *MapCursor[K, V]) Next()</a></samp>
 
-<samp>        <a href="#Ok">func (c *MapCursor[K, V]) Ok() bool</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Ok">func (c *MapCursor[K, V]) Ok() bool</a></samp>
 
-<samp>        <a href="#Prev">func (c *MapCursor[K, V]) Prev()</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Prev">func (c *MapCursor[K, V]) Prev()</a></samp>
 
-<samp>        <a href="#SeekFirst">func (c *MapCursor[K, V]) SeekFirst()</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SeekFirst">func (c *MapCursor[K, V]) SeekFirst()</a></samp>
 
-<samp>        <a href="#SeekFirstGreater">func (c *MapCursor[K, V]) SeekFirstGreater(k K)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SeekFirstGreater">func (c *MapCursor[K, V]) SeekFirstGreater(k K)</a></samp>
 
-<samp>        <a href="#SeekFirstGreaterOrEqual">func (c *MapCursor[K, V]) SeekFirstGreaterOrEqual(k K)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SeekFirstGreaterOrEqual">func (c *MapCursor[K, V]) SeekFirstGreaterOrEqual(k K)</a></samp>
 
-<samp>        <a href="#SeekLast">func (c *MapCursor[K, V]) SeekLast()</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SeekLast">func (c *MapCursor[K, V]) SeekLast()</a></samp>
 
-<samp>        <a href="#SeekLastLess">func (c *MapCursor[K, V]) SeekLastLess(k K)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SeekLastLess">func (c *MapCursor[K, V]) SeekLastLess(k K)</a></samp>
 
-<samp>        <a href="#SeekLastLessOrEqual">func (c *MapCursor[K, V]) SeekLastLessOrEqual(k K)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SeekLastLessOrEqual">func (c *MapCursor[K, V]) SeekLastLessOrEqual(k K)</a></samp>
 
-<samp>        <a href="#Value">func (c *MapCursor[K, V]) Value() V</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Value">func (c *MapCursor[K, V]) Value() V</a></samp>
 
 <samp><a href="#Set">type Set</a></samp>
 
-<samp>        <a href="#NewSet">func NewSet[T any](less xsort.Less[T]) Set[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#NewSet">func NewSet[T any](less xsort.Less[T]) Set[T]</a></samp>
 
-<samp>        <a href="#Add">func (s Set[T]) Add(item T)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Add">func (s Set[T]) Add(item T)</a></samp>
 
-<samp>        <a href="#Contains">func (s Set[T]) Contains(item T) bool</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Contains">func (s Set[T]) Contains(item T) bool</a></samp>
 
-<samp>        <a href="#Cursor">func (s Set[T]) Cursor() *SetCursor[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Cursor">func (s Set[T]) Cursor() *SetCursor[T]</a></samp>
 
-<samp>        <a href="#First">func (s Set[T]) First() T</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#First">func (s Set[T]) First() T</a></samp>
 
-<samp>        <a href="#Iterate">func (s Set[T]) Iterate() iterator.Iterator[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Iterate">func (s Set[T]) Iterate() iterator.Iterator[T]</a></samp>
 
-<samp>        <a href="#Last">func (s Set[T]) Last() T</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Last">func (s Set[T]) Last() T</a></samp>
 
-<samp>        <a href="#Len">func (s Set[T]) Len() int</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Len">func (s Set[T]) Len() int</a></samp>
 
-<samp>        <a href="#Remove">func (s Set[T]) Remove(item T)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Remove">func (s Set[T]) Remove(item T)</a></samp>
 
 <samp><a href="#SetCursor">type SetCursor</a></samp>
 
-<samp>        <a href="#Backward">func (c *SetCursor[T]) Backward() iterator.Iterator[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Backward">func (c *SetCursor[T]) Backward() iterator.Iterator[T]</a></samp>
 
-<samp>        <a href="#Forward">func (c *SetCursor[T]) Forward() iterator.Iterator[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Forward">func (c *SetCursor[T]) Forward() iterator.Iterator[T]</a></samp>
 
-<samp>        <a href="#Item">func (c *SetCursor[T]) Item() T</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Item">func (c *SetCursor[T]) Item() T</a></samp>
 
-<samp>        <a href="#Next">func (c *SetCursor[T]) Next()</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Next">func (c *SetCursor[T]) Next()</a></samp>
 
-<samp>        <a href="#Ok">func (c *SetCursor[T]) Ok() bool</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Ok">func (c *SetCursor[T]) Ok() bool</a></samp>
 
-<samp>        <a href="#Prev">func (c *SetCursor[T]) Prev()</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Prev">func (c *SetCursor[T]) Prev()</a></samp>
 
-<samp>        <a href="#SeekFirst">func (c *SetCursor[T]) SeekFirst()</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SeekFirst">func (c *SetCursor[T]) SeekFirst()</a></samp>
 
-<samp>        <a href="#SeekFirstGreater">func (c *SetCursor[T]) SeekFirstGreater(x T)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SeekFirstGreater">func (c *SetCursor[T]) SeekFirstGreater(x T)</a></samp>
 
-<samp>        <a href="#SeekFirstGreaterOrEqual">func (c *SetCursor[T]) SeekFirstGreaterOrEqual(x T)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SeekFirstGreaterOrEqual">func (c *SetCursor[T]) SeekFirstGreaterOrEqual(x T)</a></samp>
 
-<samp>        <a href="#SeekLast">func (c *SetCursor[T]) SeekLast()</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SeekLast">func (c *SetCursor[T]) SeekLast()</a></samp>
 
-<samp>        <a href="#SeekLastLess">func (c *SetCursor[T]) SeekLastLess(x T)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SeekLastLess">func (c *SetCursor[T]) SeekLastLess(x T)</a></samp>
 
-<samp>        <a href="#SeekLastLessOrEqual">func (c *SetCursor[T]) SeekLastLessOrEqual(x T)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SeekLastLessOrEqual">func (c *SetCursor[T]) SeekLastLessOrEqual(x T)</a></samp>
 
 
 # Constants

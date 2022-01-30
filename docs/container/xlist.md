@@ -13,37 +13,37 @@ Package xlist contains extensions to the standard library package container/list
 
 <samp><a href="#List">type List</a></samp>
 
-<samp>        <a href="#Back">func (l *List[T]) Back() *Node[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Back">func (l *List[T]) Back() *Node[T]</a></samp>
 
-<samp>        <a href="#Clear">func (l *List[T]) Clear()</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Clear">func (l *List[T]) Clear()</a></samp>
 
-<samp>        <a href="#Front">func (l *List[T]) Front() *Node[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Front">func (l *List[T]) Front() *Node[T]</a></samp>
 
-<samp>        <a href="#InsertAfter">func (l *List[T]) InsertAfter(value T, mark *Node[T]) *Node[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InsertAfter">func (l *List[T]) InsertAfter(value T, mark *Node[T]) *Node[T]</a></samp>
 
-<samp>        <a href="#InsertBefore">func (l *List[T]) InsertBefore(value T, mark *Node[T]) *Node[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InsertBefore">func (l *List[T]) InsertBefore(value T, mark *Node[T]) *Node[T]</a></samp>
 
-<samp>        <a href="#Len">func (l *List[T]) Len() int</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Len">func (l *List[T]) Len() int</a></samp>
 
-<samp>        <a href="#MoveAfter">func (l *List[T]) MoveAfter(node *Node[T], mark *Node[T])</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MoveAfter">func (l *List[T]) MoveAfter(node *Node[T], mark *Node[T])</a></samp>
 
-<samp>        <a href="#MoveBefore">func (l *List[T]) MoveBefore(node *Node[T], mark *Node[T])</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MoveBefore">func (l *List[T]) MoveBefore(node *Node[T], mark *Node[T])</a></samp>
 
-<samp>        <a href="#MoveToBack">func (l *List[T]) MoveToBack(node *Node[T])</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MoveToBack">func (l *List[T]) MoveToBack(node *Node[T])</a></samp>
 
-<samp>        <a href="#MoveToFront">func (l *List[T]) MoveToFront(node *Node[T])</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MoveToFront">func (l *List[T]) MoveToFront(node *Node[T])</a></samp>
 
-<samp>        <a href="#PushBack">func (l *List[T]) PushBack(value T) *Node[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PushBack">func (l *List[T]) PushBack(value T) *Node[T]</a></samp>
 
-<samp>        <a href="#PushFront">func (l *List[T]) PushFront(value T) *Node[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PushFront">func (l *List[T]) PushFront(value T) *Node[T]</a></samp>
 
-<samp>        <a href="#Remove">func (l *List[T]) Remove(node *Node[T])</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Remove">func (l *List[T]) Remove(node *Node[T])</a></samp>
 
 <samp><a href="#Node">type Node</a></samp>
 
-<samp>        <a href="#Next">func (n *Node[T]) Next() *Node[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Next">func (n *Node[T]) Next() *Node[T]</a></samp>
 
-<samp>        <a href="#Prev">func (n *Node[T]) Prev() *Node[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Prev">func (n *Node[T]) Prev() *Node[T]</a></samp>
 
 
 # Constants

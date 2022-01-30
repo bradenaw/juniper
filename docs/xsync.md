@@ -14,69 +14,69 @@ Package xsync contains extensions to the standard library package sync.
 <samp><a href="#Lazy">func Lazy[T any](f func() T) func() T</a></samp>
 <samp><a href="#ContextCond">type ContextCond</a></samp>
 
-<samp>        <a href="#NewContextCond">func NewContextCond(l sync.Locker) *ContextCond</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#NewContextCond">func NewContextCond(l sync.Locker) *ContextCond</a></samp>
 
-<samp>        <a href="#Broadcast">func (c *ContextCond) Broadcast()</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Broadcast">func (c *ContextCond) Broadcast()</a></samp>
 
-<samp>        <a href="#Signal">func (c *ContextCond) Signal()</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Signal">func (c *ContextCond) Signal()</a></samp>
 
-<samp>        <a href="#Wait">func (c *ContextCond) Wait(ctx context.Context) error</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Wait">func (c *ContextCond) Wait(ctx context.Context) error</a></samp>
 
 <samp><a href="#Future">type Future</a></samp>
 
-<samp>        <a href="#NewFuture">func NewFuture[T any]() *Future[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#NewFuture">func NewFuture[T any]() *Future[T]</a></samp>
 
-<samp>        <a href="#Fill">func (f *Future[T]) Fill(x T)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Fill">func (f *Future[T]) Fill(x T)</a></samp>
 
-<samp>        <a href="#Wait">func (f *Future[T]) Wait() T</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Wait">func (f *Future[T]) Wait() T</a></samp>
 
-<samp>        <a href="#WaitContext">func (f *Future[T]) WaitContext(ctx context.Context) (T, error)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#WaitContext">func (f *Future[T]) WaitContext(ctx context.Context) (T, error)</a></samp>
 
 <samp><a href="#Group">type Group</a></samp>
 
-<samp>        <a href="#NewGroup">func NewGroup(ctx context.Context) *Group</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#NewGroup">func NewGroup(ctx context.Context) *Group</a></samp>
 
-<samp>        <a href="#Once">func (g *Group) Once(f func(ctx context.Context))</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Once">func (g *Group) Once(f func(ctx context.Context))</a></samp>
 
-<samp>        <a href="#Periodic">func (g *Group) Periodic(
-    	interval time.Duration,
-    	jitter time.Duration,
-    	f func(ctx context.Context),
-    )</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Periodic">func (g *Group) Periodic(
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	interval time.Duration,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	jitter time.Duration,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	f func(ctx context.Context),
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</a></samp>
 
-<samp>        <a href="#PeriodicOrTrigger">func (g *Group) PeriodicOrTrigger(
-    	interval time.Duration,
-    	jitter time.Duration,
-    	f func(ctx context.Context),
-    ) func()</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PeriodicOrTrigger">func (g *Group) PeriodicOrTrigger(
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	interval time.Duration,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	jitter time.Duration,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	f func(ctx context.Context),
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) func()</a></samp>
 
-<samp>        <a href="#Stop">func (g *Group) Stop()</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Stop">func (g *Group) Stop()</a></samp>
 
-<samp>        <a href="#Trigger">func (g *Group) Trigger(f func(ctx context.Context)) func()</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Trigger">func (g *Group) Trigger(f func(ctx context.Context)) func()</a></samp>
 
-<samp>        <a href="#Wait">func (g *Group) Wait()</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Wait">func (g *Group) Wait()</a></samp>
 
 <samp><a href="#Map">type Map</a></samp>
 
-<samp>        <a href="#Delete">func (m *Map[K, V]) Delete(key K)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Delete">func (m *Map[K, V]) Delete(key K)</a></samp>
 
-<samp>        <a href="#Load">func (m *Map[K, V]) Load(key K) (value V, ok bool)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Load">func (m *Map[K, V]) Load(key K) (value V, ok bool)</a></samp>
 
-<samp>        <a href="#LoadAndDelete">func (m *Map[K, V]) LoadAndDelete(key K) (value V, loaded bool)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#LoadAndDelete">func (m *Map[K, V]) LoadAndDelete(key K) (value V, loaded bool)</a></samp>
 
-<samp>        <a href="#LoadOrStore">func (m *Map[K, V]) LoadOrStore(key K, value V) (actual V, loaded bool)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#LoadOrStore">func (m *Map[K, V]) LoadOrStore(key K, value V) (actual V, loaded bool)</a></samp>
 
-<samp>        <a href="#Range">func (m *Map[K, V]) Range(f func(key K, value V) bool)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Range">func (m *Map[K, V]) Range(f func(key K, value V) bool)</a></samp>
 
-<samp>        <a href="#Store">func (m *Map[K, V]) Store(key K, value V)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Store">func (m *Map[K, V]) Store(key K, value V)</a></samp>
 
 <samp><a href="#Pool">type Pool</a></samp>
 
-<samp>        <a href="#NewPool">func NewPool[T any](new_ func() T) Pool[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#NewPool">func NewPool[T any](new_ func() T) Pool[T]</a></samp>
 
-<samp>        <a href="#Get">func (p *Pool[T]) Get() T</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Get">func (p *Pool[T]) Get() T</a></samp>
 
-<samp>        <a href="#Put">func (p *Pool[T]) Put(x T)</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Put">func (p *Pool[T]) Put(x T)</a></samp>
 
 
 # Constants

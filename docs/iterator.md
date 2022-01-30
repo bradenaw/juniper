@@ -18,37 +18,37 @@ container.
 <samp><a href="#Reduce">func Reduce[T any, U any](iter Iterator[T], initial U, f func(U, T) U) U</a></samp>
 <samp><a href="#Iterator">type Iterator</a></samp>
 
-<samp>        <a href="#Chan">func Chan[T any](c &lt;-chan T) Iterator[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Chan">func Chan[T any](c &lt;-chan T) Iterator[T]</a></samp>
 
-<samp>        <a href="#Chunk">func Chunk[T any](iter Iterator[T], chunkSize int) Iterator[[]T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Chunk">func Chunk[T any](iter Iterator[T], chunkSize int) Iterator[[]T]</a></samp>
 
-<samp>        <a href="#Compact">func Compact[T comparable](iter Iterator[T]) Iterator[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Compact">func Compact[T comparable](iter Iterator[T]) Iterator[T]</a></samp>
 
-<samp>        <a href="#CompactFunc">func CompactFunc[T any](iter Iterator[T], eq func(T, T) bool) Iterator[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CompactFunc">func CompactFunc[T any](iter Iterator[T], eq func(T, T) bool) Iterator[T]</a></samp>
 
-<samp>        <a href="#Counter">func Counter(n int) Iterator[int]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Counter">func Counter(n int) Iterator[int]</a></samp>
 
-<samp>        <a href="#Filter">func Filter[T any](iter Iterator[T], keep func(T) bool) Iterator[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Filter">func Filter[T any](iter Iterator[T], keep func(T) bool) Iterator[T]</a></samp>
 
-<samp>        <a href="#First">func First[T any](iter Iterator[T], n int) Iterator[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#First">func First[T any](iter Iterator[T], n int) Iterator[T]</a></samp>
 
-<samp>        <a href="#Flatten">func Flatten[T any](iter Iterator[Iterator[T]]) Iterator[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Flatten">func Flatten[T any](iter Iterator[Iterator[T]]) Iterator[T]</a></samp>
 
-<samp>        <a href="#Join">func Join[T any](iters ...Iterator[T]) Iterator[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Join">func Join[T any](iters ...Iterator[T]) Iterator[T]</a></samp>
 
-<samp>        <a href="#Map">func Map[T any, U any](iter Iterator[T], f func(t T) U) Iterator[U]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Map">func Map[T any, U any](iter Iterator[T], f func(t T) U) Iterator[U]</a></samp>
 
-<samp>        <a href="#Repeat">func Repeat[T any](item T, n int) Iterator[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Repeat">func Repeat[T any](item T, n int) Iterator[T]</a></samp>
 
-<samp>        <a href="#Runs">func Runs[T any](iter Iterator[T], same func(a, b T) bool) Iterator[Iterator[T]]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Runs">func Runs[T any](iter Iterator[T], same func(a, b T) bool) Iterator[Iterator[T]]</a></samp>
 
-<samp>        <a href="#Slice">func Slice[T any](s []T) Iterator[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Slice">func Slice[T any](s []T) Iterator[T]</a></samp>
 
-<samp>        <a href="#While">func While[T any](iter Iterator[T], f func(T) bool) Iterator[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#While">func While[T any](iter Iterator[T], f func(T) bool) Iterator[T]</a></samp>
 
 <samp><a href="#Peekable">type Peekable</a></samp>
 
-<samp>        <a href="#WithPeek">func WithPeek[T any](iter Iterator[T]) Peekable[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#WithPeek">func WithPeek[T any](iter Iterator[T]) Peekable[T]</a></samp>
 
 
 # Constants

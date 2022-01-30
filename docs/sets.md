@@ -13,11 +13,11 @@ package sets contains set operations like union, intersection, and difference.
 
 <samp><a href="#Set">type Set</a></samp>
 
-<samp>        <a href="#Difference">func Difference[T comparable](out, a, b Set[T]) Set[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Difference">func Difference[T comparable](out, a, b Set[T]) Set[T]</a></samp>
 
-<samp>        <a href="#Intersection">func Intersection[T comparable](out Set[T], sets ...Set[T]) Set[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Intersection">func Intersection[T comparable](out Set[T], sets ...Set[T]) Set[T]</a></samp>
 
-<samp>        <a href="#Union">func Union[T any](out Set[T], sets ...Set[T]) Set[T]</a></samp>
+<samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Union">func Union[T any](out Set[T], sets ...Set[T]) Set[T]</a></samp>
 
 
 # Constants
