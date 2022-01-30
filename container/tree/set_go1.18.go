@@ -114,13 +114,13 @@ func (c *SetCursor[T]) SeekFirstGreater(x T) { c.inner.SeekFirstGreater(x) }
 
 // Next moves the cursor to the next item in the set.
 //
-// Next is amoritized O(1) unless the map has been modified since the last cursor move, in which
+// Next is amortized O(1) unless the map has been modified since the last cursor move, in which
 // case it's O(log(n)).
 func (c *SetCursor[T]) Next() { c.inner.Next() }
 
 // Prev moves the cursor to the previous item in the set.
 //
-// Prev is amoritized O(1) unless the map has been modified since the last cursor move, in which
+// Prev is amortized O(1) unless the map has been modified since the last cursor move, in which
 // case it's O(log(n)).
 func (c *SetCursor[T]) Prev() { c.inner.Prev() }
 
@@ -134,7 +134,7 @@ func (c *SetCursor[T]) Item() T { return c.inner.Key() }
 // Forward returns an iterator that starts from the cursor's position and yields all of the elements
 // greater than or equal to the cursor in ascending order.
 //
-// This iterator's Next method is amoritized O(1), unless the map changes in which case the
+// This iterator's Next method is amortized O(1), unless the map changes in which case the
 // following Next is O(log(n)) where n is the number of elements in the map.
 func (c *SetCursor[T]) Forward() iterator.Iterator[T] {
 	return iterator.Map(c.inner.Forward(), func(pair KVPair[T, struct{}]) T {
@@ -145,7 +145,7 @@ func (c *SetCursor[T]) Forward() iterator.Iterator[T] {
 // Backward returns an iterator that starts from the cursor's position and yields all of the
 // elements less than or equal to the cursor in descending order.
 //
-// This iterator's Next method is amoritized O(1), unless the map changes in which case the
+// This iterator's Next method is amortized O(1), unless the map changes in which case the
 // following Next is O(log(n)) where n is the number of elements in the map.
 func (c *SetCursor[T]) Backward() iterator.Iterator[T] {
 	return iterator.Map(c.inner.Backward(), func(pair KVPair[T, struct{}]) T {

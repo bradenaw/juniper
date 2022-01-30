@@ -54,7 +54,7 @@ type Deque[T any] struct {
 ```
 
 Deque is a double-ended queue, allowing push and pop to both the front and back of the queue.
-Pushes and pops are amoritized O(1). The zero-value is ready to use. Deque should not be copied
+Pushes and pops are amortized O(1). The zero-value is ready to use. Deque should not be copied
 after first use.
 
 

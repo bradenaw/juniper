@@ -124,13 +124,13 @@ func (c *MapCursor[K, V]) SeekFirstGreater(k K) { c.inner.SeekFirstGreater(k) }
 
 // Next moves the cursor to the next element in the map.
 //
-// Next is amoritized O(1) unless the map has been modified since the last cursor move, in which
+// Next is amortized O(1) unless the map has been modified since the last cursor move, in which
 // case it's O(log(n)).
 func (c *MapCursor[K, V]) Next() { c.inner.Next() }
 
 // Prev moves the cursor to the previous element in the map.
 //
-// Prev is amoritized O(1) unless the map has been modified since the last cursor move, in which
+// Prev is amortized O(1) unless the map has been modified since the last cursor move, in which
 // case it's O(log(n)).
 func (c *MapCursor[K, V]) Prev() { c.inner.Prev() }
 
@@ -147,13 +147,13 @@ func (c *MapCursor[K, V]) Value() V { return c.inner.Value() }
 // Forward returns an iterator that starts from the cursor's position and yields all of the elements
 // greater than or equal to the cursor in ascending order.
 //
-// This iterator's Next method is amoritized O(1), unless the map changes in which case the
+// This iterator's Next method is amortized O(1), unless the map changes in which case the
 // following Next is O(log(n)) where n is the number of elements in the map.
 func (c *MapCursor[K, V]) Forward() iterator.Iterator[KVPair[K, V]] { return c.inner.Forward() }
 
 // Backward returns an iterator that starts from the cursor's position and yields all of the
 // elements less than or equal to the cursor in descending order.
 //
-// This iterator's Next method is amoritized O(1), unless the map changes in which case the
+// This iterator's Next method is amortized O(1), unless the map changes in which case the
 // following Next is O(log(n)) where n is the number of elements in the map.
 func (c *MapCursor[K, V]) Backward() iterator.Iterator[KVPair[K, V]] { return c.inner.Backward() }

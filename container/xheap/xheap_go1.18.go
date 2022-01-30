@@ -13,7 +13,7 @@ import (
 // structure that provide constant-time access to the minimum element, and logarithmic-time removal.
 // They are most commonly used as a priority queue.
 //
-// Push and Pop take amoritized O(log(n)) time where n is the number of items in the heap.
+// Push and Pop take amortized O(log(n)) time where n is the number of items in the heap.
 //
 // Len and Peek take O(1) time.
 type Heap[T any] struct {
@@ -91,7 +91,7 @@ type PriorityQueue[K comparable, P any] struct {
 // NewPriorityQueue. Passing initial is faster (O(n)) than creating an empty priority queue and
 // pushing each item (O(n * log(n))).
 //
-// Pop, Remove, and Update all take amoritized O(log(n)) time where n is the number of items in the
+// Pop, Remove, and Update all take amortized O(log(n)) time where n is the number of items in the
 // queue.
 //
 // Len, Peek, Contains, and Priority take O(1) time.
