@@ -230,11 +230,11 @@ func printFunc(
 	localSymbols map[string]string,
 	func_ *doc.Func,
 ) {
-	fmt.Print("## <a id=\"")
+	fmt.Print("<h2><a id=\"")
 	fmt.Print(func_.Name)
 	fmt.Print("\"></a><pre>")
 	fmt.Print(strWithLinks(fset, importPath, imports, localSymbols, func_.Decl))
-	fmt.Println("</pre>")
+	fmt.Println("</pre></h2>")
 	fmt.Println()
 	fmt.Println(func_.Doc)
 	fmt.Println()
@@ -264,9 +264,8 @@ func printExample(
 			fmt.Println("Output:")
 		}
 		fmt.Println("```text")
-		fmt.Println(example.Output)
+		fmt.Print(example.Output)
 		fmt.Println("```")
-		fmt.Println()
 	}
 }
 
