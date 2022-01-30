@@ -12,17 +12,29 @@ Package xsort contains extensions to the standard library package sort.
 # Index
 
 <samp><a href="#Equal">func Equal[T any](less Less[T], a T, b T) bool</a></samp>
+
 <samp><a href="#Greater">func Greater[T any](less Less[T], a T, b T) bool</a></samp>
+
 <samp><a href="#GreaterOrEqual">func GreaterOrEqual[T any](less Less[T], a T, b T) bool</a></samp>
+
 <samp><a href="#LessOrEqual">func LessOrEqual[T any](less Less[T], a T, b T) bool</a></samp>
+
 <samp><a href="#Merge">func Merge[T any](less Less[T], in ...iterator.Iterator[T]) iterator.Iterator[T]</a></samp>
+
 <samp><a href="#MergeSlices">func MergeSlices[T any](less Less[T], out []T, in ...[]T) []T</a></samp>
+
 <samp><a href="#MinK">func MinK[T any](less Less[T], iter iterator.Iterator[T], k int) []T</a></samp>
+
 <samp><a href="#OrderedLess">func OrderedLess[T constraints.Ordered](a, b T) bool</a></samp>
+
 <samp><a href="#Search">func Search[T any](x []T, less Less[T], item T) int</a></samp>
+
 <samp><a href="#Slice">func Slice[T any](x []T, less Less[T])</a></samp>
+
 <samp><a href="#SliceIsSorted">func SliceIsSorted[T any](x []T, less Less[T]) bool</a></samp>
+
 <samp><a href="#SliceStable">func SliceStable[T any](x []T, less Less[T])</a></samp>
+
 <samp><a href="#Less">type Less</a></samp>
 
 <samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Reverse">func Reverse[T any](less Less[T]) Less[T]</a></samp>

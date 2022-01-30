@@ -12,14 +12,18 @@ package stream allows iterating over sequences of values where iteration may fai
 # Index
 
 <samp><a href="#Collect">func Collect[T any](ctx context.Context, s Stream[T]) ([]T, error)</a></samp>
+
 <samp><a href="#Last">func Last[T any](ctx context.Context, s Stream[T], n int) ([]T, error)</a></samp>
+
 <samp><a href="#Pipe">func Pipe[T any](bufferSize int) (*PipeSender[T], Stream[T])</a></samp>
+
 <samp><a href="#Reduce">func Reduce[T any, U any](
 	ctx context.Context,
 	s Stream[T],
 	initial U,
 	f func(U, T) (U, error),
 ) (U, error)</a></samp>
+
 <samp><a href="#Peekable">type Peekable</a></samp>
 
 <samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#WithPeek">func WithPeek[T any](s Stream[T]) Peekable[T]</a></samp>

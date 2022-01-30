@@ -13,9 +13,13 @@ container.
 # Index
 
 <samp><a href="#Collect">func Collect[T any](iter Iterator[T]) []T</a></samp>
+
 <samp><a href="#Equal">func Equal[T comparable](iters ...Iterator[T]) bool</a></samp>
+
 <samp><a href="#Last">func Last[T any](iter Iterator[T], n int) []T</a></samp>
+
 <samp><a href="#Reduce">func Reduce[T any, U any](iter Iterator[T], initial U, f func(U, T) U) U</a></samp>
+
 <samp><a href="#Iterator">type Iterator</a></samp>
 
 <samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Chan">func Chan[T any](c &lt;-chan T) Iterator[T]</a></samp>

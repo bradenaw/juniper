@@ -16,35 +16,41 @@ Package parallel provides primitives for running tasks in parallel.
 	n int,
 	f func(i int),
 )</a></samp>
+
 <samp><a href="#DoContext">func DoContext(
 	ctx context.Context,
 	parallelism int,
 	n int,
 	f func(ctx context.Context, i int) error,
 ) error</a></samp>
+
 <samp><a href="#Map">func Map[T any, U any](
 	parallelism int,
 	in []T,
 	f func(in T) U,
 ) []U</a></samp>
+
 <samp><a href="#MapContext">func MapContext[T any, U any](
 	ctx context.Context,
 	parallelism int,
 	in []T,
 	f func(ctx context.Context, in T) (U, error),
 ) ([]U, error)</a></samp>
+
 <samp><a href="#MapIterator">func MapIterator[T any, U any](
 	iter iterator.Iterator[T],
 	parallelism int,
 	bufferSize int,
 	f func(T) U,
 ) iterator.Iterator[U]</a></samp>
+
 <samp><a href="#MapStream">func MapStream[T any, U any](
 	s stream.Stream[T],
 	parallelism int,
 	bufferSize int,
 	f func(context.Context, T) (U, error),
 ) stream.Stream[U]</a></samp>
+
 
 # Constants
 

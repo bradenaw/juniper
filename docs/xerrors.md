@@ -12,6 +12,7 @@ import "github.com/bradenaw/juniper/xerrors"
 
 <samp><a href="#WithStack">func WithStack(err error) error</a></samp>
 
+
 # Constants
 
 This section is empty.

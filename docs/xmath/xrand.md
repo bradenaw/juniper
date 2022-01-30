@@ -11,10 +11,15 @@ import "github.com/bradenaw/juniper/xmath/xrand"
 # Index
 
 <samp><a href="#Sample">func Sample(r *rand.Rand, n int, k int) []int</a></samp>
+
 <samp><a href="#SampleIterator">func SampleIterator[T any](r *rand.Rand, iter iterator.Iterator[T], k int) []T</a></samp>
+
 <samp><a href="#SampleSlice">func SampleSlice[T any](r *rand.Rand, a []T, k int) []T</a></samp>
+
 <samp><a href="#SampleStream">func SampleStream[T any](ctx context.Context, r *rand.Rand, s stream.Stream[T], k int) ([]T, error)</a></samp>
+
 <samp><a href="#Shuffle">func Shuffle[T any](a []T)</a></samp>
+
 
 # Constants
 

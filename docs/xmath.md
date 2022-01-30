@@ -12,9 +12,13 @@ Package xmath contains extensions to the standard library package math.
 # Index
 
 <samp><a href="#Abs">func Abs[T constraints.Signed](x T) T</a></samp>
+
 <samp><a href="#Clamp">func Clamp[T constraints.Ordered](x, min, max T) T</a></samp>
+
 <samp><a href="#Max">func Max[T constraints.Ordered](a, b T) T</a></samp>
+
 <samp><a href="#Min">func Min[T constraints.Ordered](a, b T) T</a></samp>
+
 
 # Constants
 

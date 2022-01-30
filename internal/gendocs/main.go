@@ -118,6 +118,7 @@ func main2(packageDir string) error {
 			return err
 		}
 		fmt.Println("<samp>" + l + "</samp>")
+		fmt.Println()
 	}
 	for _, type_ := range docPkg.Types {
 		if !token.IsExported(type_.Name) {

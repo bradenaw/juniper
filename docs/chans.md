@@ -11,7 +11,9 @@ import "github.com/bradenaw/juniper/chans"
 # Index
 
 <samp><a href="#RecvContext">func RecvContext[T any](ctx context.Context, c &lt;-chan T) (T, bool, error)</a></samp>
+
 <samp><a href="#SendContext">func SendContext[T any](ctx context.Context, c chan&lt;- T, item T) error</a></samp>
+
 
 # Constants
 

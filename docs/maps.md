@@ -11,7 +11,9 @@ import "github.com/bradenaw/juniper/maps"
 # Index
 
 <samp><a href="#Keys">func Keys[K comparable, V any](m map[K]V) []K</a></samp>
+
 <samp><a href="#Values">func Values[K comparable, V any](m map[K]V) []V</a></samp>
+
 <samp><a href="#Set">type Set</a></samp>
 
 <samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Add">func (s Set[T]) Add(item T)</a></samp>

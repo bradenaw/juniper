@@ -11,34 +11,63 @@ import "github.com/bradenaw/juniper/slices"
 # Index
 
 <samp><a href="#All">func All[T any](x []T, f func(T) bool) bool</a></samp>
+
 <samp><a href="#Any">func Any[T any](x []T, f func(T) bool) bool</a></samp>
+
 <samp><a href="#Chunk">func Chunk[T any](x []T, chunkSize int) [][]T</a></samp>
+
 <samp><a href="#Clear">func Clear[T any](x []T)</a></samp>
+
 <samp><a href="#Clone">func Clone[T any](x []T) []T</a></samp>
+
 <samp><a href="#Compact">func Compact[T comparable](x []T) []T</a></samp>
+
 <samp><a href="#CompactFunc">func CompactFunc[T any](x []T, eq func(T, T) bool) []T</a></samp>
+
 <samp><a href="#Count">func Count[T comparable](a []T, item T) int</a></samp>
+
 <samp><a href="#CountFunc">func CountFunc[T any](a []T, f func(T) bool) int</a></samp>
+
 <samp><a href="#Equal">func Equal[T comparable](a, b []T) bool</a></samp>
+
 <samp><a href="#Fill">func Fill[T any](a []T, x T)</a></samp>
+
 <samp><a href="#Filter">func Filter[T any](x []T, keep func(t T) bool) []T</a></samp>
+
 <samp><a href="#Flatten">func Flatten[T any](x [][]T) []T</a></samp>
+
 <samp><a href="#Grow">func Grow[T any](x []T, n int) []T</a></samp>
+
 <samp><a href="#Index">func Index[T comparable](a []T, item T) int</a></samp>
+
 <samp><a href="#IndexFunc">func IndexFunc[T any](a []T, f func(T) bool) int</a></samp>
+
 <samp><a href="#Insert">func Insert[T any](x []T, idx int, values ...T) []T</a></samp>
+
 <samp><a href="#Join">func Join[T any](in ...[]T) []T</a></samp>
+
 <samp><a href="#LastIndex">func LastIndex[T comparable](a []T, item T) int</a></samp>
+
 <samp><a href="#LastIndexFunc">func LastIndexFunc[T any](a []T, f func(T) bool) int</a></samp>
+
 <samp><a href="#Map">func Map[T any, U any](x []T, f func(T) U) []U</a></samp>
+
 <samp><a href="#Partition">func Partition[T any](x []T, f func(t T) bool)</a></samp>
+
 <samp><a href="#Reduce">func Reduce[T any, U any](x []T, initial U, f func(U, T) U) U</a></samp>
+
 <samp><a href="#Remove">func Remove[T any](x []T, idx int, n int) []T</a></samp>
+
 <samp><a href="#Repeat">func Repeat[T any](x T, n int) []T</a></samp>
+
 <samp><a href="#Reverse">func Reverse[T any](x []T)</a></samp>
+
 <samp><a href="#Runs">func Runs[T any](x []T, same func(a, b T) bool) [][]T</a></samp>
+
 <samp><a href="#Shrink">func Shrink[T any](x []T, n int) []T</a></samp>
+
 <samp><a href="#Unique">func Unique[T comparable](x []T) []T</a></samp>
+
 
 # Constants
 

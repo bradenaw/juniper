@@ -11,6 +11,7 @@ import "github.com/bradenaw/juniper/xtime"
 # Index
 
 <samp><a href="#SleepContext">func SleepContext(ctx context.Context, d time.Duration) error</a></samp>
+
 <samp><a href="#DeadlineTooSoonError">type DeadlineTooSoonError</a></samp>
 
 <samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Error">func (err DeadlineTooSoonError) Error() string</a></samp>

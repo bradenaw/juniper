@@ -12,6 +12,7 @@ Package xsync contains extensions to the standard library package sync.
 # Index
 
 <samp><a href="#Lazy">func Lazy[T any](f func() T) func() T</a></samp>
+
 <samp><a href="#ContextCond">type ContextCond</a></samp>
 
 <samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#NewContextCond">func NewContextCond(l sync.Locker) *ContextCond</a></samp>
