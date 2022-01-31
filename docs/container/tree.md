@@ -121,6 +121,7 @@ This section is empty.
 
 ## Functions
 
+This section is empty.
 ## Types
 
 <h3><a id="KVPair"></a><samp>type KVPair</samp></h3>

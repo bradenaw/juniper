@@ -676,3 +676,4 @@ Output:
 ```
 ## Types
 
+This section is empty.

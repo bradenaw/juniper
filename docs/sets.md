@@ -30,6 +30,7 @@ This section is empty.
 
 ## Functions
 
+This section is empty.
 ## Types
 
 <h3><a id="Set"></a><samp>type Set</samp></h3>

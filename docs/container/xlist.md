@@ -56,6 +56,7 @@ This section is empty.
 
 ## Functions
 
+This section is empty.
 ## Types
 
 <h3><a id="List"></a><samp>type List</samp></h3>
