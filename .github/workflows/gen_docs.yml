@@ -1,0 +1,27 @@
+name: Gen Docs
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.18.0-beta1
+        stable: false
+
+    - name: Generate
+      run: |
+        set -euxo pipefail
+        git config --global user.name 'godoc_gh_pages workflow'
+        git config --global user.email 'godoc_gh_pages@users.noreply.github.com'
+        go run github.com/bradenaw/godoc_gh_pages@latest --out_dir docs/
+        git add docs/
+        git commit -am "generate docs"
+        git push origin `git subtree split --prefix docs main`:refs/heads/gh-pages --force
