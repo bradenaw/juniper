@@ -54,3 +54,4 @@ Min returns the minimum of a and b based on the < operator.
 ## Types
 
 This section is empty.
+

@@ -33,6 +33,7 @@ This section is empty.
 ## Functions
 
 This section is empty.
+
 ## Types
 
 <h3><a id="Value"></a><samp>type Value</samp></h3>

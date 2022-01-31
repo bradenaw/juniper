@@ -66,6 +66,7 @@ This section is empty.
 ## Functions
 
 This section is empty.
+
 ## Types
 
 <h3><a id="Heap"></a><samp>type Heap</samp></h3>

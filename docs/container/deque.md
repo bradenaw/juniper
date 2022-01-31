@@ -45,6 +45,7 @@ This section is empty.
 ## Functions
 
 This section is empty.
+
 ## Types
 
 <h3><a id="Deque"></a><samp>type Deque</samp></h3>
