@@ -71,7 +71,7 @@ func main() {
 			}
 			_, err = fmt.Fprintf(
 				indexOut,
-				"<samp><a href=\"%s.md\">%s</a></samp>\n\n",
+				"<samp><a href=\"%s.html\">%s</a></samp>\n\n",
 				pkgRel,
 				pkgRel,
 			)
