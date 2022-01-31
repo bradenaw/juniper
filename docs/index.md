@@ -1,36 +1,36 @@
-[chans](chans.md)
+<samp><a href="chans.md">chans</a></samp>
 
-[container/deque](container/deque.md)
+<samp><a href="container/deque.md">container/deque</a></samp>
 
-[container/tree](container/tree.md)
+<samp><a href="container/tree.md">container/tree</a></samp>
 
-[container/xheap](container/xheap.md)
+<samp><a href="container/xheap.md">container/xheap</a></samp>
 
-[container/xlist](container/xlist.md)
+<samp><a href="container/xlist.md">container/xlist</a></samp>
 
-[iterator](iterator.md)
+<samp><a href="iterator.md">iterator</a></samp>
 
-[maps](maps.md)
+<samp><a href="maps.md">maps</a></samp>
 
-[parallel](parallel.md)
+<samp><a href="parallel.md">parallel</a></samp>
 
-[sets](sets.md)
+<samp><a href="sets.md">sets</a></samp>
 
-[slices](slices.md)
+<samp><a href="slices.md">slices</a></samp>
 
-[stream](stream.md)
+<samp><a href="stream.md">stream</a></samp>
 
-[xerrors](xerrors.md)
+<samp><a href="xerrors.md">xerrors</a></samp>
 
-[xmath](xmath.md)
+<samp><a href="xmath.md">xmath</a></samp>
 
-[xmath/xrand](xmath/xrand.md)
+<samp><a href="xmath/xrand.md">xmath/xrand</a></samp>
 
-[xsort](xsort.md)
+<samp><a href="xsort.md">xsort</a></samp>
 
-[xsync](xsync.md)
+<samp><a href="xsync.md">xsync</a></samp>
 
-[xsync/xatomic](xsync/xatomic.md)
+<samp><a href="xsync/xatomic.md">xsync/xatomic</a></samp>
 
-[xtime](xtime.md)
+<samp><a href="xtime.md">xtime</a></samp>
 

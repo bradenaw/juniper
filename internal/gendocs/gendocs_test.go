@@ -12,6 +12,7 @@ func TestNonLocalSymbolLink(t *testing.T) {
 	require2.Equal(
 		t,
 		nonLocalSymbolLink(
+			"github.com/bradenaw/juniper",
 			"github.com/bradenaw/juniper/container/tree",
 			"github.com/bradenaw/juniper/iterator",
 			"Iterator",
@@ -21,6 +22,7 @@ func TestNonLocalSymbolLink(t *testing.T) {
 	require2.Equal(
 		t,
 		nonLocalSymbolLink(
+			"github.com/bradenaw/juniper",
 			"github.com/bradenaw/juniper/container/tree",
 			"github.com/bradenaw/juniper/internal/fuzz",
 			"Operations",
@@ -30,6 +32,7 @@ func TestNonLocalSymbolLink(t *testing.T) {
 	require2.Equal(
 		t,
 		nonLocalSymbolLink(
+			"github.com/bradenaw/juniper",
 			"github.com/bradenaw/juniper/xmath",
 			"github.com/bradenaw/juniper/xmath/xrand",
 			"Sample",
@@ -39,6 +42,7 @@ func TestNonLocalSymbolLink(t *testing.T) {
 	require2.Equal(
 		t,
 		nonLocalSymbolLink(
+			"github.com/bradenaw/juniper",
 			"github.com/bradenaw/juniper/xmath/xrand",
 			"github.com/bradenaw/juniper/xmath",
 			"Min",

@@ -3,6 +3,8 @@
 package main
 
 import (
+	"encoding/json"
+	"flag"
 	"fmt"
 	"go/ast"
 	"go/build"
@@ -11,25 +13,148 @@ import (
 	"go/parser"
 	"go/token"
 	"html"
+	"io"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/bradenaw/juniper/xerrors"
+	"github.com/bradenaw/juniper/slices"
 )
 
 func main() {
-	err := main2(os.Args[1])
+	outDir := "docs/"
+	flag.StringVar(&outDir, "out_dir", outDir, "The directory to write output to.")
+	flag.Parse()
+
+	err := func() error {
+		modBasePath, err := modPath()
+		if err != nil {
+			return err
+		}
+		packages, err := modPackages()
+		if err != nil {
+			return err
+		}
+
+		packages = slices.Filter(packages, func(packagePath string) bool  {
+			return !strings.Contains(packagePath, "/internal/")
+		})
+
+		err = os.MkdirAll(outDir, os.ModeDir|0755)
+		if err != nil {
+			return xerrors.WithStack(err)
+		}
+		indexOut, err := os.Create(filepath.Join(outDir, "index.md"))
+		if err != nil {
+			return xerrors.WithStack(err)
+		}
+
+		for _, pkg := range packages {
+			pkgRel := strings.TrimPrefix(pkg, modBasePath +"/")
+			err := os.MkdirAll(
+				filepath.Join(outDir, filepath.Dir(pkgRel)),
+				os.ModeDir|0755,
+			)
+			if err != nil {
+				return xerrors.WithStack(err)
+			}
+			out, err := os.Create(filepath.Join(outDir, pkgRel + ".md"))
+			if err != nil {
+				return xerrors.WithStack(err)
+			}
+			err = writePackageDoc(out, modBasePath, pkg)
+			if err != nil {
+				return err
+			}
+			_, err = fmt.Fprintf(
+				indexOut,
+				"<samp><a href=\"%s.md\">%s</a></samp>\n\n",
+				pkgRel,
+				pkgRel,
+			)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 }
-func main2(packageDir string) error {
-	pkg, err := build.Default.ImportDir(packageDir, build.ImportComment)
-	if err != nil {
-		return err
+
+func goBin() string {
+	goroot := os.Getenv("GOROOT")
+	if goroot == "" {
+		return "go"
 	}
-	pkg.ImportPath = "github.com/bradenaw/juniper/" + packageDir
+	return goroot + "/bin/go"
+}
+
+func modPath() (string, error) {
+	type output struct {
+		Module struct {
+			Path string
+		}
+	}
+
+	b, err := exec.Command(goBin(), "mod", "edit", "--json").Output()
+	if err != nil {
+		return "", xerrors.WithStack(err)
+	}
+	var o output
+	err = json.Unmarshal(b, &o)
+	if err != nil {
+		return "", err
+	}
+	return o.Module.Path, nil
+}
+
+func modPackages() ([]string, error) {
+	b, err := exec.Command(goBin(), "list", "./...").Output()
+	if err != nil {
+		return nil, xerrors.WithStack(err)
+	}
+	return strings.Split(strings.TrimSpace(string(b)), "\n"), nil
+}
+
+type captureErrWriter struct {
+	inner io.Writer
+	err   error
+}
+
+func (w *captureErrWriter) Write(b []byte) (int, error) {
+	if w.err != nil {
+		return 0, w.err
+	}
+	n, err := w.inner.Write(b)
+	if err != nil {
+		w.err = err
+	}
+	return n, err
+}
+
+func writePackageDoc(out io.Writer, modulePath string, packageImportPath string) (retErr error) {
+	cOut := captureErrWriter{inner: out}
+	out = &cOut
+	defer func() {
+		if retErr == nil {
+			retErr = cOut.err
+		}
+	}()
+
+	pkg, err := build.Default.ImportDir(
+		strings.TrimPrefix(packageImportPath, modulePath + "/"),
+		build.ImportComment,
+	)
+	if err != nil {
+		return xerrors.WithStack(err)
+	}
+	pkg.ImportPath = packageImportPath
 
 	include := func(info fs.FileInfo) bool {
 		for _, name := range pkg.GoFiles {
@@ -57,7 +182,7 @@ func main2(packageDir string) error {
 	fset := token.NewFileSet()
 	pkgs, err := parser.ParseDir(fset, pkg.Dir, include, parser.ParseComments)
 	if err != nil {
-		return err
+		return xerrors.WithStack(err)
 	}
 	var astFiles []*ast.File
 	for _, astPkg := range pkgs {
@@ -67,21 +192,21 @@ func main2(packageDir string) error {
 	}
 	docPkg, err := doc.NewFromFiles(fset, astFiles, pkg.ImportPath, doc.PreserveAST)
 	if err != nil {
-		return err
+		return xerrors.WithStack(err)
 	}
 
 	imports := importNames(docPkg.Imports)
 	localSymbols := localSymbolLinks(docPkg)
 
-	fmt.Println("# `package " + docPkg.Name + "`")
-	fmt.Println()
-	fmt.Println("```")
-	fmt.Println("import \"" + docPkg.ImportPath + "\"")
-	fmt.Println("```")
-	fmt.Println()
-	fmt.Println("## Overview")
-	fmt.Println()
-	fmt.Println(docPkg.Doc)
+	fmt.Fprintln(out, "# `package "+docPkg.Name+"`")
+	fmt.Fprintln(out)
+	fmt.Fprintln(out, "```")
+	fmt.Fprintln(out, "import \""+docPkg.ImportPath+"\"")
+	fmt.Fprintln(out, "```")
+	fmt.Fprintln(out)
+	fmt.Fprintln(out, "## Overview")
+	fmt.Fprintln(out)
+	fmt.Fprintln(out, docPkg.Doc)
 
 	funcLink := func(func_ *doc.Func) (string, error) {
 		strippedDecl := &ast.FuncDecl{
@@ -106,9 +231,9 @@ func main2(packageDir string) error {
 		return sb.String(), nil
 	}
 
-	fmt.Println()
-	fmt.Println("## Index")
-	fmt.Println()
+	fmt.Fprintln(out)
+	fmt.Fprintln(out, "## Index")
+	fmt.Fprintln(out)
 	for _, func_ := range docPkg.Funcs {
 		if !token.IsExported(func_.Name) {
 			continue
@@ -117,19 +242,19 @@ func main2(packageDir string) error {
 		if err != nil {
 			return err
 		}
-		fmt.Println("<samp>" + l + "</samp>")
-		fmt.Println()
+		fmt.Fprintln(out, "<samp>"+l+"</samp>")
+		fmt.Fprintln(out)
 	}
 	for _, type_ := range docPkg.Types {
 		if !token.IsExported(type_.Name) {
 			continue
 		}
-		fmt.Print("<samp><a href=\"")
-		fmt.Print(localSymbolLink(type_.Name))
-		fmt.Print("\">type ")
-		fmt.Print(type_.Name)
-		fmt.Println("</a></samp>")
-		fmt.Println()
+		fmt.Fprint(out, "<samp><a href=\"")
+		fmt.Fprint(out, localSymbolLink(type_.Name))
+		fmt.Fprint(out, "\">type ")
+		fmt.Fprint(out, type_.Name)
+		fmt.Fprintln(out, "</a></samp>")
+		fmt.Fprintln(out)
 
 		for _, funcs := range [][]*doc.Func{type_.Funcs, type_.Methods} {
 			for _, func_ := range funcs {
@@ -137,88 +262,88 @@ func main2(packageDir string) error {
 				if err != nil {
 					return err
 				}
-				fmt.Println("<samp>" + indent(l, 4) + "</samp>")
-				fmt.Println()
+				fmt.Fprintln(out, "<samp>"+indent(l, 4)+"</samp>")
+				fmt.Fprintln(out)
 			}
 		}
 	}
-	fmt.Println()
+	fmt.Fprintln(out)
 
-	fmt.Println("## Constants")
-	fmt.Println()
+	fmt.Fprintln(out, "## Constants")
+	fmt.Fprintln(out)
 	if len(docPkg.Consts) > 0 {
-		fmt.Println("<pre>")
+		fmt.Fprintln(out, "<pre>")
 		for _, const_ := range docPkg.Consts {
 			for _, name := range const_.Names {
-				fmt.Print("<a id=\"")
-				fmt.Print(name)
-				fmt.Print("\"></a>")
+				fmt.Fprint(out, "<a id=\"")
+				fmt.Fprint(out, name)
+				fmt.Fprint(out, "\"></a>")
 			}
-			fmt.Print(strWithLinks(fset, docPkg.ImportPath, imports, localSymbols, const_.Decl))
-			fmt.Println()
+			fmt.Fprint(out, strWithLinks(fset, modulePath, docPkg.ImportPath, imports, localSymbols, const_.Decl))
+			fmt.Fprintln(out)
 		}
-		fmt.Println("</pre>")
+		fmt.Fprintln(out, "</pre>")
 	} else {
-		fmt.Println("This section is empty.")
+		fmt.Fprintln(out, "This section is empty.")
 	}
-	fmt.Println()
+	fmt.Fprintln(out)
 
-	fmt.Println("## Variables")
-	fmt.Println()
+	fmt.Fprintln(out, "## Variables")
+	fmt.Fprintln(out)
 	if len(docPkg.Vars) > 0 {
-		fmt.Println("<pre>")
+		fmt.Fprintln(out, "<pre>")
 		for _, var_ := range docPkg.Vars {
 			for _, name := range var_.Names {
-				fmt.Print("<a id=\"")
-				fmt.Print(name)
-				fmt.Print("\"></a>")
+				fmt.Fprint(out, "<a id=\"")
+				fmt.Fprint(out, name)
+				fmt.Fprint(out, "\"></a>")
 			}
-			fmt.Print(strWithLinks(fset, docPkg.ImportPath, imports, localSymbols, var_.Decl))
-			fmt.Println()
+			fmt.Fprint(out, strWithLinks(fset, modulePath, docPkg.ImportPath, imports, localSymbols, var_.Decl))
+			fmt.Fprintln(out)
 		}
-		fmt.Println("</pre>")
+		fmt.Fprintln(out, "</pre>")
 	} else {
-		fmt.Println("This section is empty.")
+		fmt.Fprintln(out, "This section is empty.")
 	}
-	fmt.Println()
+	fmt.Fprintln(out)
 
-	fmt.Println("## Functions")
-	fmt.Println()
+	fmt.Fprintln(out, "## Functions")
+	fmt.Fprintln(out)
 	for _, func_ := range docPkg.Funcs {
 		if !token.IsExported(func_.Name) {
 			continue
 		}
-		printFunc(fset, docPkg.ImportPath, imports, localSymbols, func_)
+		printFunc(out, fset, modulePath, docPkg.ImportPath, imports, localSymbols, func_)
 	}
 
-	fmt.Println("## Types")
-	fmt.Println()
+	fmt.Fprintln(out, "## Types")
+	fmt.Fprintln(out)
 	for _, type_ := range docPkg.Types {
 		if !token.IsExported(type_.Name) {
 			continue
 		}
-		fmt.Print("<h3><a id=\"")
-		fmt.Print(type_.Name)
-		fmt.Print("\"></a><samp>type ")
-		fmt.Print(type_.Name)
-		fmt.Println("</samp></h3>")
+		fmt.Fprint(out, "<h3><a id=\"")
+		fmt.Fprint(out, type_.Name)
+		fmt.Fprint(out, "\"></a><samp>type ")
+		fmt.Fprint(out, type_.Name)
+		fmt.Fprintln(out, "</samp></h3>")
 		type_.Decl.Doc = nil
-		fmt.Println("```go")
-		err := format.Node(os.Stdout, fset, type_.Decl)
+		fmt.Fprintln(out, "```go")
+		err := format.Node(out, fset, type_.Decl)
 		if err != nil {
 			return err
 		}
-		fmt.Println()
-		fmt.Println("```")
-		fmt.Println()
-		fmt.Println(type_.Doc)
-		fmt.Println()
+		fmt.Fprintln(out)
+		fmt.Fprintln(out, "```")
+		fmt.Fprintln(out)
+		fmt.Fprintln(out, type_.Doc)
+		fmt.Fprintln(out)
 		for _, funcs := range [][]*doc.Func{type_.Funcs, type_.Methods} {
 			for _, func_ := range funcs {
 				if !token.IsExported(func_.Name) {
 					continue
 				}
-				printFunc(fset, docPkg.ImportPath, imports, localSymbols, func_)
+				printFunc(out, fset, modulePath, docPkg.ImportPath, imports, localSymbols, func_)
 			}
 		}
 	}
@@ -227,48 +352,51 @@ func main2(packageDir string) error {
 }
 
 func printFunc(
+	out io.Writer,
 	fset *token.FileSet,
-	importPath string,
+	modulePath string,
+	packagePath string,
 	imports map[string]string,
 	localSymbols map[string]string,
 	func_ *doc.Func,
 ) {
-	fmt.Print("<h3><a id=\"")
-	fmt.Print(func_.Name)
-	fmt.Print("\"></a><samp>")
-	fmt.Print(strWithLinks(fset, importPath, imports, localSymbols, func_.Decl))
-	fmt.Println("</samp></h3>")
-	fmt.Println()
-	fmt.Println(func_.Doc)
-	fmt.Println()
+	fmt.Fprint(out, "<h3><a id=\"")
+	fmt.Fprint(out, func_.Name)
+	fmt.Fprint(out, "\"></a><samp>")
+	fmt.Fprint(out, strWithLinks(fset, modulePath, packagePath, imports, localSymbols, func_.Decl))
+	fmt.Fprintln(out, "</samp></h3>")
+	fmt.Fprintln(out)
+	fmt.Fprintln(out, func_.Doc)
+	fmt.Fprintln(out)
 
 	for _, example := range func_.Examples {
-		printExample(fset, example)
+		printExample(out, fset, example)
 	}
 }
 
 func printExample(
+	out io.Writer,
 	fset *token.FileSet,
 	example *doc.Example,
 ) {
-	fmt.Println("#### Example " + example.Suffix)
-	fmt.Println("```go")
-	err := format.Node(os.Stdout, fset, example.Code)
+	fmt.Fprintln(out, "#### Example "+example.Suffix)
+	fmt.Fprintln(out, "```go")
+	err := format.Node(out, fset, example.Code)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println()
-	fmt.Println("```")
-	fmt.Println()
+	fmt.Fprintln(out)
+	fmt.Fprintln(out, "```")
+	fmt.Fprintln(out)
 	if !example.EmptyOutput {
 		if example.Unordered {
-			fmt.Println("Unordered output:")
+			fmt.Fprintln(out, "Unordered output:")
 		} else {
-			fmt.Println("Output:")
+			fmt.Fprintln(out, "Output:")
 		}
-		fmt.Println("```text")
-		fmt.Print(example.Output)
-		fmt.Println("```")
+		fmt.Fprintln(out, "```text")
+		fmt.Fprint(out, example.Output)
+		fmt.Fprintln(out, "```")
 	}
 }
 
@@ -311,8 +439,13 @@ func localSymbolLink(symbol string) string {
 	return "#" + symbol
 }
 
-func nonLocalSymbolLink(packagePath string, importPath string, symbol string) string {
-	if !strings.HasPrefix(importPath, "github.com/bradenaw/juniper") {
+func nonLocalSymbolLink(
+	modulePath string,
+	packagePath string,
+	importPath string,
+	symbol string,
+) string {
+	if !strings.HasPrefix(importPath, modulePath+"/") {
 		return "https://pkg.go.dev/" + importPath + "#" + symbol
 	}
 
@@ -328,6 +461,7 @@ func nonLocalSymbolLink(packagePath string, importPath string, symbol string) st
 
 func strWithLinks(
 	fset *token.FileSet,
+	modulePath string,
 	packagePath string,
 	imports map[string]string,
 	localSymbols map[string]string,
@@ -470,7 +604,12 @@ func strWithLinks(
 				importPath, ok := imports[ident.Name]
 				if ok {
 					sb.WriteString("<a href=\"")
-					sb.WriteString(nonLocalSymbolLink(packagePath, importPath, node.Sel.Name))
+					sb.WriteString(nonLocalSymbolLink(
+						modulePath,
+						packagePath,
+						importPath,
+						node.Sel.Name,
+					))
 					sb.WriteString("\">")
 					sb.WriteString(ident.Name)
 					sb.WriteString(".")
