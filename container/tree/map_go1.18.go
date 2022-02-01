@@ -68,8 +68,9 @@ func (m Map[K, V]) Last() (K, V) {
 // Iterate returns an iterator that yields the elements of the map in sorted order by key.
 //
 // The map may be safely modified during iteration and the iterator will continue from the
-// next-lowest key. Thus if the map is modified, the iterator will not necessarily return all of
-// the keys present in the map.
+// next-lowest key. Thus the iterator will see new elements that are after the current position of
+// the iterator according to less, but will not necessarily see a consistent snapshot of the state
+// of the map.
 func (m Map[K, V]) Iterate() iterator.Iterator[KVPair[K, V]] {
 	return m.Cursor().Forward()
 }
@@ -84,8 +85,9 @@ func (m Map[K, V]) Cursor() *MapCursor[K, V] {
 
 // MapCursor is a cursor into a Map.
 //
-// A cursor is usable while a map is being modified. If the element the cursor is at is deleted, the
-// cursor will still return the old value.
+// A cursor is usable while a map is being modified. If the element the cursor is at is deleted,
+// Key() will continue to return the key and Value() will return the zero value of V until it is
+// moved.
 type MapCursor[K any, V any] struct {
 	inner cursor[K, V]
 }

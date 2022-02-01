@@ -58,8 +58,9 @@ func (s Set[T]) Last() T {
 // Iterate returns an iterator that yields the elements of the set in sorted order.
 //
 // The set may be safely modified during iteration and the iterator will continue from the
-// next-lowest item. Thus if the set is modified, the iterator will not necessarily return all of
-// the items present in the set.
+// next-lowest item. Thus the iterator will see new items that are after the current position
+// of the iterator according to less, but will not necessarily see a consistent snapshot of the
+// state of the set.
 func (s Set[T]) Iterate() iterator.Iterator[T] {
 	return s.Cursor().Forward()
 }
@@ -75,7 +76,7 @@ func (s Set[T]) Cursor() *SetCursor[T] {
 // SetCursor is a cursor into a Set.
 //
 // A cursor is usable while a set is being modified. If the item the cursor is at is deleted, the
-// cursor will still return the old item.
+// cursor will still return the old item until it is moved.
 type SetCursor[T any] struct {
 	inner cursor[T, struct{}]
 }
