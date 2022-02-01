@@ -34,6 +34,10 @@ type Stream[T any] interface {
 	// Next advances the stream and returns the next item. If the stream is already over, Next
 	// returns stream.End in the second return. Note that the final item of the stream has nil in
 	// the second return, and it's the following call that returns stream.End.
+	//
+	// If Next returns an error other than stream.End, it may be retried. Once a Next call returns
+	// stream.End, it is expected that the Stream will return stream.End to every Next call
+	// afterwards.
 	Next(ctx context.Context) (T, error)
 	// Close ends receiving from the stream. It is invalid to call Next after calling Close.
 	Close()
@@ -521,10 +525,10 @@ func Chunk[T any](s Stream[T], chunkSize int) Stream[[]T] {
 type chunkStream[T any] struct {
 	inner     Stream[T]
 	chunkSize int
+	chunk     []T
 }
 
 func (s *chunkStream[T]) Next(ctx context.Context) ([]T, error) {
-	chunk := make([]T, 0, s.chunkSize)
 	for {
 		item, err := s.inner.Next(ctx)
 		if err == End {
@@ -532,13 +536,16 @@ func (s *chunkStream[T]) Next(ctx context.Context) ([]T, error) {
 		} else if err != nil {
 			return nil, err
 		}
-		chunk = append(chunk, item)
-		if len(chunk) == s.chunkSize {
+		s.chunk = append(s.chunk, item)
+		if len(s.chunk) == s.chunkSize {
+			chunk := s.chunk
+			s.chunk = make([]T, 0, s.chunkSize)
 			return chunk, nil
 		}
 	}
-	if len(chunk) > 0 {
-		return chunk, nil
+	if len(s.chunk) > 0 {
+		s.chunk = make([]T, 0, s.chunkSize)
+		return s.chunk, nil
 	}
 	return nil, End
 }
@@ -639,8 +646,12 @@ func (s *firstStream[T]) Next(ctx context.Context) (T, error) {
 		var zero T
 		return zero, End
 	}
+	item, err := s.inner.Next(ctx)
+	if err != nil {
+		return item, err
+	}
 	s.x--
-	return s.inner.Next(ctx)
+	return item, nil
 }
 
 func (s *firstStream[T]) Close() {
@@ -829,6 +840,8 @@ func While[T any](s Stream[T], f func(T) (bool, error)) Stream[T] {
 type whileStream[T any] struct {
 	inner Stream[T]
 	f     func(T) (bool, error)
+	item  T
+	has   bool
 	done  bool
 }
 
@@ -837,11 +850,15 @@ func (s *whileStream[T]) Next(ctx context.Context) (T, error) {
 	if s.done {
 		return zero, End
 	}
-	item, err := s.inner.Next(ctx)
-	if err != nil {
-		return zero, err
+	if !s.has {
+		var err error
+		s.item, err = s.inner.Next(ctx)
+		if err != nil {
+			return zero, err
+		}
+		s.has = true
 	}
-	ok, err := s.f(item)
+	ok, err := s.f(s.item)
 	if err != nil {
 		return zero, err
 	}
@@ -849,7 +866,8 @@ func (s *whileStream[T]) Next(ctx context.Context) (T, error) {
 		s.done = true
 		return zero, End
 	}
-	return item, nil
+	s.has = false
+	return s.item, nil
 }
 
 func (s *whileStream[T]) Close() {

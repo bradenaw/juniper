@@ -15,6 +15,9 @@ type Iterator[T any] interface {
 	// first return is meaningless and the second return is false. Note that the final value of the
 	// iterator has true in the second return, and it's the following call that returns false in the
 	// second return.
+	//
+	// Once Next returns false in the second return, it is expected that it will always return false
+	// afterwards.
 	Next() (T, bool)
 }
 
