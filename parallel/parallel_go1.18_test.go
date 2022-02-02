@@ -6,6 +6,7 @@ package parallel
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"testing"
 
@@ -15,15 +16,38 @@ import (
 )
 
 func TestMap(t *testing.T) {
-	ints := []int{0, 1, 2, 3, 4}
-	strs := Map(
-		2, // parallelism
-		ints,
-		func(i int) string {
-			return strconv.Itoa(i)
-		},
-	)
-	require2.SlicesEqual(t, []string{"0", "1", "2", "3", "4"}, strs)
+	for _, parallelism := range []int{1, 2} {
+		t.Run(fmt.Sprintf("parallelism=%d", parallelism), func(t *testing.T) {
+			ints := []int{0, 1, 2, 3, 4}
+			strs := Map(
+				parallelism,
+				ints,
+				func(i int) string {
+					return strconv.Itoa(i)
+				},
+			)
+			require2.SlicesEqual(t, []string{"0", "1", "2", "3", "4"}, strs)
+		})
+	}
+}
+
+func TestMapContext(t *testing.T) {
+	for _, parallelism := range []int{1, 2} {
+		t.Run(fmt.Sprintf("parallelism=%d", parallelism), func(t *testing.T) {
+			ctx := context.Background()
+			ints := []int{0, 1, 2, 3, 4}
+			strs, err := MapContext(
+				ctx,
+				parallelism,
+				ints,
+				func(ctx context.Context, i int) (string, error) {
+					return strconv.Itoa(i), nil
+				},
+			)
+			require2.NoError(t, err)
+			require2.SlicesEqual(t, []string{"0", "1", "2", "3", "4"}, strs)
+		})
+	}
 }
 
 func TestMapIterator(t *testing.T) {
