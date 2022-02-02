@@ -15,15 +15,15 @@ import (
 	"github.com/bradenaw/juniper/xsort"
 )
 
-func orderedhashmapKVPairToKVPair[K any, V any](kv orderedhashmap.KVPair[byte, int]) KVPair[byte, int] {
-	return KVPair[byte, int]{kv.K, kv.V}
+func orderedhashmapKVPairToKVPair[K any, V any](kv orderedhashmap.KVPair[uint16, int]) KVPair[uint16, int] {
+	return KVPair[uint16, int]{kv.K, kv.V}
 }
 
 func FuzzBtree(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte) {
-		tree := newBtree[byte, int](xsort.OrderedLess[byte])
+		tree := newBtree[uint16, int](xsort.OrderedLess[uint16])
 		cursor := tree.Cursor()
-		oracle := orderedhashmap.NewMap[byte, int](xsort.OrderedLess[byte])
+		oracle := orderedhashmap.NewMap[uint16, int](xsort.OrderedLess[uint16])
 		oracleCursor := oracle.Cursor()
 
 		ctr := 0
@@ -44,9 +44,9 @@ func FuzzBtree(f *testing.F) {
 				require2.Equal(t, oracle.Len(), tree.Len())
 
 				oraclePairs := iterator.Collect(
-					iterator.Map(oracle.Cursor().Forward(), orderedhashmapKVPairToKVPair[byte, int]),
+					iterator.Map(oracle.Cursor().Forward(), orderedhashmapKVPairToKVPair[uint16, int]),
 				)
-				xsort.Slice(oraclePairs, func(a, b KVPair[byte, int]) bool {
+				xsort.Slice(oraclePairs, func(a, b KVPair[uint16, int]) bool {
 					return a.Key < b.Key
 				})
 
@@ -61,25 +61,25 @@ func FuzzBtree(f *testing.F) {
 					require2.Equal(t, oracleCursor.Value(), cursor.Value())
 				}
 			},
-			func(k byte) {
+			func(k uint16) {
 				v := ctr
 				t.Logf("tree.Put(%#v, %#v)", k, v)
 				tree.Put(k, v)
 				oracle.Put(k, v)
 				ctr++
 			},
-			func(k byte) {
+			func(k uint16) {
 				expected := oracle.Get(k)
 				t.Logf("tree.Get(%#v) -> %#v", k, expected)
 				actual := tree.Get(k)
 				require2.Equal(t, expected, actual)
 			},
-			func(k byte) {
+			func(k uint16) {
 				t.Logf("tree.Delete(%#v)", k)
 				tree.Delete(k)
 				oracle.Delete(k)
 			},
-			func(k byte) {
+			func(k uint16) {
 				oracleOk := oracle.Contains(k)
 				t.Logf("tree.Contains(%#v) -> %t", k, oracleOk)
 				treeOk := tree.Contains(k)
@@ -114,22 +114,22 @@ func FuzzBtree(f *testing.F) {
 				cursor.SeekFirst()
 				oracleCursor.SeekFirst()
 			},
-			func(k byte) {
+			func(k uint16) {
 				t.Logf("cursor.SeekLastLess(%#v)", k)
 				cursor.SeekLastLess(k)
 				oracleCursor.SeekLastLess(k)
 			},
-			func(k byte) {
+			func(k uint16) {
 				t.Logf("cursor.SeekLastLessOrEqual(%#v)", k)
 				cursor.SeekLastLessOrEqual(k)
 				oracleCursor.SeekLastLessOrEqual(k)
 			},
-			func(k byte) {
+			func(k uint16) {
 				t.Logf("cursor.SeekFirstGreaterOrEqual(%#v)", k)
 				cursor.SeekFirstGreaterOrEqual(k)
 				oracleCursor.SeekFirstGreaterOrEqual(k)
 			},
-			func(k byte) {
+			func(k uint16) {
 				t.Logf("cursor.SeekFirstGreater(%#v)", k)
 				cursor.SeekFirstGreater(k)
 				oracleCursor.SeekFirstGreater(k)
@@ -144,7 +144,7 @@ func FuzzBtree(f *testing.F) {
 				kvs := iterator.Collect(cursor.Forward())
 				expectedKVs := iterator.Collect(iterator.Map(
 					oracleCursor.Forward(),
-					orderedhashmapKVPairToKVPair[byte, int],
+					orderedhashmapKVPairToKVPair[uint16, int],
 				))
 				require2.SlicesEqual(t, expectedKVs, kvs)
 			},
@@ -153,7 +153,7 @@ func FuzzBtree(f *testing.F) {
 				kvs := iterator.Collect(cursor.Backward())
 				expectedKVs := iterator.Collect(iterator.Map(
 					oracleCursor.Backward(),
-					orderedhashmapKVPairToKVPair[byte, int],
+					orderedhashmapKVPairToKVPair[uint16, int],
 				))
 				require2.SlicesEqual(t, expectedKVs, kvs)
 			},

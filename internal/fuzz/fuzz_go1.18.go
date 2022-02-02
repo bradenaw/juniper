@@ -26,6 +26,14 @@ func Operations(b []byte, check func(), fns ...interface{}) {
 		b = b[1:]
 		return x, true
 	}
+	takeUint16 := func() (uint16, bool) {
+		if len(b) < 2 {
+			return 0, false
+		}
+		x := uint16(binary.BigEndian.Uint16(b[:2]))
+		b = b[2:]
+		return x, true
+	}
 	takeInt := func() (int, bool) {
 		if len(b) < 8 {
 			return 0, false
@@ -61,6 +69,12 @@ Loop:
 				args[j] = reflect.ValueOf(x)
 			case reflect.Uint8:
 				x, ok := takeByte()
+				if !ok {
+					break Loop
+				}
+				args[j] = reflect.ValueOf(x)
+			case reflect.Uint16:
+				x, ok := takeUint16()
 				if !ok {
 					break Loop
 				}
