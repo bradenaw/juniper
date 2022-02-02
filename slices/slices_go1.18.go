@@ -50,29 +50,48 @@ func Clone[T any](x []T) []T {
 	return append([]T{}, x...)
 }
 
-// Compact removes adjacent duplicates from x in-place and returns the modified slice.
+// Compact returns a slice containing only the first item from each contiguous run of the same item.
+//
+// For example, this can be used to remove duplicates more cheaply than Unique when the slice is
+// already in sorted order.
 func Compact[T comparable](x []T) []T {
-	compacted := x[:0]
-	for i := range x {
-		if i == 0 || x[i-1] != x[i] {
-			compacted = append(compacted, x[i])
-		}
-	}
+	return compactFuncInto([]T{}, x, func(a, b T) bool { return a == b })
+}
+
+// CompactInPlace returns a slice containing only the first item from each contiguous run of the
+// same item. This is done in-place and so modifies the contents of x. The modified slice is
+// returned.
+//
+// For example, this can be used to remove duplicates more cheaply than Unique when the slice is
+// already in sorted order.
+func CompactInPlace[T comparable](x []T) []T {
+	compacted := compactFuncInto(x[:0], x, func(a, b T) bool { return a == b })
 	Clear(x[len(compacted):])
 	return compacted
 }
 
-// CompactFunc removes adjacent duplicates from x in-place, preserving the first occurrence, using
-// the supplied eq function and returns the modified slice.
+// CompactFunc returns a slice containing only the first item from each contiguous run of items for
+// which eq returns true.
 func CompactFunc[T any](x []T, eq func(T, T) bool) []T {
-	compacted := x[:0]
-	for i := range x {
-		if i == 0 || !eq(x[i-1], x[i]) {
-			compacted = append(compacted, x[i])
-		}
-	}
+	return compactFuncInto([]T{}, x, eq)
+}
+
+// CompactFuncInPlace returns a slice containing only the first item from each contiguous run of
+// items for which eq returns true. This is done in-place and so modifies the contents of x. The
+// modified slice is returned.
+func CompactFuncInPlace[T any](x []T, eq func(T, T) bool) []T {
+	compacted := compactFuncInto(x[:0], x, eq)
 	Clear(x[len(compacted):])
 	return compacted
+}
+
+func compactFuncInto[T any](into []T, x []T, eq func(T, T) bool) []T {
+	for i := range x {
+		if i == 0 || !eq(x[i-1], x[i]) {
+			into = append(into, x[i])
+		}
+	}
+	return into
 }
 
 // Count returns the number of times item appears in a.
@@ -111,18 +130,29 @@ func Fill[T any](a []T, x T) {
 	}
 }
 
-// Filter filters the contents of x to only those for which keep() returns true. This is done
-// in-place and so modifies the contents of x. The modified slice is returned.
+// Filter returns a slice containing only the elements of x for which keep() returns true in the
+// same order that they appeared in x.
 func Filter[T any](x []T, keep func(t T) bool) []T {
-	filtered := x[:0]
-	for i := range x {
-		if keep(x[i]) {
-			filtered = append(filtered, x[i])
-		}
-	}
+	return filterInto([]T{}, x, keep)
+}
+
+// FilterInPlace returns a slice containing only the elements of x for which keep() returns true in
+// the same order that they appeared in x. This is done in-place and so modifies the contents of x.
+// The modified slice is returned.
+func FilterInPlace[T any](x []T, keep func(t T) bool) []T {
+	filtered := filterInto(x[:0], x, keep)
 	// Zero out the rest in case they contain pointers, so that filtered doesn't retain references.
 	Clear(x[len(filtered):])
 	return filtered
+}
+
+func filterInto[T any](into []T, x []T, keep func(t T) bool) []T {
+	for i := range x {
+		if keep(x[i]) {
+			into = append(into, x[i])
+		}
+	}
+	return into
 }
 
 // Flatten returns a slice containing all of the elements of all elements of x.
@@ -329,20 +359,35 @@ func Shrink[T any](x []T, n int) []T {
 	return x
 }
 
-// Unique removes duplicates from x in-place, preserving order, and returns the modified slice.
+// Unique returns a slice that contains only the first instance of each unique item in x, preserving
+// order.
 //
 // Compact is more efficient if duplicates are already adjacent in x, for example if x is in sorted
 // order.
 func Unique[T comparable](x []T) []T {
-	filtered := x[:0]
+	return uniqueInto([]T{}, x)
+}
+
+// UniqueInPlace returns a slice that contains only the first instance of each unique item in x,
+// preserving order. This is done in-place and so modifies the contents of x. The modified slice is
+// returned.
+//
+// Compact is more efficient if duplicates are already adjacent in x, for example if x is in sorted
+// order.
+func UniqueInPlace[T comparable](x []T) []T {
+	filtered := uniqueInto(x[:0], x)
+	Clear(x[len(filtered):])
+	return filtered
+}
+
+func uniqueInto[T comparable](into []T, x []T) []T {
 	m := make(map[T]struct{}, len(x))
 	for i := range x {
 		_, ok := m[x[i]]
 		if !ok {
-			filtered = append(filtered, x[i])
+			into = append(into, x[i])
 			m[x[i]] = struct{}{}
 		}
 	}
-	Clear(x[len(filtered):])
-	return filtered
+	return into
 }
