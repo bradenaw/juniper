@@ -544,8 +544,9 @@ func (s *chunkStream[T]) Next(ctx context.Context) ([]T, error) {
 		}
 	}
 	if len(s.chunk) > 0 {
+		chunk := s.chunk
 		s.chunk = make([]T, 0, s.chunkSize)
-		return s.chunk, nil
+		return chunk, nil
 	}
 	return nil, End
 }
@@ -601,13 +602,13 @@ func (s *compactStream[T]) Close() {
 
 // Filter returns a Stream that yields only the items from s for which keep returns true. If keep
 // returns an error, terminates the stream early.
-func Filter[T any](s Stream[T], keep func(T) (bool, error)) Stream[T] {
+func Filter[T any](s Stream[T], keep func(context.Context, T) (bool, error)) Stream[T] {
 	return &filterStream[T]{inner: s, keep: keep}
 }
 
 type filterStream[T any] struct {
 	inner Stream[T]
-	keep  func(T) (bool, error)
+	keep  func(context.Context, T) (bool, error)
 }
 
 func (s *filterStream[T]) Next(ctx context.Context) (T, error) {
@@ -617,7 +618,7 @@ func (s *filterStream[T]) Next(ctx context.Context) (T, error) {
 		if err != nil {
 			return zero, err
 		}
-		ok, err := s.keep(item)
+		ok, err := s.keep(ctx, item)
 		if err != nil {
 			return zero, err
 		}
@@ -733,13 +734,13 @@ func (s *joinStream[T]) Close() {
 
 // Map transforms the values of s using the conversion f. If f returns an error, terminates the
 // stream early.
-func Map[T any, U any](s Stream[T], f func(t T) (U, error)) Stream[U] {
+func Map[T any, U any](s Stream[T], f func(context.Context, T) (U, error)) Stream[U] {
 	return &mapStream[T, U]{inner: s, f: f}
 }
 
 type mapStream[T any, U any] struct {
 	inner Stream[T]
-	f     func(t T) (U, error)
+	f     func(context.Context, T) (U, error)
 }
 
 func (s *mapStream[T, U]) Next(ctx context.Context) (U, error) {
@@ -748,7 +749,7 @@ func (s *mapStream[T, U]) Next(ctx context.Context) (U, error) {
 	if err != nil {
 		return zero, err
 	}
-	mapped, err := s.f(item)
+	mapped, err := s.f(ctx, item)
 	if err != nil {
 		return zero, err
 	}
@@ -830,7 +831,7 @@ func (s *runsInnerStream[T]) Close() { s.parent = nil }
 
 // While returns a Stream that terminates before the first item from s for which f returns false.
 // If f returns an error, terminates the stream early.
-func While[T any](s Stream[T], f func(T) (bool, error)) Stream[T] {
+func While[T any](s Stream[T], f func(context.Context, T) (bool, error)) Stream[T] {
 	return &whileStream[T]{
 		inner: s,
 		f:     f,
@@ -839,7 +840,7 @@ func While[T any](s Stream[T], f func(T) (bool, error)) Stream[T] {
 
 type whileStream[T any] struct {
 	inner Stream[T]
-	f     func(T) (bool, error)
+	f     func(context.Context, T) (bool, error)
 	item  T
 	has   bool
 	done  bool
@@ -858,7 +859,7 @@ func (s *whileStream[T]) Next(ctx context.Context) (T, error) {
 		}
 		s.has = true
 	}
-	ok, err := s.f(s.item)
+	ok, err := s.f(ctx, s.item)
 	if err != nil {
 		return zero, err
 	}

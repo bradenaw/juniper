@@ -192,3 +192,22 @@ func ExampleRepeat() {
 	// Output:
 	// [a a a a]
 }
+
+func ExampleWhile() {
+	iter := iterator.Slice([]string{
+		"aardvark",
+		"badger",
+		"cheetah",
+		"dinosaur",
+		"egret",
+	})
+
+	beforeD := iterator.While(iter, func(s string) bool {
+		return s < "d"
+	})
+
+	fmt.Println(iterator.Collect(beforeD))
+
+	// Output:
+	// [aardvark badger cheetah]
+}
