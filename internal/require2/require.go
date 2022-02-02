@@ -112,7 +112,7 @@ func InDelta[T constraints.Float](t *testing.T, actual T, expected T, delta T) {
 
 func True(t *testing.T, b bool) {
 	if !b {
-		t.Fatal("expected true")
+		fatalf(t, "expected true")
 	}
 }
 

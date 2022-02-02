@@ -31,7 +31,7 @@ func FuzzBtree(f *testing.F) {
 		fuzz.Operations(
 			b,
 			func() { // check
-				t.Log(treeToString(t, tree))
+				t.Log(treeToString(tree))
 
 				if oracleCursor.Ok() {
 					t.Logf("oracleCursor @ %#v", oracleCursor.Key())
@@ -161,9 +161,345 @@ func FuzzBtree(f *testing.F) {
 	})
 }
 
+func TestSplitRoot(t *testing.T) {
+	tree := makeTree(t, makeLeaf([]KVPair[byte, int]{
+		{0, 0},
+		{1, 1},
+		{2, 2},
+		{3, 3},
+		{4, 4},
+		{5, 5},
+		{6, 6},
+		{7, 7},
+		{8, 8},
+		{9, 9},
+		{10, 10},
+		{11, 11},
+		{12, 12},
+		{13, 13},
+		{14, 14},
+	}))
+	require2.Equal(t, 1, numNodes(tree))
+	tree.Put(15, 15)
+	require2.Equal(t, 3, numNodes(tree))
+	requireTreesEqual(
+		t,
+		tree,
+		makeTree(t, makeInternal(
+			makeLeaf([]KVPair[byte, int]{
+				{1, 1},
+				{2, 2},
+				{3, 3},
+				{4, 4},
+				{5, 5},
+				{6, 6},
+				{7, 7},
+			}),
+			KVPair[byte, int]{8, 8},
+			makeLeaf([]KVPair[byte, int]{
+				{9, 9},
+				{10, 10},
+				{11, 11},
+				{12, 12},
+				{13, 13},
+				{14, 14},
+				{15, 15},
+			}),
+		)),
+	)
+}
+
+func TestMerge(t *testing.T) {
+	if branchFactor != 16 {
+		t.Fatal("test requires branchFactor 16")
+	}
+
+	tree := makeTree(t, makeInternal(
+		makeLeaf([]KVPair[byte, int]{
+			{0, 0},
+			{1, 1},
+			{2, 2},
+			{3, 3},
+			{4, 4},
+			{5, 5},
+			{6, 6},
+		}),
+		KVPair[byte, int]{10, 10},
+		makeLeaf([]KVPair[byte, int]{
+			{20, 20},
+			{21, 21},
+			{22, 22},
+			{23, 23},
+			{24, 24},
+			{25, 25},
+			{26, 26},
+		}),
+	))
+
+	require2.Equal(t, tree.root.children[0].n, minKVs)
+	require2.Equal(t, tree.root.children[1].n, minKVs)
+	tree.Delete(23)
+	checkTree(t, tree)
+
+	requireTreesEqual(
+		t,
+		tree,
+		makeTree(t, makeLeaf([]KVPair[byte, int]{
+			{0, 0},
+			{1, 1},
+			{2, 2},
+			{3, 3},
+			{4, 4},
+			{5, 5},
+			{6, 6},
+			{10, 10},
+			{20, 20},
+			{21, 21},
+			{22, 22},
+			{24, 24},
+			{25, 25},
+			{26, 26},
+		})),
+	)
+}
+
+func TestRotateRight(t *testing.T) {
+	if branchFactor != 16 {
+		t.Fatal("test requires branchFactor 16")
+	}
+	tree := makeTree(t, makeInternal(
+		makeLeaf([]KVPair[byte, int]{
+			{0, 0},
+			{1, 1},
+			{2, 2},
+			{3, 3},
+			{4, 4},
+			{5, 5},
+			{6, 6},
+			{7, 7},
+		}),
+		KVPair[byte, int]{10, 10},
+		makeLeaf([]KVPair[byte, int]{
+			{20, 20},
+			{21, 21},
+			{22, 22},
+			{23, 23},
+			{24, 24},
+			{25, 25},
+			{26, 26},
+		}),
+	))
+
+	require2.Equal(t, tree.root.children[0].n, minKVs+1)
+	require2.Equal(t, tree.root.children[1].n, minKVs)
+
+	tree.Delete(20)
+	checkTree(t, tree)
+
+	requireTreesEqual(
+		t,
+		tree,
+		makeTree(t, makeInternal(
+			makeLeaf([]KVPair[byte, int]{
+				{0, 0},
+				{1, 1},
+				{2, 2},
+				{3, 3},
+				{4, 4},
+				{5, 5},
+				{6, 6},
+			}),
+			KVPair[byte, int]{7, 7},
+			makeLeaf([]KVPair[byte, int]{
+				{10, 10},
+				{21, 21},
+				{22, 22},
+				{23, 23},
+				{24, 24},
+				{25, 25},
+				{26, 26},
+				{27, 27},
+			}),
+		)),
+	)
+}
+
+func TestRotateLeft(t *testing.T) {
+	if branchFactor != 16 {
+		t.Fatal("test requires branchFactor 16")
+	}
+	tree := makeTree(t, makeInternal(
+		makeLeaf([]KVPair[byte, int]{
+			{0, 0},
+			{1, 1},
+			{2, 2},
+			{3, 3},
+			{4, 4},
+			{5, 5},
+			{6, 6},
+		}),
+		KVPair[byte, int]{10, 10},
+		makeLeaf([]KVPair[byte, int]{
+			{20, 20},
+			{21, 21},
+			{22, 22},
+			{23, 23},
+			{24, 24},
+			{25, 25},
+			{26, 26},
+			{27, 27},
+		}),
+	))
+
+	require2.Equal(t, tree.root.children[0].n, minKVs)
+	require2.Equal(t, tree.root.children[1].n, minKVs+1)
+
+	tree.Delete(0)
+	checkTree(t, tree)
+
+	requireTreesEqual(
+		t,
+		tree,
+		makeTree(t, makeInternal(
+			makeLeaf([]KVPair[byte, int]{
+				{1, 1},
+				{2, 2},
+				{3, 3},
+				{4, 4},
+				{5, 5},
+				{6, 6},
+				{10, 10},
+			}),
+			KVPair[byte, int]{20, 20},
+			makeLeaf([]KVPair[byte, int]{
+				{21, 21},
+				{22, 22},
+				{23, 23},
+				{24, 24},
+				{25, 25},
+				{26, 26},
+				{27, 27},
+			}),
+		)),
+	)
+}
+
+func requireTreesEqual(t *testing.T, a, b *btree[byte, int]) {
+	eq := func() bool {
+		var visit func(x, y *node[byte, int]) bool
+		visit = func(x, y *node[byte, int]) bool {
+			if (x == nil) != (y == nil) {
+				return false
+			}
+			if x == nil && y == nil {
+				return true
+			}
+			if x.n != y.n {
+				return false
+			}
+			if x.leaf() != y.leaf() {
+				return false
+			}
+			for i := 0; i < int(x.n); i++ {
+				if x.keys[i] != y.keys[i] {
+					return false
+				}
+				if x.values[i] != y.values[i] {
+					return false
+				}
+			}
+			if x.leaf() {
+				for i := 0; i < int(x.n)+1; i++ {
+					if !visit(x.children[i], y.children[i]) {
+						return false
+					}
+				}
+			}
+			return true
+		}
+		return visit(a.root, b.root)
+	}()
+	if !eq {
+		t.Fatalf("%s\n\n%s", treeToStringNoPtr(a), treeToStringNoPtr(b))
+	}
+}
+
+func makeTree(t *testing.T, root *node[byte, int]) *btree[byte, int] {
+	tree := &btree[byte, int]{
+		root: root,
+		less: xsort.OrderedLess[byte],
+	}
+	tree.size = numItems(tree)
+	checkTree(t, tree)
+	return tree
+}
+
+func makeInternal(items ...any) *node[byte, int] {
+	x := &node[byte, int]{n: int8(len(items) / 2)}
+	for i := 0; i < int(x.n)+1; i++ {
+		x.children[i] = items[i*2].(*node[byte, int])
+		x.children[i].parent = x
+	}
+	for i := 0; i < int(x.n); i++ {
+		pair := items[i*2+1].(KVPair[byte, int])
+		x.keys[i] = pair.Key
+		x.values[i] = pair.Value
+	}
+	return x
+}
+
+func makeLeaf(kvs []KVPair[byte, int]) *node[byte, int] {
+	x := &node[byte, int]{n: int8(len(kvs))}
+	for i := range kvs {
+		x.keys[i] = kvs[i].Key
+		x.values[i] = kvs[i].Value
+	}
+	return x
+}
+
+func pairsRange(min, max byte) []KVPair[byte, int] {
+	var out []KVPair[byte, int]
+	for i := min; i < max; i++ {
+		out = append(out, KVPair[byte, int]{byte(i), int(i)})
+	}
+	return out
+}
+
 func isZero[T comparable](t T) bool {
 	var zero T
 	return t == zero
+}
+
+func numNodes[K any, V any](tree *btree[K, V]) int {
+	n := 0
+	var visit func(x *node[K, V])
+	visit = func(x *node[K, V]) {
+		n++
+		if x.leaf() {
+			return
+		}
+		for i := 0; i < int(x.n)+1; i++ {
+			visit(x.children[i])
+		}
+	}
+	visit(tree.root)
+	return n
+}
+
+func numItems[K any, V any](tree *btree[K, V]) int {
+	n := 0
+	var visit func(x *node[K, V])
+	visit = func(x *node[K, V]) {
+		n += int(x.n)
+		if x.leaf() {
+			return
+		}
+		for i := 0; i < int(x.n)+1; i++ {
+			visit(x.children[i])
+		}
+	}
+	visit(tree.root)
+	return n
 }
 
 func checkTree[K comparable, V comparable](t *testing.T, tree *btree[K, V]) {
@@ -219,12 +555,30 @@ func checkTree[K comparable, V comparable](t *testing.T, tree *btree[K, V]) {
 }
 
 // Returns a graphviz DOT representation of tree. (https://graphviz.org/doc/info/lang.html)
-func treeToString[K any, V any](t *testing.T, tree *btree[K, V]) string {
+func treeToString[K any, V any](tree *btree[K, V]) string {
+	return treeToStringInner(tree, func(x *node[K, V]) string { return fmt.Sprintf("%p", x) })
+}
+
+func treeToStringNoPtr[K any, V any](tree *btree[K, V]) string {
+	ids := make(map[*node[K, V]]string)
+	ctr := 0
+	return treeToStringInner(tree, func(x *node[K, V]) string {
+		id, ok := ids[x]
+		if !ok {
+			id = fmt.Sprintf("%d", ctr)
+			ctr++
+			ids[x] = id
+		}
+		return id
+	})
+}
+
+func treeToStringInner[K any, V any](tree *btree[K, V], id func(*node[K, V]) string) string {
 	var sb strings.Builder
 
 	var logNode func(x *node[K, V])
 	logNode = func(x *node[K, V]) {
-		fmt.Fprintf(&sb, "\tnode%p [label=\"{%p|{", x, x)
+		fmt.Fprintf(&sb, "\tnode%s [label=\"{%s|{", id(x), id(x))
 		for i := 0; i < int(x.n); i++ {
 			fmt.Fprintf(&sb, "<c%d> |%#v: %#v|", i, x.keys[i], x.values[i])
 		}
@@ -235,7 +589,7 @@ func treeToString[K any, V any](t *testing.T, tree *btree[K, V]) string {
 			if child == nil {
 				continue
 			}
-			fmt.Fprintf(&sb, "\tnode%p:c%d -> node%p;\n", x, i, child)
+			fmt.Fprintf(&sb, "\tnode%s:c%d -> node%s;\n", id(x), i, id(child))
 		}
 
 		for _, child := range x.children {
