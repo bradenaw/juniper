@@ -5,6 +5,7 @@ package stream
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"sync"
 	"testing"
@@ -12,6 +13,9 @@ import (
 
 	"github.com/bradenaw/juniper/internal/fuzz"
 	"github.com/bradenaw/juniper/internal/require2"
+	"github.com/bradenaw/juniper/internal/tseq"
+	"github.com/bradenaw/juniper/iterator"
+	"github.com/bradenaw/juniper/slices"
 	"github.com/bradenaw/juniper/xmath"
 )
 
@@ -190,5 +194,69 @@ func TestPipeConcurrentSend(t *testing.T) {
 
 	for i := range results {
 		require2.True(t, results[i] || errors.Is(errs[i], intError(5)))
+	}
+}
+
+func TestChunk(t *testing.T) {
+	for streamLen := 0; streamLen < 10; streamLen++ {
+		for chunkSize := 1; chunkSize < streamLen; chunkSize++ {
+			t.Run(fmt.Sprintf("streamLen=%d,chunkSize=%d", streamLen, chunkSize), func(t *testing.T) {
+				tseq.Run(t, func(tseq *tseq.TSeq) {
+					x := iterator.Collect(iterator.Counter(streamLen))
+					expected := slices.Chunk(x, chunkSize)
+					in := FromIterator(iterator.Slice(x))
+					s := &tseqStream[int]{in, tseq, false}
+					chunked := collectWithRetries(Chunk[int](s, chunkSize))
+					require2.DeepEqual(t, expected, chunked)
+				})
+			})
+		}
+	}
+}
+
+func TestCollectWithRetries(t *testing.T) {
+	for streamLen := 0; streamLen < 10; streamLen++ {
+		t.Run(fmt.Sprintf("streamLen=%d", streamLen), func(t *testing.T) {
+			tseq.Run(t, func(tseq *tseq.TSeq) {
+				x := iterator.Collect(iterator.Counter(streamLen))
+				in := FromIterator(iterator.Slice(x))
+				s := &tseqStream[int]{in, tseq, false}
+				out := collectWithRetries[int](s)
+				require2.DeepEqual(t, x, out)
+			})
+		})
+	}
+}
+
+type tseqStream[T any] struct {
+	inner   Stream[T]
+	tseq    *tseq.TSeq
+	prevErr bool
+}
+
+func (s *tseqStream[T]) Next(ctx context.Context) (T, error) {
+	if !s.prevErr && s.tseq.FlipCoin() {
+		var zero T
+		s.prevErr = true
+		return zero, errors.New("")
+	}
+	s.prevErr = false
+	return s.inner.Next(ctx)
+}
+
+func (s *tseqStream[T]) Close() {
+	s.inner.Close()
+}
+
+func collectWithRetries[T any](s Stream[T]) []T {
+	var out []T
+	for {
+		item, err := s.Next(context.Background())
+		if err == End {
+			return out
+		} else if err != nil {
+			continue
+		}
+		out = append(out, item)
 	}
 }

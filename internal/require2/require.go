@@ -5,6 +5,7 @@ package require2
 import (
 	"constraints"
 	"errors"
+	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
@@ -14,6 +15,12 @@ import (
 func Equal[T comparable](t *testing.T, expected T, actual T) {
 	if expected != actual {
 		fatalf(t, "assertion failed: %#v == %#v", expected, actual)
+	}
+}
+
+func DeepEqual[T any](t *testing.T, a T, b T) {
+	if !reflect.DeepEqual(a, b) {
+		fatalf(t, "assertion failed: reflect.DeepEqual(%#v, %#v)", a, b)
 	}
 }
 
