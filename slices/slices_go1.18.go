@@ -76,10 +76,10 @@ func CompactFunc[T any](x []T, eq func(T, T) bool) []T {
 	return compactFuncInto([]T{}, x, eq)
 }
 
-// CompactFuncInPlace returns a slice containing only the first item from each contiguous run of
+// CompactInPlaceFunc returns a slice containing only the first item from each contiguous run of
 // items for which eq returns true. This is done in-place and so modifies the contents of x. The
 // modified slice is returned.
-func CompactFuncInPlace[T any](x []T, eq func(T, T) bool) []T {
+func CompactInPlaceFunc[T any](x []T, eq func(T, T) bool) []T {
 	compacted := compactFuncInto(x[:0], x, eq)
 	Clear(x[len(compacted):])
 	return compacted

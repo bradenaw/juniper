@@ -5,6 +5,7 @@ package slices_test
 import (
 	"fmt"
 	"math"
+	"strings"
 
 	"github.com/bradenaw/juniper/slices"
 	"github.com/bradenaw/juniper/xmath"
@@ -97,6 +98,34 @@ func ExampleCompactFunc() {
 	// [bank ghost yaw]
 }
 
+func ExampleCompactInPlace() {
+	x := []string{"a", "a", "b", "c", "c", "c", "a"}
+	compacted := slices.CompactInPlace(x)
+	fmt.Println(compacted)
+
+	// Output:
+	// [a b c a]
+}
+
+func ExampleCompactInPlaceFunc() {
+	x := []string{
+		"bank",
+		"beach",
+		"ghost",
+		"goat",
+		"group",
+		"yaw",
+		"yew",
+	}
+	compacted := slices.CompactInPlaceFunc(x, func(a, b string) bool {
+		return a[0] == b[0]
+	})
+	fmt.Println(compacted)
+
+	// Output:
+	// [bank ghost yaw]
+}
+
 func ExampleCount() {
 	x := []string{"a", "b", "a", "a", "b"}
 
@@ -133,6 +162,17 @@ func ExampleFill() {
 func ExampleFilter() {
 	x := []int{5, -9, -2, 1, -4, 8, 3}
 	x = slices.Filter(x, func(value int) bool {
+		return value > 0
+	})
+	fmt.Println(x)
+
+	// Output:
+	// [5 1 8 3]
+}
+
+func ExampleFilterInPlace() {
+	x := []int{5, -9, -2, 1, -4, 8, 3}
+	x = slices.FilterInPlace(x, func(value int) bool {
 		return value > 0
 	})
 	fmt.Println(x)
@@ -189,6 +229,27 @@ func ExampleIndex() {
 	// -1
 }
 
+func ExampleIndexFunc() {
+	x := []string{
+		"blue",
+		"green",
+		"yellow",
+		"gold",
+		"red",
+	}
+
+	fmt.Println(slices.IndexFunc(x, func(s string) bool {
+		return strings.HasPrefix(s, "g")
+	}))
+	fmt.Println(slices.IndexFunc(x, func(s string) bool {
+		return strings.HasPrefix(s, "p")
+	}))
+
+	// Output:
+	// 1
+	// -1
+}
+
 func ExampleInsert() {
 	x := []string{"a", "b", "c", "d", "e"}
 	x = slices.Insert(x, 3, "f", "g")
@@ -222,6 +283,27 @@ func ExampleLastIndex() {
 	// -1
 }
 
+func ExampleLastIndexFunc() {
+	x := []string{
+		"blue",
+		"green",
+		"yellow",
+		"gold",
+		"red",
+	}
+
+	fmt.Println(slices.LastIndexFunc(x, func(s string) bool {
+		return strings.HasPrefix(s, "g")
+	}))
+	fmt.Println(slices.LastIndexFunc(x, func(s string) bool {
+		return strings.HasPrefix(s, "p")
+	}))
+
+	// Output:
+	// 3
+	// -1
+}
+
 func ExampleMap() {
 	toHalfFloat := func(x int) float32 {
 		return float32(x) / 2
@@ -246,6 +328,20 @@ func ExamplePartition() {
 	// [11 3 1 7 2 8 0 4 14]
 }
 
+func ExampleReduce() {
+	x := []int{3, 1, 2}
+
+	sum := slices.Reduce(x, 0, func(x, y int) int { return x + y })
+	fmt.Println(sum)
+
+	min := slices.Reduce(x, math.MaxInt, xmath.Min[int])
+	fmt.Println(min)
+
+	// Output:
+	// 6
+	// 1
+}
+
 func ExampleRemove() {
 	x := []int{1, 2, 3, 4, 5}
 	x = slices.Remove(x, 1, 2)
@@ -259,7 +355,7 @@ func ExampleRepeat() {
 	x := slices.Repeat("a", 4)
 	fmt.Println(x)
 
-	// Output
+	// Output:
 	// [a a a a]
 }
 
@@ -270,20 +366,6 @@ func ExampleReverse() {
 
 	// Output:
 	// [e d c b a]
-}
-
-func ExampleReduce() {
-	x := []int{3, 1, 2}
-
-	sum := slices.Reduce(x, 0, func(x, y int) int { return x + y })
-	fmt.Println(sum)
-
-	min := slices.Reduce(x, math.MaxInt, xmath.Min[int])
-	fmt.Println(min)
-
-	// Output:
-	// 6
-	// 1
 }
 
 func ExampleRuns() {
@@ -299,9 +381,39 @@ func ExampleRuns() {
 	// [[2 4 0] [7 1 3 9] [2 8]]
 }
 
+func ExampleShrink() {
+	x := make([]int, 3, 15)
+	x[0] = 0
+	x[1] = 1
+	x[2] = 2
+
+	fmt.Println(x)
+	fmt.Println(cap(x))
+
+	x = slices.Shrink(x, 0)
+
+	fmt.Println(x)
+	fmt.Println(cap(x))
+
+	// Output:
+	// [0 1 2]
+	// 15
+	// [0 1 2]
+	// 3
+}
+
 func ExampleUnique() {
 	a := []string{"a", "b", "b", "c", "a", "b", "b", "c"}
 	unique := slices.Unique(a)
+	fmt.Println(unique)
+
+	// Output:
+	// [a b c]
+}
+
+func ExampleUniqueInPlace() {
+	a := []string{"a", "b", "b", "c", "a", "b", "b", "c"}
+	unique := slices.UniqueInPlace(a)
 	fmt.Println(unique)
 
 	// Output:
