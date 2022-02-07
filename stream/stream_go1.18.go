@@ -35,9 +35,8 @@ type Stream[T any] interface {
 	// returns stream.End in the second return. Note that the final item of the stream has nil in
 	// the second return, and it's the following call that returns stream.End.
 	//
-	// If Next returns an error other than stream.End, it may be retried. Once a Next call returns
-	// stream.End, it is expected that the Stream will return stream.End to every Next call
-	// afterwards.
+	// Once a Next call returns stream.End, it is expected that the Stream will return stream.End to
+	// every Next call afterwards.
 	Next(ctx context.Context) (T, error)
 	// Close ends receiving from the stream. It is invalid to call Next after calling Close.
 	Close()
