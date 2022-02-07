@@ -56,10 +56,10 @@ func FuzzSampleInner(f *testing.F) {
 
 		r := &fuzzRand{t, b}
 
-		sampler := sampleInner(r, k)
+		samp := newSampler(r, k)
 		prev := 0
 		for i := 0; i < 100; i++ {
-			next, replace := sampler()
+			next, replace := samp.Next()
 			t.Logf("%d: next %d replace %d", i, next, replace)
 			if next == math.MaxInt {
 				break

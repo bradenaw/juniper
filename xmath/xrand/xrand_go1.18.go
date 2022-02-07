@@ -20,7 +20,7 @@ func RShuffle[T any](r *rand.Rand, a []T) {
 	rShuffle(r, a)
 }
 
-func rShuffle[T any](r randRand, a []T) {
+func rShuffle[T any, R randRand](r R, a []T) {
 	r.Shuffle(len(a), func(i, j int) {
 		a[i], a[j] = a[j], a[i]
 	})
@@ -46,13 +46,13 @@ func RSampleIterator[T any](r *rand.Rand, iter iterator.Iterator[T], k int) []T 
 	return rSampleIterator(r, iter, k)
 }
 
-func rSampleIterator[T any](r randRand, iter iterator.Iterator[T], k int) []T {
+func rSampleIterator[T any, R randRand](r R, iter iterator.Iterator[T], k int) []T {
 	out := make([]T, k)
 	i := 0
-	sampler := sampleInner(r, k)
+	samp := newSampler(r, k)
 Outer:
 	for {
-		next, replace := sampler()
+		next, replace := samp.Next()
 		for {
 			item, ok := iter.Next()
 			if !ok {
@@ -88,19 +88,29 @@ func SampleStream[T any](ctx context.Context, s stream.Stream[T], k int) ([]T, e
 //
 // The output is not in any particular order. If a pseudo-random order is desired, the output should
 // be passed to Shuffle.
-func RSampleStream[T any](ctx context.Context, r *rand.Rand, s stream.Stream[T], k int) ([]T, error) {
+func RSampleStream[T any](
+	ctx context.Context,
+	r *rand.Rand,
+	s stream.Stream[T],
+	k int,
+) ([]T, error) {
 	return rSampleStream(ctx, r, s, k)
 }
 
-func rSampleStream[T any](ctx context.Context, r randRand, s stream.Stream[T], k int) ([]T, error) {
+func rSampleStream[T any, R randRand](
+	ctx context.Context,
+	r R,
+	s stream.Stream[T],
+	k int,
+) ([]T, error) {
 	defer s.Close()
 
 	out := make([]T, k)
 	i := 0
-	sampler := sampleInner(r, k)
+	samp := newSampler(r, k)
 Outer:
 	for {
-		next, replace := sampler()
+		next, replace := samp.Next()
 		for {
 			item, err := s.Next(ctx)
 			if err == stream.End {
@@ -142,11 +152,11 @@ func RSampleSlice[T any](r *rand.Rand, a []T, k int) []T {
 	return rSampleSlice(r, a, k)
 }
 
-func rSampleSlice[T any](r randRand, a []T, k int) []T {
+func rSampleSlice[T any, R randRand](r R, a []T, k int) []T {
 	out := make([]T, k)
-	sampler := sampleInner(r, k)
+	samp := newSampler(r, k)
 	for {
-		next, replace := sampler()
+		next, replace := samp.Next()
 		if next >= len(a) {
 			break
 		}
