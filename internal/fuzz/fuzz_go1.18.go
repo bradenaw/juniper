@@ -14,7 +14,10 @@ func Operations(b []byte, check func(), fns ...interface{}) {
 		if n > 255 {
 			panic("")
 		}
-		choice := int(b[0]) % n
+		choice := int(b[0])
+		if choice >= n {
+			return 0, false
+		}
 		b = b[1:]
 		return choice, true
 	}

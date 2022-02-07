@@ -162,6 +162,10 @@ func FuzzBtree(f *testing.F) {
 }
 
 func TestSplitRoot(t *testing.T) {
+	if branchFactor != 16 {
+		t.Skip("test requires branchFactor 16")
+	}
+
 	tree := makeTree(t, makeLeaf([]KVPair[byte, int]{
 		{0, 0},
 		{1, 1},
@@ -211,7 +215,7 @@ func TestSplitRoot(t *testing.T) {
 
 func TestMerge(t *testing.T) {
 	if branchFactor != 16 {
-		t.Fatal("test requires branchFactor 16")
+		t.Skip("test requires branchFactor 16")
 	}
 
 	tree := makeTree(t, makeInternal(
@@ -265,7 +269,7 @@ func TestMerge(t *testing.T) {
 
 func TestRotateRight(t *testing.T) {
 	if branchFactor != 16 {
-		t.Fatal("test requires branchFactor 16")
+		t.Skip("test requires branchFactor 16")
 	}
 	tree := makeTree(t, makeInternal(
 		makeLeaf([]KVPair[byte, int]{
@@ -326,7 +330,7 @@ func TestRotateRight(t *testing.T) {
 
 func TestRotateLeft(t *testing.T) {
 	if branchFactor != 16 {
-		t.Fatal("test requires branchFactor 16")
+		t.Skip("test requires branchFactor 16")
 	}
 	tree := makeTree(t, makeInternal(
 		makeLeaf([]KVPair[byte, int]{
@@ -382,6 +386,80 @@ func TestRotateLeft(t *testing.T) {
 			}),
 		)),
 	)
+}
+
+func TestMergeMulti(t *testing.T) {
+	tree := newBtree[uint16, int](xsort.OrderedLess[uint16])
+	i := 0
+	for treeHeight(tree) < 3 {
+		tree.Put(uint16(i), i)
+		i++
+	}
+	for {
+		had := false
+		breadthFirst(tree, func(x *node[uint16, int]) bool {
+			t.Logf("visit(%p)", x)
+			if x.n > minKVs {
+				tree.Delete(x.keys[0])
+				had = true
+				return false
+			}
+			return true
+		})
+		require2.Equal(t, treeHeight(tree), 3)
+		checkTree(t, tree)
+		if !had {
+			break
+		}
+	}
+
+	c := tree.Cursor()
+	expected := iterator.Collect(c.Forward())
+	nNodesBefore := numNodes(tree)
+	var removed uint16
+
+	t.Logf(treeToString(tree))
+	breadthFirst(tree, func(x *node[uint16, int]) bool {
+		if x.leaf() {
+			removed = x.keys[0]
+			tree.Delete(x.keys[0])
+			return false
+		}
+		return true
+	})
+	checkTree(t, tree)
+	t.Logf("removed %#v", removed)
+	t.Logf(treeToString(tree))
+
+	expected = slices.Remove(
+		expected,
+		slices.IndexFunc(expected, func(pair KVPair[uint16, int]) bool {
+			return pair.Key == removed
+		}),
+		1,
+	)
+	nNodesAfter := numNodes(tree)
+	c = tree.Cursor()
+	actual := iterator.Collect(c.Forward())
+
+	require2.SlicesEqual(t, expected, actual)
+	require2.Equal(t, nNodesBefore-3, nNodesAfter)
+}
+
+func breadthFirst[K any, V any](tree *btree[K, V], visit func(*node[K, V]) bool) {
+	queue := []*node[K, V]{tree.root}
+	for len(queue) > 0 {
+		var curr *node[K, V]
+		curr, queue = queue[0], queue[1:]
+		if !visit(curr) {
+			return
+		}
+		if !curr.leaf() {
+			for i := 0; i <= int(curr.n); i++ {
+				queue = append(queue, curr.children[i])
+			}
+		}
+	}
 }
 
 func requireTreesEqual(t *testing.T, a, b *btree[byte, int]) {
@@ -502,13 +580,30 @@ func numItems[K any, V any](tree *btree[K, V]) int {
 	return n
 }
 
+func treeHeight[K any, V any](tree *btree[K, V]) int {
+	curr := tree.root
+	n := 0
+	for curr != nil {
+		n += 1
+		curr = curr.children[0]
+	}
+	return n
+}
+
 func checkTree[K comparable, V comparable](t *testing.T, tree *btree[K, V]) {
-	var checkNode func(x *node[K, V])
-	checkNode = func(x *node[K, V]) {
+	foundLeaf := false
+	leafDepth := 0
+	var checkNode func(x *node[K, V], depth int)
+	checkNode = func(x *node[K, V], depth int) {
 		if x.leaf() {
 			for i := 0; i < int(x.n)+1; i++ {
 				require2.Nil(t, x.children[i])
 			}
+			if !foundLeaf {
+				leafDepth = depth
+				foundLeaf = true
+			}
+			require2.Equal(t, leafDepth, depth)
 		} else {
 			for i := 0; i < int(x.n)+1; i++ {
 				require2.NotNil(t, x.children[i])
@@ -520,7 +615,7 @@ func checkTree[K comparable, V comparable](t *testing.T, tree *btree[K, V]) {
 					x.children[i],
 					x.children[i].parent,
 				)
-				checkNode(x.children[i])
+				checkNode(x.children[i], depth+1)
 			}
 			for i := 0; i < int(x.n); i++ {
 				left := x.children[i]
@@ -551,7 +646,7 @@ func checkTree[K comparable, V comparable](t *testing.T, tree *btree[K, V]) {
 
 	require2.NotNil(t, tree.root)
 	require2.Nil(t, tree.root.parent)
-	checkNode(tree.root)
+	checkNode(tree.root, 0)
 }
 
 // Returns a graphviz DOT representation of tree. (https://graphviz.org/doc/info/lang.html)
