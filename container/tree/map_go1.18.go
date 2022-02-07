@@ -14,6 +14,8 @@ type KVPair[K any, V any] struct {
 
 // Map is a tree-structured key-value map, similar to Go's built-in map but keeps elements in sorted
 // order by key.
+//
+// It is safe for multiple goroutines to Put concurrently with keys that are already in the map.
 type Map[K any, V any] struct {
 	// An extra indirect here so that tree.Map behaves like a reference type like the map builtin.
 	t *btree[K, V]
