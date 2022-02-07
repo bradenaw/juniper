@@ -2,7 +2,11 @@
 
 package slices
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/bradenaw/juniper/internal/require2"
+)
 
 func FuzzPartition(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte) {
@@ -20,5 +24,31 @@ func FuzzPartition(f *testing.F) {
 				break
 			}
 		}
+	})
+}
+
+func FuzzRemoveUnordered(f *testing.F) {
+	f.Fuzz(func(t *testing.T, l int, idx int, n int) {
+		if l < 0 || l > 255 || idx < 0 || idx >= l-1 || n < 0 || n > l-idx {
+			return
+		}
+
+		t.Logf("l   = %d", l)
+		t.Logf("idx = %d", idx)
+		t.Logf("n   = %d", n)
+
+		x := make([]int, l)
+		expected := make([]int, 0, l)
+		for i := range x {
+			x[i] = i
+
+			if !(i >= idx && i < idx+n) {
+				expected = append(expected, i)
+			}
+		}
+
+		actual := RemoveUnordered(Clone(x), idx, n)
+
+		require2.ElementsMatch(t, expected, actual)
 	})
 }

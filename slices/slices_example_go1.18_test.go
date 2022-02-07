@@ -351,6 +351,19 @@ func ExampleRemove() {
 	// [1 4 5]
 }
 
+func ExampleRemoveUnordered() {
+	x := []int{1, 2, 3, 4, 5}
+	x = slices.RemoveUnordered(x, 1, 1)
+	fmt.Println(x)
+
+	x = slices.RemoveUnordered(x, 1, 2)
+	fmt.Println(x)
+
+	// Output:
+	// [1 5 3 4]
+	// [1 4]
+}
+
 func ExampleRepeat() {
 	x := slices.Repeat("a", 4)
 	fmt.Println(x)

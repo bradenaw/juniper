@@ -307,6 +307,21 @@ func Remove[T any](x []T, idx int, n int) []T {
 	return x[:len(x)-n]
 }
 
+// RemoveUnordered removes n elements from x starting at index idx and returns the modified slice.
+// This is done by moving up to n elements from the end of the slice into the gap left by removal,
+// which is linear in n (rather than len(x)-idx as Remove() is), but does not preserve order of the
+// remaining elements.
+func RemoveUnordered[T any](x []T, idx int, n int) []T {
+	keepStart := len(x) - n
+	removeEnd := idx + n
+	if removeEnd > keepStart {
+		keepStart = removeEnd
+	}
+	copy(x[idx:], x[keepStart:])
+	Clear(x[len(x)-n:])
+	return x[:len(x)-n]
+}
+
 // Repeat returns a slice with length n where every item is x.
 func Repeat[T any](x T, n int) []T {
 	out := make([]T, n)
