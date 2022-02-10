@@ -213,6 +213,21 @@ func Last[T any](iter Iterator[T], n int) []T {
 	return out
 }
 
+// One returns the only item yielded by iter. Returns false in the second return if iter yields zero
+// or more than one item.
+func One[T any](iter Iterator[T]) (T, bool) {
+	var zero T
+	x, ok := iter.Next()
+	if !ok {
+		return zero, false
+	}
+	_, ok = iter.Next()
+	if ok {
+		return zero, false
+	}
+	return x, true
+}
+
 // Reduce reduces iter to a single value using the reduction function f.
 func Reduce[T any, U any](iter Iterator[T], initial U, f func(U, T) U) U {
 	acc := initial

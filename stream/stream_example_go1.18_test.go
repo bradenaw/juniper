@@ -235,6 +235,29 @@ func ExampleMap() {
 	// [0 0.5 1 1.5 2]
 }
 
+func ExampleOne() {
+	ctx := context.Background()
+
+	s := stream.FromIterator(iterator.Slice([]string{"a"}))
+	item, err := stream.One(ctx, s)
+	fmt.Println(err == nil)
+	fmt.Println(item)
+
+	s = stream.FromIterator(iterator.Slice([]string{"a", "b"}))
+	_, err = stream.One(ctx, s)
+	fmt.Println(err == stream.ErrMoreThanOne)
+
+	s = stream.FromIterator(iterator.Slice([]string{}))
+	_, err = stream.One(ctx, s)
+	fmt.Println(err == stream.ErrEmpty)
+
+	// Output:
+	// true
+	// a
+	// true
+	// true
+}
+
 func ExamplePeekable() {
 	ctx := context.Background()
 	s := stream.FromIterator(iterator.Slice([]int{1, 2, 3}))

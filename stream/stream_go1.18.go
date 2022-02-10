@@ -14,11 +14,15 @@ import (
 )
 
 var (
+	// End is returned from Stream.Next when iteration ends successfully.
+	End = errors.New("end of stream")
 	// ErrClosedPipe is returned from PipeSender.Send() when the associated stream has already been
 	// closed.
 	ErrClosedPipe = errors.New("closed pipe")
-	// End is returned from Stream.Next when iteration ends successfully.
-	End = errors.New("end of stream")
+	// ErrMoreThanOne is returned from One when a Stream yielded more than one item.
+	ErrMoreThanOne = errors.New("stream had more than one item")
+	// ErrEmpty is returned from One when a Stream yielded no items.
+	ErrEmpty = errors.New("stream empty")
 )
 
 // Stream is used to iterate over a sequence of values. It is similar to Iterator, except intended
@@ -294,6 +298,25 @@ func Last[T any](ctx context.Context, s Stream[T], n int) ([]T, error) {
 	copy(out, buf[idx:])
 	copy(out[n-idx:], buf[:idx])
 	return out, nil
+}
+
+// One returns the only item that s yields. Returns an error if encountered, or if s yields zero or
+// more than one item.
+func One[T any](ctx context.Context, s Stream[T]) (T, error) {
+	var zero T
+	x, err := s.Next(ctx)
+	if err == End {
+		return zero, ErrEmpty
+	} else if err != nil {
+		return zero, err
+	}
+	_, err = s.Next(ctx)
+	if err == End {
+		return x, nil
+	} else if err != nil {
+		return zero, err
+	}
+	return zero, ErrMoreThanOne
 }
 
 // Reduce reduces s to a single value using the reduction function f.

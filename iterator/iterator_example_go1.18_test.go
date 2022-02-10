@@ -157,6 +157,22 @@ func ExampleLast() {
 	// [0 1]
 }
 
+func ExampleOne() {
+	iter := iterator.Slice([]string{"a"})
+	item, ok := iterator.One(iter)
+	fmt.Println(ok)
+	fmt.Println(item)
+
+	iter = iterator.Slice([]string{"a", "b"})
+	item, ok = iterator.One(iter)
+	fmt.Println(ok)
+
+	// Output:
+	// true
+	// a
+	// false
+}
+
 func ExampleRuns() {
 	iter := iterator.Slice([]int{2, 4, 0, 7, 1, 3, 9, 2, 8})
 
