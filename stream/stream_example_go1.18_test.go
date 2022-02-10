@@ -133,6 +133,18 @@ func ExampleCollect() {
 	// [a b c]
 }
 
+func ExampleError() {
+	ctx := context.Background()
+
+	s := stream.Error[int](errors.New("foo"))
+
+	_, err := s.Next(ctx)
+	fmt.Println(err)
+
+	// Output:
+	// foo
+}
+
 func ExampleFilter() {
 	ctx := context.Background()
 	s := stream.FromIterator(iterator.Slice([]int{1, 2, 3, 4, 5, 6}))

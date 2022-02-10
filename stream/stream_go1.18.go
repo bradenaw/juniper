@@ -53,8 +53,7 @@ func Chan[T any](c <-chan T) Stream[T] {
 }
 
 type chanStream[T any] struct {
-	c   <-chan T
-	err error
+	c <-chan T
 }
 
 func (s *chanStream[T]) Next(ctx context.Context) (T, error) {
@@ -71,6 +70,22 @@ func (s *chanStream[T]) Next(ctx context.Context) (T, error) {
 }
 
 func (s *chanStream[T]) Close() {}
+
+// Error returns a Stream that immediately produces err from Next.
+func Error[T any](err error) Stream[T] {
+	return errorStream[T]{err}
+}
+
+type errorStream[T any] struct {
+	err error
+}
+
+func (s errorStream[T]) Next(ctx context.Context) (T, error) {
+	var zero T
+	return zero, s.err
+}
+
+func (s errorStream[T]) Close() {}
 
 // FromIterator returns a Stream that yields the values from iter. This stream ignores the context
 // passed to Next during the call to iter.Next.
