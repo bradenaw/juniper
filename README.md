@@ -35,8 +35,7 @@ prefix for "extensions", e.g. `sort` and `xsort`.
 See the [docs](https://pkg.go.dev/github.com/bradenaw/juniper) for more.
 
 A few functions do not require generics (e.g. `parallel.Do` and `xmath/xrand.Sample`), and so this
-library still builds with Go 1.17 and below but with a significantly smaller API. Note that
-pkg.go.dev still builds with 1.17, so the documentation there is incomplete.
+library still builds with Go 1.17 and below but with a significantly smaller API.
 
 ## Status
 
