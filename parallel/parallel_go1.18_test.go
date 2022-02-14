@@ -64,6 +64,7 @@ func TestMapIterator(t *testing.T) {
 
 func TestMapStream(t *testing.T) {
 	strsStream := MapStream(
+		context.Background(),
 		stream.FromIterator(iterator.Counter(5)),
 		2, // parallelism
 		0, // bufferSize
@@ -79,6 +80,7 @@ func TestMapStream(t *testing.T) {
 func TestMapStreamError(t *testing.T) {
 	sender, receiver := stream.Pipe[int](0)
 	strsStream := MapStream(
+		context.Background(),
 		receiver,
 		2, // parallelism
 		0, // bufferSize

@@ -6,13 +6,13 @@ package parallel
 import (
 	"context"
 	"runtime"
+	"sync/atomic"
 
 	"golang.org/x/sync/errgroup"
 
+	"github.com/bradenaw/juniper/container/xheap"
 	"github.com/bradenaw/juniper/iterator"
-	"github.com/bradenaw/juniper/slices"
 	"github.com/bradenaw/juniper/stream"
-	"github.com/bradenaw/juniper/xsort"
 )
 
 // Map uses parallelism goroutines to call f once for each element of in. out[i] is the
@@ -63,8 +63,8 @@ func MapContext[T any, U any](
 //
 // If parallelism <= 0, uses GOMAXPROCS instead.
 //
-// bufferSize is the size of the work buffer for each goroutine. A larger buffer uses more memory
-// but gives better throughput in the face of larger variance in the processing time for f.
+// bufferSize is the size of the work buffer. A larger buffer uses more memory but gives better
+// throughput in the face of larger variance in the processing time for f.
 func MapIterator[T any, U any](
 	iter iterator.Iterator[T],
 	parallelism int,
@@ -94,32 +94,49 @@ func MapIterator[T any, U any](
 		close(in)
 	}()
 
-	outs := make([]chan valueAndIndex[U], parallelism)
+	c := make(chan valueAndIndex[U], bufferSize)
+	nDone := uint32(0)
 	for i := 0; i < parallelism; i++ {
-		i := i
-		outs[i] = make(chan valueAndIndex[U], bufferSize)
 		go func() {
 			for item := range in {
 				u := f(item.value)
-				outs[i] <- valueAndIndex[U]{value: u, idx: item.idx}
+				c <- valueAndIndex[U]{value: u, idx: item.idx}
 			}
-			close(outs[i])
+			if atomic.AddUint32(&nDone, 1) == uint32(parallelism) {
+				close(c)
+			}
 		}()
 	}
 
-	return iterator.Map(
-		xsort.Merge(
-			func(a, b valueAndIndex[U]) bool {
-				return a.idx < b.idx
-			},
-			slices.Map(outs, func(c chan valueAndIndex[U]) iterator.Iterator[valueAndIndex[U]] {
-				return iterator.Chan(c)
-			})...,
-		),
-		func(x valueAndIndex[U]) U {
-			return x.value
-		},
-	)
+	return &mapIterator[U]{
+		c: c,
+		h: xheap.New(func(a, b valueAndIndex[U]) bool {
+			return a.idx < b.idx
+		}, nil),
+		i: 0,
+	}
+}
+
+type mapIterator[U any] struct {
+	c <-chan valueAndIndex[U]
+	h xheap.Heap[valueAndIndex[U]]
+	i int
+}
+
+func (iter *mapIterator[U]) Next() (U, bool) {
+	for {
+		if iter.h.Len() > 0 && iter.h.Peek().idx == iter.i {
+			item := iter.h.Pop()
+			iter.i++
+			return item.value, true
+		}
+		item, ok := <-iter.c
+		if !ok {
+			var zero U
+			return zero, false
+		}
+		iter.h.Push(item)
+	}
 }
 
 type valueAndIndex[T any] struct {
@@ -135,9 +152,10 @@ type valueAndIndex[T any] struct {
 //
 // If parallelism <= 0, uses GOMAXPROCS instead.
 //
-// bufferSize is the size of the work buffer for each goroutine. A larger buffer uses more memory
-// but gives better throughput in the face of larger variance in the processing time for f.
+// bufferSize is the size of the work buffer. A larger buffer uses more memory but gives better
+// throughput in the face of larger variance in the processing time for f.
 func MapStream[T any, U any](
+	ctx context.Context,
 	s stream.Stream[T],
 	parallelism int,
 	bufferSize int,
@@ -149,7 +167,7 @@ func MapStream[T any, U any](
 
 	in := make(chan valueAndIndex[T])
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		defer s.Close()
@@ -176,19 +194,22 @@ func MapStream[T any, U any](
 		return nil
 	})
 
-	outs := make([]chan valueAndIndex[U], parallelism)
+	c := make(chan valueAndIndex[U], bufferSize)
+	nDone := uint32(0)
 	for i := 0; i < parallelism; i++ {
-		i := i
-		outs[i] = make(chan valueAndIndex[U], bufferSize)
 		eg.Go(func() error {
-			defer close(outs[i])
+			defer func() {
+				if atomic.AddUint32(&nDone, 1) == uint32(parallelism) {
+					close(c)
+				}
+			}()
 			for item := range in {
 				u, err := f(ctx, item.value)
 				if err != nil {
 					return err
 				}
 				select {
-				case outs[i] <- valueAndIndex[U]{value: u, idx: item.idx}:
+				case c <- valueAndIndex[U]{value: u, idx: item.idx}:
 				case <-ctx.Done():
 					return ctx.Err()
 				}
@@ -197,37 +218,50 @@ func MapStream[T any, U any](
 		})
 	}
 
-	sender, receiver := stream.Pipe[U](0)
+	return &mapStream[U]{
+		cancel: cancel,
+		eg:     eg,
+		c:      c,
+		h: xheap.New(func(a, b valueAndIndex[U]) bool {
+			return a.idx < b.idx
+		}, nil),
+		i: 0,
+	}
+}
 
-	go func() {
-		iter := iterator.Map(
-			xsort.Merge(
-				func(a, b valueAndIndex[U]) bool {
-					return a.idx < b.idx
-				},
-				slices.Map(outs, func(c chan valueAndIndex[U]) iterator.Iterator[valueAndIndex[U]] {
-					return iterator.Chan(c)
-				})...,
-			),
-			func(x valueAndIndex[U]) U {
-				return x.value
-			},
-		)
-		for {
-			item, ok := iter.Next()
-			if !ok {
-				break
-			}
-			err := sender.Send(ctx, item)
-			if err != nil {
-				// could be either the receiver hung up or one of the above goroutines ran into a
-				// problem (which would've cancelled ctx already), either way it's time to bail out
-				cancel()
-				break
-			}
+type mapStream[U any] struct {
+	cancel context.CancelFunc
+	eg     *errgroup.Group
+	c      <-chan valueAndIndex[U]
+	h      xheap.Heap[valueAndIndex[U]]
+	i      int
+}
+
+func (s *mapStream[U]) Next(ctx context.Context) (U, error) {
+	var zero U
+	for {
+		if s.h.Len() > 0 && s.h.Peek().idx == s.i {
+			item := s.h.Pop()
+			s.i++
+			return item.value, nil
 		}
-		sender.Close(eg.Wait())
-	}()
+		select {
+		case item, ok := <-s.c:
+			if !ok {
+				err := s.eg.Wait()
+				if err != nil {
+					return zero, err
+				}
+				return zero, stream.End
+			}
+			s.h.Push(item)
+		case <-ctx.Done():
+			return zero, ctx.Err()
+		}
+	}
+}
 
-	return receiver
+func (s *mapStream[U]) Close() {
+	s.cancel()
+	_ = s.eg.Wait()
 }
