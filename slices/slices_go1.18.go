@@ -1,5 +1,6 @@
 //go:build go1.18
 
+// Package slices contains utilities for working with slices of arbitrary types.
 package slices
 
 // All returns true if f(x[i]) returns true for all i. Trivially, returns true if x is empty.
