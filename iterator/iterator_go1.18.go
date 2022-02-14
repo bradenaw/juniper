@@ -1,6 +1,6 @@
 //go:build go1.18
 
-// package iterator allows iterating over sequences of values, for example the contents of a
+// Package iterator allows iterating over sequences of values, for example the contents of a
 // container.
 package iterator
 

@@ -1,6 +1,7 @@
 //go:build go1.18
 
-// package stream allows iterating over sequences of values where iteration may fail.
+// Package stream allows iterating over sequences of values where iteration may fail, for example
+// when it involves I/O.
 package stream
 
 import (

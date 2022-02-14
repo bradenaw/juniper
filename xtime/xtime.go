@@ -1,3 +1,4 @@
+// Package xtime contains extensions to the standard library package time.
 package xtime
 
 import (

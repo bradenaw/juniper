@@ -1,5 +1,6 @@
 //go:build go1.18
 
+// Package maps contains functions for manipulating maps.
 package maps
 
 import (

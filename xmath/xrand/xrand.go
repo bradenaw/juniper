@@ -1,3 +1,4 @@
+// Package xrand contains extensions to the standard library package math/rand.
 package xrand
 
 import (

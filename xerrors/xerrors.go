@@ -1,3 +1,4 @@
+// Package xerrors contains extensions to the standard library package errors.
 package xerrors
 
 import (

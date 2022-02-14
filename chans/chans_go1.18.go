@@ -1,5 +1,6 @@
 //go:build go1.18
 
+// Package chans contains functions for manipulating channels.
 package chans
 
 import (

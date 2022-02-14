@@ -1,6 +1,6 @@
 //go:build go1.18
 
-// package sets contains set operations like union, intersection, and difference.
+// Package sets contains set operations like union, intersection, and difference.
 package sets
 
 import (
@@ -8,6 +8,8 @@ import (
 	"github.com/bradenaw/juniper/xsort"
 )
 
+// Set is a minimal interface to a set. It is implemented by maps.Set and container/tree.Set, among
+// others.
 type Set[T any] interface {
 	Add(item T)
 	Remove(item T)
