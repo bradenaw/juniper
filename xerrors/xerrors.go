@@ -2,6 +2,7 @@
 package xerrors
 
 import (
+	"errors"
 	"runtime"
 	"strconv"
 	"strings"
@@ -39,10 +40,13 @@ func (err withStack) Unwrap() error {
 }
 
 // WithStack returns an error that wraps err and adds the call stack of the call to WithStack to
-// Error().
+// Error(). If err is nil or already has a stack attached, returns err.
 func WithStack(err error) error {
 	if err == nil {
 		return nil
+	}
+	if errors.Is(err, withStack{}) {
+		return err
 	}
 	var buf [64]uintptr
 	var ptrs []uintptr
