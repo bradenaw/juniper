@@ -76,6 +76,8 @@ func ExampleReplicate() {
 	}()
 
 	chans.Replicate(in, a, b)
+	close(a)
+	close(b)
 	wg.Wait()
 
 	// Unordered output:
