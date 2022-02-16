@@ -4,6 +4,7 @@ package chans_test
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/bradenaw/juniper/chans"
 )
@@ -54,11 +55,14 @@ func ExampleReplicate() {
 		close(in)
 	}()
 
+	var wg sync.WaitGroup
+	wg.Add(2)
 	a := make(chan int)
 	go func() {
 		for i := range a {
 			fmt.Println(i * 2)
 		}
+		wg.Done()
 	}()
 
 	b := make(chan int)
@@ -68,9 +72,11 @@ func ExampleReplicate() {
 			x += i
 			fmt.Println(x)
 		}
+		wg.Done()
 	}()
 
 	chans.Replicate(in, a, b)
+	wg.Wait()
 
 	// Unordered output:
 	// 0
