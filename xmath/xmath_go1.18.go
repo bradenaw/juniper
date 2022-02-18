@@ -3,7 +3,7 @@
 // Package xmath contains extensions to the standard library package math.
 package xmath
 
-import "constraints"
+import "golang.org/x/exp/constraints"
 
 // Min returns the minimum of a and b based on the < operator.
 func Min[T constraints.Ordered](a, b T) T {

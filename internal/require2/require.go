@@ -3,13 +3,14 @@
 package require2
 
 import (
-	"constraints"
 	"errors"
 	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
 	"testing"
+
+	"golang.org/x/exp/constraints"
 )
 
 func Equal[T comparable](t *testing.T, expected T, actual T) {
