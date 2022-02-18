@@ -5,25 +5,24 @@ package sets_test
 import (
 	"fmt"
 
-	"github.com/bradenaw/juniper/maps"
 	"github.com/bradenaw/juniper/sets"
 )
 
 func ExampleUnion() {
-	a := maps.Set[int]{
+	a := sets.Map[int]{
 		1: {},
 		4: {},
 	}
-	b := maps.Set[int]{
+	b := sets.Map[int]{
 		3: {},
 		4: {},
 	}
-	c := maps.Set[int]{
+	c := sets.Map[int]{
 		1: {},
 		5: {},
 	}
 
-	out := make(maps.Set[int])
+	out := make(sets.Map[int])
 
 	union := sets.Union[int](out, a, b, c)
 
@@ -34,23 +33,23 @@ func ExampleUnion() {
 }
 
 func ExampleIntersection() {
-	a := maps.Set[int]{
+	a := sets.Map[int]{
 		1: {},
 		2: {},
 		4: {},
 	}
-	b := maps.Set[int]{
+	b := sets.Map[int]{
 		1: {},
 		3: {},
 		4: {},
 	}
-	c := maps.Set[int]{
+	c := sets.Map[int]{
 		1: {},
 		4: {},
 		5: {},
 	}
 
-	out := make(maps.Set[int])
+	out := make(sets.Map[int])
 
 	intersection := sets.Intersection[int](out, a, b, c)
 
@@ -61,17 +60,17 @@ func ExampleIntersection() {
 }
 
 func ExampleDifference() {
-	a := maps.Set[int]{
+	a := sets.Map[int]{
 		1: {},
 		4: {},
 		5: {},
 	}
-	b := maps.Set[int]{
+	b := sets.Map[int]{
 		3: {},
 		4: {},
 	}
 
-	out := make(maps.Set[int])
+	out := make(sets.Map[int])
 
 	difference := sets.Difference[int](out, a, b)
 
