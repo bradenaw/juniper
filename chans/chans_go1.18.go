@@ -41,6 +41,7 @@ func Merge[T any](out chan<- T, in ...<-chan T) {
 		for item := range in[0] {
 			out <- item
 		}
+		return
 	} else if len(in) == 2 {
 		merge2(out, in[0], in[1])
 		return

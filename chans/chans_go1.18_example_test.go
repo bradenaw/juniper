@@ -27,13 +27,17 @@ func ExampleMerge() {
 	}()
 
 	out := make(chan int)
+	done := make(chan struct{})
 	go func() {
 		for i := range out {
 			fmt.Println(i)
 		}
+		close(done)
 	}()
 
 	chans.Merge(out, a, b)
+	close(out)
+	<-done
 
 	// Unordered output:
 	// 0

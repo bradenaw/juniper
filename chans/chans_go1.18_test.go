@@ -4,6 +4,8 @@ package chans
 
 import (
 	"math/rand"
+	"runtime"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -24,9 +26,10 @@ func FuzzMerge(f *testing.F) {
 		for i := range ins {
 			ins[i] = make(chan byte)
 		}
+		ins2 := slices.Map(ins, func(c chan byte) <-chan byte { return c })
 
 		go func() {
-			Merge(out, slices.Map(ins, func(c chan byte) <-chan byte { return c })...)
+			Merge(out, ins2...)
 			close(out)
 		}()
 
@@ -72,66 +75,71 @@ func FuzzMerge(f *testing.F) {
 
 func TestStressMerge(t *testing.T) {
 	t.Skip()
-	r := rand.New(rand.NewSource(time.Now().Unix()))
-
-	count := 0
+	count := uint64(0)
 	start := time.Now()
-	lastReport := time.Now()
 
-	for {
-		n := r.Intn(4) + 1
-
-		if count%10000 == 0 || time.Since(lastReport) > 3*time.Second {
-			t.Logf("%s %d", time.Since(start).Round(time.Second), count)
-			lastReport = time.Now()
-		}
-		count++
-
-		out := make(chan byte)
-		ins := make([]chan byte, n)
-		for i := range ins {
-			ins[i] = make(chan byte)
-		}
-		inDone := make([]bool, n)
-
-		go func() {
-			Merge(out, slices.Map(ins, func(c chan byte) <-chan byte { return c })...)
-			close(out)
-		}()
-
-		var inS []byte
-		var outS []byte
-		done := make(chan struct{})
-		go func() {
-			for item := range out {
-				outS = append(outS, item)
-			}
-			close(done)
-		}()
-
+	go func() {
 		for {
-			notDone := make([]int, 0, n)
-			for i := range ins {
-				if !inDone[i] {
-					notDone = append(notDone, i)
-				}
-			}
-			if len(notDone) == 0 {
-				break
-			}
-			idx := notDone[r.Intn(len(notDone))]
-			switch r.Intn(2) {
-			case 0:
-				v := byte(r.Intn(256))
-				inS = append(inS, v)
-				ins[idx] <- v
-			case 1:
-				close(ins[idx])
-				inDone[idx] = true
-			}
+			t.Logf("%s %d", time.Since(start).Round(time.Second), count)
+			time.Sleep(3 * time.Second)
 		}
-		<-done
+	}()
 
-		require2.SlicesEqual(t, inS, outS)
+	for i := 0; i < runtime.GOMAXPROCS(-1); i++ {
+		go func() {
+			r := rand.New(rand.NewSource(time.Now().Unix()))
+
+			for {
+				n := r.Intn(4) + 1
+
+				atomic.AddUint64(&count, 1)
+
+				out := make(chan byte)
+				ins := make([]chan byte, n)
+				for i := range ins {
+					ins[i] = make(chan byte)
+				}
+
+				ins2 := slices.Map(ins, func(c chan byte) <-chan byte { return c })
+				go func() {
+					Merge(out, ins2...)
+					close(out)
+				}()
+
+				var inS []byte
+				var outS []byte
+				done := make(chan struct{})
+				go func() {
+					for item := range out {
+						outS = append(outS, item)
+					}
+					close(done)
+				}()
+
+				for {
+					if len(ins) == 0 {
+						break
+					}
+					idx := r.Intn(len(ins))
+					switch r.Intn(2) {
+					case 0:
+						v := byte(r.Intn(256))
+						inS = append(inS, v)
+						ins[idx] <- v
+					case 1:
+						close(ins[idx])
+						nBefore := len(ins)
+						ins = slices.RemoveUnordered(ins, idx, 1)
+						require2.Equal(t, len(ins), nBefore-1)
+					}
+				}
+				<-done
+
+				require2.SlicesEqual(t, inS, outS)
+			}
+		}()
 	}
+
+	c := make(chan struct{})
+	<-c
 }

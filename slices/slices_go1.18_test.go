@@ -29,7 +29,7 @@ func FuzzPartition(f *testing.F) {
 
 func FuzzRemoveUnordered(f *testing.F) {
 	f.Fuzz(func(t *testing.T, l int, idx int, n int) {
-		if l < 0 || l > 255 || idx < 0 || idx >= l-1 || n < 0 || n > l-idx {
+		if l < 0 || l > 255 || idx < 0 || idx > l-1 || n < 0 || n > l-idx {
 			return
 		}
 
