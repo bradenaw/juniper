@@ -156,19 +156,6 @@ func filterInto[T any](into []T, x []T, keep func(t T) bool) []T {
 	return into
 }
 
-// Flatten returns a slice containing all of the elements of all elements of x.
-func Flatten[T any](x [][]T) []T {
-	n := 0
-	for i := range x {
-		n += len(x[i])
-	}
-	out := make([]T, 0, n)
-	for i := range x {
-		out = append(out, x[i]...)
-	}
-	return out
-}
-
 // Grow grows x's capacity by reallocating, if necessary, to fit n more elements and returns the
 // modified slice. This does not change the length of x. After Grow(x, n), the following n
 // append()s to x will not need to reallocate.

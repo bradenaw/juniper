@@ -181,21 +181,6 @@ func ExampleFilterInPlace() {
 	// [5 1 8 3]
 }
 
-func ExampleFlatten() {
-	x := [][]int{
-		{0, 1, 2},
-		{3, 4, 5, 6},
-		{7},
-	}
-
-	fmt.Println(x)
-	fmt.Println(slices.Flatten(x))
-
-	// Output:
-	// [[0 1 2] [3 4 5 6] [7]]
-	// [0 1 2 3 4 5 6 7]
-}
-
 func ExampleGrow() {
 	x := make([]int, 0, 1)
 	x = slices.Grow(x, 4)
