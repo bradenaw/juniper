@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/bradenaw/juniper/iterator"
@@ -796,6 +797,58 @@ func (s *mapStream[T, U]) Next(ctx context.Context) (U, error) {
 
 func (s *mapStream[T, U]) Close() {
 	s.inner.Close()
+}
+
+// Merge merges the in streams, returning a stream that yields all elements from all of them as they
+// arrive.
+func Merge[T any](in ...Stream[T]) Stream[T] {
+	sender, receiver := Pipe[T](0)
+	nDone := uint32(0)
+	closeOnce := uint32(0)
+	ctx, cancel := context.WithCancel(context.Background())
+	for i := 0; i < len(in); i++ {
+		i := i
+		go func() {
+			defer func() {
+				if int(atomic.AddUint32(&nDone, 1)) == len(in) &&
+					atomic.LoadUint32(&closeOnce) == 0 {
+					sender.Close(nil)
+				}
+			}()
+			for {
+				item, err := in[i].Next(ctx)
+				if err == End {
+					return
+				} else if err != nil {
+					if atomic.CompareAndSwapUint32(&closeOnce, 0, 1) {
+						cancel()
+						sender.Close(err)
+					}
+					return
+				}
+				err = sender.Send(ctx, item)
+				if err != nil {
+					// Implies ctx has expired or the receiver closed, either way we're done.
+					return
+				}
+			}
+		}()
+	}
+	return receiver
+}
+
+type mergeStream[T any] struct {
+	inner  Stream[T]
+	cancel func()
+}
+
+func (s *mergeStream[T]) Next(ctx context.Context) (T, error) {
+	return s.inner.Next(ctx)
+}
+
+func (s *mergeStream[T]) Close() {
+	s.inner.Close()
+	s.cancel()
 }
 
 // Runs returns a stream of streams. The inner streams yield contiguous elements from s such that

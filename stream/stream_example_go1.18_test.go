@@ -235,6 +235,37 @@ func ExampleMap() {
 	// [0 0.5 1 1.5 2]
 }
 
+func ExampleMerge() {
+	ctx := context.Background()
+
+	a := stream.FromIterator(iterator.Slice([]string{"a", "b", "c"}))
+	b := stream.FromIterator(iterator.Slice([]string{"x", "y", "z"}))
+	c := stream.FromIterator(iterator.Slice([]string{"m", "n"}))
+
+	s := stream.Merge(a, b, c)
+
+	for {
+		item, err := s.Next(ctx)
+		if err == stream.End {
+			break
+		} else if err != nil {
+			panic(err)
+		}
+
+		fmt.Println(item)
+	}
+
+	// Unordered output:
+	// m
+	// b
+	// a
+	// n
+	// x
+	// c
+	// z
+	// y
+}
+
 func ExampleOne() {
 	ctx := context.Background()
 
