@@ -140,7 +140,7 @@ func Merge[T any](less Less[T], in ...iterator.Iterator[T]) iterator.Iterator[T]
 	}
 }
 
-// Merge merges the already-sorted slices of in. Optionally, a pre-allocated out slice can be
+// MergeSlices merges the already-sorted slices of in. Optionally, a pre-allocated out slice can be
 // provided to store the result into.
 //
 // The results are undefined if the in slices are not already sorted.
