@@ -102,7 +102,9 @@ func TestMapStreamError(t *testing.T) {
 		if err == nil {
 			continue
 		}
-		require2.Equal(t, oopsError, err)
+		if err != oopsError {
+			t.Fatalf("%s", err)
+		}
 		break
 	}
 }

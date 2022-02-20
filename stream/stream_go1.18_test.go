@@ -96,9 +96,13 @@ func FuzzBatch(f *testing.F) {
 						t.Log("s.Next(ctx) at end")
 						_, err := s.Next(context.Background())
 						if sendClosedErr == nil {
-							require2.Equal(t, End, err)
+							if err != End {
+								t.Fatalf("%s", err)
+							}
 						} else {
-							require2.Equal(t, sendClosedErr, err)
+							if err != sendClosedErr {
+								t.Fatalf("%s", err)
+							}
 						}
 						return
 					} else {
@@ -114,9 +118,13 @@ func FuzzBatch(f *testing.F) {
 				// while
 				if sendClosed && err != nil {
 					if sendClosedErr == nil {
-						require2.Equal(t, End, err)
+						if err != End {
+							t.Fatalf("%s", err)
+						}
 					} else {
-						require2.Equal(t, sendClosedErr, err)
+						if err != sendClosedErr {
+							t.Fatalf("%s", err)
+						}
 					}
 					return
 				}
