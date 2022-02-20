@@ -8,7 +8,7 @@ import (
 
 	"github.com/bradenaw/juniper/internal/heap"
 	"github.com/bradenaw/juniper/iterator"
-	"github.com/bradenaw/juniper/slices"
+	"github.com/bradenaw/juniper/xslices"
 )
 
 // Returns true if a is less than b. Must follow the same rules as sort.Interface.Less.
@@ -151,8 +151,8 @@ func MergeSlices[T any](less Less[T], out []T, in ...[]T) []T {
 	for i := range in {
 		n += len(in[i])
 	}
-	out = slices.Grow(out[:0], n)
-	iter := Merge(less, slices.Map(in, iterator.Slice[T])...)
+	out = xslices.Grow(out[:0], n)
+	iter := Merge(less, xslices.Map(in, iterator.Slice[T])...)
 	for {
 		item, ok := iter.Next()
 		if !ok {

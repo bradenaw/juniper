@@ -5,7 +5,7 @@ import (
 	"context"
 	"reflect"
 
-	"github.com/bradenaw/juniper/slices"
+	"github.com/bradenaw/juniper/xslices"
 )
 
 // SendContext sends item on channel c and returns nil, unless ctx expires in which case it returns
@@ -48,7 +48,7 @@ func Merge[T any](out chan<- T, in ...<-chan T) {
 		return
 	}
 
-	selectCases := slices.Map(in, func(x <-chan T) reflect.SelectCase {
+	selectCases := xslices.Map(in, func(x <-chan T) reflect.SelectCase {
 		return reflect.SelectCase{
 			Dir:  reflect.SelectRecv,
 			Chan: reflect.ValueOf(x),
@@ -62,7 +62,7 @@ func Merge[T any](out chan<- T, in ...<-chan T) {
 		if ok {
 			out <- item.Interface().(T)
 		} else {
-			selectCases = slices.RemoveUnordered(selectCases, chosen, 1)
+			selectCases = xslices.RemoveUnordered(selectCases, chosen, 1)
 		}
 	}
 }

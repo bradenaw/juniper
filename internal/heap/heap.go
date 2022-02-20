@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/bradenaw/juniper/iterator"
-	"github.com/bradenaw/juniper/slices"
+	"github.com/bradenaw/juniper/xslices"
 )
 
 var ErrHeapModified = errors.New("heap modified during iteration")
@@ -43,7 +43,7 @@ func (h *Heap[T]) Len() int {
 }
 
 func (h *Heap[T]) Grow(n int) {
-	h.a = slices.Grow(h.a, n)
+	h.a = xslices.Grow(h.a, n)
 }
 
 func (h *Heap[T]) Push(item T) {

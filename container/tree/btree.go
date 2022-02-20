@@ -2,7 +2,7 @@ package tree
 
 import (
 	"github.com/bradenaw/juniper/iterator"
-	"github.com/bradenaw/juniper/slices"
+	"github.com/bradenaw/juniper/xslices"
 	"github.com/bradenaw/juniper/xsort"
 )
 
@@ -251,9 +251,9 @@ func (t *btree[K, V]) overfill(x *node[K, V], k K, v V, afterK *node[K, V]) {
 			}
 		}
 
-		slices.Clear(left.keys[int(left.n):])
-		slices.Clear(left.values[int(left.n):])
-		slices.Clear(left.children[int(left.n)+1:])
+		xslices.Clear(left.keys[int(left.n):])
+		xslices.Clear(left.values[int(left.n):])
+		xslices.Clear(left.children[int(left.n)+1:])
 
 		if x == t.root {
 			parent := &node[K, V]{}
@@ -269,7 +269,7 @@ func (t *btree[K, V]) overfill(x *node[K, V], k K, v V, afterK *node[K, V]) {
 
 		parent := left.parent
 		if !parent.full() {
-			idxInParent := slices.Index(parent.children[:], left)
+			idxInParent := xslices.Index(parent.children[:], left)
 			insertOne(parent.keys[:int(parent.n)+1], idxInParent, sepKey)
 			insertOne(parent.values[:int(parent.n)+1], idxInParent, sepValue)
 			insertOne(parent.children[:int(parent.n)+2], idxInParent+1, right)
@@ -311,7 +311,7 @@ func (t *btree[K, V]) merge(x *node[K, V]) {
 //            └╴•╶─╴•╶─╴•╶─╴•╶┘  └╴•╶─╴•╶────────┘               └╴•╶─╴•╶─╴•╶─╴•╶┘                //
 func (t *btree[K, V]) mergeTwo(left, right *node[K, V]) {
 	parent := left.parent
-	idxInParent := slices.Index(parent.children[:], left)
+	idxInParent := xslices.Index(parent.children[:], left)
 	sepKey := parent.keys[idxInParent]
 	sepValue := parent.values[idxInParent]
 
@@ -384,7 +384,7 @@ func (t *btree[K, V]) siblings(x *node[K, V]) (*node[K, V], *node[K, V]) {
 	if x.parent == nil {
 		return nil, nil
 	}
-	idx := slices.Index(x.parent.children[:], x)
+	idx := xslices.Index(x.parent.children[:], x)
 	var left, right *node[K, V]
 	if idx > 0 {
 		left = x.parent.children[idx-1]
@@ -412,7 +412,7 @@ func (t *btree[K, V]) siblings(x *node[K, V]) (*node[K, V], *node[K, V]) {
 //
 // Assumes left and right are siblings and right is not full.
 func (t *btree[K, V]) rotateRight(left *node[K, V], right *node[K, V]) {
-	idxInParent := slices.Index(left.parent.children[:], left)
+	idxInParent := xslices.Index(left.parent.children[:], left)
 	oldSepK := left.parent.keys[idxInParent]
 	oldSepV := left.parent.values[idxInParent]
 	child := left.children[left.n]
@@ -456,7 +456,7 @@ func (t *btree[K, V]) rotateRight(left *node[K, V], right *node[K, V]) {
 //
 // Assumes left and right are siblings and left is not full.
 func (t *btree[K, V]) rotateLeft(left *node[K, V], right *node[K, V]) {
-	idxInParent := slices.Index(right.parent.children[:], right)
+	idxInParent := xslices.Index(right.parent.children[:], right)
 	oldSepK := right.parent.keys[idxInParent-1]
 	oldSepV := right.parent.values[idxInParent-1]
 	child := right.children[0]
@@ -524,7 +524,7 @@ func removeOne[T any](a []T, idx int) {
 
 // Inserts x into a at index idx, shifting the rest of the elements over. Clobbers a[len(a)-1].
 //
-// Faster in this package than slices.Insert for use on node.{keys,values,children} since they never
+// Faster in this package than xslices.Insert for use on node.{keys,values,children} since they never
 // grow.
 func insertOne[T any](a []T, idx int, x T) {
 	copy(a[idx+1:], a[idx:])
@@ -649,7 +649,7 @@ func (c *cursor[K, V]) Next() {
 			c.curr = nil
 			return
 		}
-		idx := slices.Index(c.curr.parent.children[:], c.curr)
+		idx := xslices.Index(c.curr.parent.children[:], c.curr)
 		c.curr = c.curr.parent
 		c.i = idx
 		if c.i < int(c.curr.n) {
@@ -686,7 +686,7 @@ func (c *cursor[K, V]) Prev() {
 			c.curr = nil
 			return
 		}
-		idx := slices.Index(c.curr.parent.children[:], c.curr)
+		idx := xslices.Index(c.curr.parent.children[:], c.curr)
 		c.curr = c.curr.parent
 		c.i = idx - 1
 		if c.i >= 0 {

@@ -4,7 +4,8 @@
 [![Go 1.18](https://github.com/bradenaw/juniper/actions/workflows/go1.18.yml/badge.svg)](https://github.com/bradenaw/juniper/actions/workflows/go1.18.yml)
 [![Fuzz](https://github.com/bradenaw/juniper/actions/workflows/fuzz.yml/badge.svg)](https://github.com/bradenaw/juniper/actions/workflows/fuzz.yml)
 
-Juniper is a library of extensions to the Go standard library using generics, including containers.
+Juniper is a library of extensions to the Go standard library using generics, including containers,
+iterators, and streams.
 
 - `container/tree` contains a `Map` and `Set` that keep elements in sorted order. They are
   implemented using a B-tree, which performs better than a binary search tree.
@@ -13,8 +14,8 @@ Juniper is a library of extensions to the Go standard library using generics, in
   more ergonomic, along with a `PriorityQueue` that allows setting priorities by key.
 - `container/xlist` contains a linked-list similar to the standard library's `container/list`, but
   type-safe.
-- `slices` contains some commonly-used slice operations, like `Insert`, `Remove`, `Chunk`, `Filter`,
-  and `Compact`.
+- `xslices` contains some commonly-used slice operations, like `Insert`, `Remove`, `Chunk`,
+  `Filter`, and `Compact`.
 - `iterator` contains an iterator interface used by the containers, along with functions to
   manipulate them, like `Map`, `While`, and `Reduce`.
 - `stream` contains a stream interface, which is an iterator that can fail. Useful for iterating
@@ -25,11 +26,12 @@ Juniper is a library of extensions to the Go standard library using generics, in
 - `xsort` contains extensions to the standard library package `sort`. Notably, it also has the
   definition for `xsort.Less`, which is how custom orderings can be defined for sorting and also for
   ordered collections like from `container/tree`.
-- You can probably guess what's in the packages `maps`, `sets`, `xerrors`, `xmath`, `xmath/xrand`,
-  `xsync`, and `xtime`.
+- You can probably guess what's in the packages `sets`, `xerrors`, `xmath`, `xmath/xrand`, `xsync`,
+  and `xtime`.
 
 Packages that overlap directly with a standard library package are named the same but with an `x`
-prefix for "extensions", e.g. `sort` and `xsort`.
+prefix for "extensions", e.g. `sort` and `xsort`. `xslices` is named so because a `slices` package
+is planned for Go 1.19.
 
 See the [docs](https://pkg.go.dev/github.com/bradenaw/juniper) for more.
 

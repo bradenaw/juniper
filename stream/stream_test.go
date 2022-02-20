@@ -13,8 +13,8 @@ import (
 	"github.com/bradenaw/juniper/internal/require2"
 	"github.com/bradenaw/juniper/internal/tseq"
 	"github.com/bradenaw/juniper/iterator"
-	"github.com/bradenaw/juniper/slices"
 	"github.com/bradenaw/juniper/xmath"
+	"github.com/bradenaw/juniper/xslices"
 )
 
 type intError int
@@ -209,7 +209,7 @@ func TestChunk(t *testing.T) {
 			t.Run(fmt.Sprintf("streamLen=%d,chunkSize=%d", streamLen, chunkSize), func(t *testing.T) {
 				tseq.Run(t, func(tseq *tseq.TSeq) {
 					x := iterator.Collect(iterator.Counter(streamLen))
-					expected := slices.Chunk(x, chunkSize)
+					expected := xslices.Chunk(x, chunkSize)
 					in := FromIterator(iterator.Slice(x))
 					s := &tseqStream[int]{in, tseq, false}
 					chunked := collectWithRetries(Chunk[int](s, chunkSize))

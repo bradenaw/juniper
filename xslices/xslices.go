@@ -1,5 +1,5 @@
-// Package slices contains utilities for working with slices of arbitrary types.
-package slices
+// Package xslices contains utilities for working with slices of arbitrary types.
+package xslices
 
 // All returns true if f(x[i]) returns true for all i. Trivially, returns true if x is empty.
 func All[T any](x []T, f func(T) bool) bool {
@@ -324,7 +324,7 @@ func Reverse[T any](x []T) {
 	}
 }
 
-// Runs returns a slice of slices. The inner slices are contiguous runs of elements from x such
+// Runs returns a slice of xslices. The inner slices are contiguous runs of elements from x such
 // that same(a, b) returns true for any a and b in the run.
 //
 // same(a, a) must return true. If same(a, b) and same(b, c) both return true, then same(a, c) must

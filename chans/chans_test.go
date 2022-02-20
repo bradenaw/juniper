@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/bradenaw/juniper/internal/require2"
-	"github.com/bradenaw/juniper/slices"
+	"github.com/bradenaw/juniper/xslices"
 )
 
 func FuzzMerge(f *testing.F) {
@@ -24,7 +24,7 @@ func FuzzMerge(f *testing.F) {
 		for i := range ins {
 			ins[i] = make(chan byte)
 		}
-		ins2 := slices.Map(ins, func(c chan byte) <-chan byte { return c })
+		ins2 := xslices.Map(ins, func(c chan byte) <-chan byte { return c })
 
 		go func() {
 			Merge(out, ins2...)
@@ -56,7 +56,7 @@ func FuzzMerge(f *testing.F) {
 				ins[idx] <- b[2]
 			case 1:
 				close(ins[idx])
-				ins = slices.RemoveUnordered(ins, idx, 1)
+				ins = xslices.RemoveUnordered(ins, idx, 1)
 			default:
 				break Loop
 			}
@@ -98,7 +98,7 @@ func TestStressMerge(t *testing.T) {
 					ins[i] = make(chan byte)
 				}
 
-				ins2 := slices.Map(ins, func(c chan byte) <-chan byte { return c })
+				ins2 := xslices.Map(ins, func(c chan byte) <-chan byte { return c })
 				go func() {
 					Merge(out, ins2...)
 					close(out)
@@ -127,7 +127,7 @@ func TestStressMerge(t *testing.T) {
 					case 1:
 						close(ins[idx])
 						nBefore := len(ins)
-						ins = slices.RemoveUnordered(ins, idx, 1)
+						ins = xslices.RemoveUnordered(ins, idx, 1)
 						require2.Equal(t, len(ins), nBefore-1)
 					}
 				}

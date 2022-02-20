@@ -9,7 +9,7 @@ import (
 	"github.com/bradenaw/juniper/internal/orderedhashmap"
 	"github.com/bradenaw/juniper/internal/require2"
 	"github.com/bradenaw/juniper/iterator"
-	"github.com/bradenaw/juniper/slices"
+	"github.com/bradenaw/juniper/xslices"
 	"github.com/bradenaw/juniper/xsort"
 )
 
@@ -429,9 +429,9 @@ func TestMergeMulti(t *testing.T) {
 	t.Logf("removed %#v", removed)
 	t.Logf(treeToString(tree))
 
-	expected = slices.Remove(
+	expected = xslices.Remove(
 		expected,
-		slices.IndexFunc(expected, func(pair KVPair[uint16, int]) bool {
+		xslices.IndexFunc(expected, func(pair KVPair[uint16, int]) bool {
 			return pair.Key == removed
 		}),
 		1,
@@ -631,11 +631,11 @@ func checkTree[K comparable, V comparable](t *testing.T, tree *btree[K, V]) {
 			require2.GreaterOrEqual(t, int(x.n), minKVs)
 		}
 		require2.True(t, xsort.SliceIsSorted(x.keys[:int(x.n)], tree.less))
-		require2.True(t, slices.All(x.keys[int(x.n):], isZero[K]))
-		require2.True(t, slices.All(x.values[int(x.n):], isZero[V]))
+		require2.True(t, xslices.All(x.keys[int(x.n):], isZero[K]))
+		require2.True(t, xslices.All(x.values[int(x.n):], isZero[V]))
 		require2.Truef(
 			t,
-			slices.All(x.children[int(x.n)+1:], isZero[*node[K, V]]),
+			xslices.All(x.children[int(x.n)+1:], isZero[*node[K, V]]),
 			"%p %#v",
 			x,
 			x.children[int(x.n)+1:],
@@ -725,9 +725,9 @@ func TestAmalgam1(t *testing.T) {
 			var expectedChildren [branchFactor + 1]*node[byte, byte]
 			copy(expectedChildren[:], children[:])
 			idx := xsort.Search(expectedKeys[:len(expectedKeys)-1], xsort.OrderedLess[byte], extraKey)
-			slices.Insert(expectedKeys[:len(expectedKeys)-1], idx, extraKey)
-			slices.Insert(expectedValues[:len(expectedKeys)-1], idx, extraValue)
-			slices.Insert(expectedChildren[:len(expectedChildren)-1], idx+1, extraChild)
+			xslices.Insert(expectedKeys[:len(expectedKeys)-1], idx, extraKey)
+			xslices.Insert(expectedValues[:len(expectedKeys)-1], idx, extraValue)
+			xslices.Insert(expectedChildren[:len(expectedChildren)-1], idx+1, extraChild)
 			require2.Truef(
 				t,
 				xsort.SliceIsSorted(expectedKeys[:], xsort.OrderedLess[byte]),
