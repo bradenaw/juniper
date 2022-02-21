@@ -161,8 +161,21 @@ func MapIterator[T any, U any](
 	if parallelism <= 0 {
 		parallelism = runtime.GOMAXPROCS(-1)
 	}
+	if bufferSize < parallelism {
+		bufferSize = parallelism
+	}
 
 	in := make(chan valueAndIndex[T])
+	mIter := &mapIterator[U]{
+		ch: make(chan valueAndIndex[U]),
+		h: xheap.New(func(a, b valueAndIndex[U]) bool {
+			return a.idx < b.idx
+		}, nil),
+		i:          0,
+		bufferSize: bufferSize,
+		inFlight:   0,
+	}
+	mIter.cond = sync.NewCond(&mIter.m)
 
 	go func() {
 		i := 0
@@ -171,6 +184,13 @@ func MapIterator[T any, U any](
 			if !ok {
 				break
 			}
+
+			mIter.m.Lock()
+			for mIter.inFlight >= bufferSize {
+				mIter.cond.Wait()
+			}
+			mIter.inFlight++
+			mIter.m.Unlock()
 
 			in <- valueAndIndex[T]{
 				value: item,
@@ -181,33 +201,29 @@ func MapIterator[T any, U any](
 		close(in)
 	}()
 
-	c := make(chan valueAndIndex[U], bufferSize)
 	nDone := uint32(0)
 	for i := 0; i < parallelism; i++ {
 		go func() {
 			for item := range in {
 				u := f(item.value)
-				c <- valueAndIndex[U]{value: u, idx: item.idx}
+				mIter.ch <- valueAndIndex[U]{value: u, idx: item.idx}
 			}
 			if atomic.AddUint32(&nDone, 1) == uint32(parallelism) {
-				close(c)
+				close(mIter.ch)
 			}
 		}()
 	}
-
-	return &mapIterator[U]{
-		c: c,
-		h: xheap.New(func(a, b valueAndIndex[U]) bool {
-			return a.idx < b.idx
-		}, nil),
-		i: 0,
-	}
+	return mIter
 }
 
 type mapIterator[U any] struct {
-	c <-chan valueAndIndex[U]
-	h xheap.Heap[valueAndIndex[U]]
-	i int
+	ch         chan valueAndIndex[U]
+	m          sync.Mutex
+	cond       *sync.Cond
+	bufferSize int
+	inFlight   int
+	h          xheap.Heap[valueAndIndex[U]]
+	i          int
 }
 
 func (iter *mapIterator[U]) Next() (U, bool) {
@@ -215,9 +231,16 @@ func (iter *mapIterator[U]) Next() (U, bool) {
 		if iter.h.Len() > 0 && iter.h.Peek().idx == iter.i {
 			item := iter.h.Pop()
 			iter.i++
+
+			iter.m.Lock()
+			iter.inFlight--
+			if iter.inFlight == iter.bufferSize-1 {
+				iter.cond.Broadcast()
+			}
+			iter.m.Unlock()
 			return item.value, true
 		}
-		item, ok := <-iter.c
+		item, ok := <-iter.ch
 		if !ok {
 			var zero U
 			return zero, false
@@ -251,8 +274,15 @@ func MapStream[T any, U any](
 	if parallelism <= 0 {
 		parallelism = runtime.GOMAXPROCS(-1)
 	}
+	if bufferSize < parallelism {
+		bufferSize = parallelism
+	}
 
 	in := make(chan valueAndIndex[T])
+	ready := make(chan struct{}, bufferSize)
+	for i := 0; i < bufferSize; i++ {
+		ready <- struct{}{}
+	}
 
 	ctx, cancel := context.WithCancel(ctx)
 	eg, ctx := errgroup.WithContext(ctx)
@@ -269,12 +299,17 @@ func MapStream[T any, U any](
 			}
 
 			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-ready:
+			}
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
 			case in <- valueAndIndex[T]{
 				value: item,
 				idx:   i,
 			}:
-			case <-ctx.Done():
-				return ctx.Err()
 			}
 			i++
 		}
@@ -309,6 +344,7 @@ func MapStream[T any, U any](
 		cancel: cancel,
 		eg:     eg,
 		c:      c,
+		ready:  ready,
 		h: xheap.New(func(a, b valueAndIndex[U]) bool {
 			return a.idx < b.idx
 		}, nil),
@@ -320,6 +356,7 @@ type mapStream[U any] struct {
 	cancel context.CancelFunc
 	eg     *errgroup.Group
 	c      <-chan valueAndIndex[U]
+	ready  chan struct{}
 	h      xheap.Heap[valueAndIndex[U]]
 	i      int
 }
@@ -330,6 +367,7 @@ func (s *mapStream[U]) Next(ctx context.Context) (U, error) {
 		if s.h.Len() > 0 && s.h.Peek().idx == s.i {
 			item := s.h.Pop()
 			s.i++
+			s.ready <- struct{}{}
 			return item.value, nil
 		}
 		select {
