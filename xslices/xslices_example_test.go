@@ -201,6 +201,31 @@ func ExampleGrow() {
 	// true
 }
 
+func ExampleGroup() {
+	words := []string{
+		"bank",
+		"beach",
+		"ghost",
+		"goat",
+		"group",
+		"yaw",
+		"yew",
+	}
+
+	groups := xslices.Group(words, func(s string) rune {
+		return ([]rune(s))[0]
+	})
+
+	for firstChar, group := range groups {
+		fmt.Printf("%c: %v\n", firstChar, group)
+	}
+
+	// Unordered output:
+	// b: [bank beach]
+	// g: [ghost goat group]
+	// y: [yaw yew]
+}
+
 func ExampleIndex() {
 	x := []string{"a", "b", "a", "a", "b"}
 

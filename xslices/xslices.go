@@ -154,6 +154,16 @@ func filterInto[T any](into []T, x []T, keep func(t T) bool) []T {
 	return into
 }
 
+// Group returns a map from a group defined by the function group and its members.
+func Group[T any, U comparable](a []T, group func(T) U) map[U][]T {
+	m := make(map[U][]T)
+	for i := range a {
+		g := group(a[i])
+		m[g] = append(m[g], a[i])
+	}
+	return m
+}
+
 // Grow grows x's capacity by reallocating, if necessary, to fit n more elements and returns the
 // modified slice. This does not change the length of x. After Grow(x, n), the following n
 // append()s to x will not need to reallocate.
