@@ -154,7 +154,7 @@ func filterInto[T any](into []T, x []T, keep func(t T) bool) []T {
 	return into
 }
 
-// Group returns a map from a group defined by the function group and its members.
+// Group returns a map from a group defined by the function group to its members.
 func Group[T any, U comparable](a []T, group func(T) U) map[U][]T {
 	m := make(map[U][]T)
 	for i := range a {
