@@ -257,8 +257,9 @@ func Map[T any, U any](x []T, f func(T) U) []U {
 
 // Partition moves elements of x such that all elements for which f returns false are at the
 // beginning and all elements for which f returns true are at the end. It makes no other guarantees
-// about the final order of elements.
-func Partition[T any](x []T, f func(t T) bool) {
+// about the final order of elements. Returns the index of the first element for which f returned
+// true, or len(x) if there wasn't one.
+func Partition[T any](x []T, f func(t T) bool) int {
 	i := 0
 	j := len(x) - 1
 	for {
@@ -283,6 +284,10 @@ func Partition[T any](x []T, f func(t T) bool) {
 		i++
 		j--
 	}
+	if i < len(x) && !f(x[i]) {
+		i++
+	}
+	return i
 }
 
 // Reduce reduces x to a single value using the reduction function f.

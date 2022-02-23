@@ -10,17 +10,18 @@ func FuzzPartition(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte) {
 		test := func(x byte) bool { return x%2 == 0 }
 
-		Partition(b, test)
+		t.Logf("in: %#v", b)
+		t.Logf("in test: %#v", Map(b, test))
+		idx := Partition(b, test)
+		t.Logf("out: %#v", b)
+		t.Logf("out test: %#v", Map(b, test))
+		t.Logf("out idx: %d", idx)
 
-		for i := range b {
-			if test(b[i]) {
-				for j := i + 1; j < len(b); j++ {
-					if !test(b[j]) {
-						t.FailNow()
-					}
-				}
-				break
-			}
+		for i := 0; i < idx; i++ {
+			require2.True(t, !test(b[i]))
+		}
+		for i := idx; i < len(b); i++ {
+			require2.True(t, test(b[i]))
 		}
 	})
 }
