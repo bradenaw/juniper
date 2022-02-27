@@ -73,6 +73,18 @@ func (iter *counterIterator) Next() (int, bool) {
 	return item, true
 }
 
+// Empty returns an iterator that yields no items.
+func Empty[T any]() Iterator[T] {
+	return emptyIterator[T]{}
+}
+
+type emptyIterator[T any] struct{}
+
+func (iter emptyIterator[T]) Next() (T, bool) {
+	var zero T
+	return zero, false
+}
+
 // Repeat returns an iterator that yields item n times.
 func Repeat[T any](item T, n int) Iterator[T] {
 	return &repeatIterator[T]{

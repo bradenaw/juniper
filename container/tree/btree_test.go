@@ -21,6 +21,7 @@ func FuzzBtree(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte) {
 		tree := newBtree[uint16, int](xsort.OrderedLess[uint16])
 		cursor := tree.Cursor()
+		cursor.SeekFirst()
 		oracle := orderedhashmap.NewMap[uint16, int](xsort.OrderedLess[uint16])
 		oracleCursor := oracle.Cursor()
 
@@ -49,6 +50,7 @@ func FuzzBtree(f *testing.F) {
 				})
 
 				c := tree.Cursor()
+				c.SeekFirst()
 				treePairs := iterator.Collect(c.Forward())
 
 				require2.SlicesEqual(t, oraclePairs, treePairs)
@@ -412,6 +414,7 @@ func TestMergeMulti(t *testing.T) {
 	}
 
 	c := tree.Cursor()
+	c.SeekFirst()
 	expected := iterator.Collect(c.Forward())
 	nNodesBefore := numNodes(tree)
 	var removed uint16
@@ -438,6 +441,7 @@ func TestMergeMulti(t *testing.T) {
 	)
 	nNodesAfter := numNodes(tree)
 	c = tree.Cursor()
+	c.SeekFirst()
 	actual := iterator.Collect(c.Forward())
 
 	require2.SlicesEqual(t, expected, actual)
@@ -766,4 +770,39 @@ func TestAmalgam1(t *testing.T) {
 	for i := 0; i < maxKVs+1; i++ {
 		check(byte(i*2+1), byte(i*4+1))
 	}
+}
+
+func TestRange(t *testing.T) {
+	tree := newBtree[uint16, int](xsort.OrderedLess[uint16])
+
+	for i := 0; i < 128; i++ {
+		tree.Put(uint16(i), i)
+	}
+
+	keys := func(iter iterator.Iterator[KVPair[uint16, int]]) []uint16 {
+		return iterator.Collect(iterator.Map(iter, func(pair KVPair[uint16, int]) uint16 {
+			return pair.Key
+		}))
+	}
+	check := func(lower Bound[uint16], upper Bound[uint16], expected []uint16) {
+		require2.SlicesEqual(t, keys(tree.Range(lower, upper)), expected)
+		r := keys(tree.RangeReverse(lower, upper))
+		xslices.Reverse(r)
+		require2.SlicesEqual(t, r, expected)
+	}
+
+	check(
+		Included(uint16(5)), Included(uint16(16)),
+		[]uint16{5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+	)
+
+	check(
+		Unbounded[uint16](), Excluded(uint16(4)),
+		[]uint16{0, 1, 2, 3},
+	)
+
+	check(
+		Excluded(uint16(123)), Unbounded[uint16](),
+		[]uint16{124, 125, 126, 127},
+	)
 }

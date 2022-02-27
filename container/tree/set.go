@@ -53,101 +53,38 @@ func (s Set[T]) Last() T {
 	return item
 }
 
-// Iterate returns an iterator that yields the elements of the set in sorted order.
+// Iterate returns an iterator that yields the elements of the set in ascending order.
 //
 // The set may be safely modified during iteration and the iterator will continue from the
 // next-lowest item. Thus the iterator will see new items that are after the current position
 // of the iterator according to less, but will not necessarily see a consistent snapshot of the
 // state of the set.
 func (s Set[T]) Iterate() iterator.Iterator[T] {
-	return s.Cursor().Forward()
+	return s.Range(Unbounded[T](), Unbounded[T]())
 }
 
-// Cursor returns a cursor into the set placed at the first item.
-func (s Set[T]) Cursor() *SetCursor[T] {
-	inner := s.t.Cursor()
-	return &SetCursor[T]{
-		inner: inner,
-	}
-}
-
-// SetCursor is a cursor into a Set.
+// Range returns an iterator that yields the elements of the set between the given bounds in
+// ascending order.
 //
-// A cursor is usable while a set is being modified. If the item the cursor is at is deleted, the
-// cursor will still return the old item until it is moved.
-type SetCursor[T any] struct {
-	inner cursor[T, struct{}]
-}
-
-// SeekFirst moves the cursor to the first item in the set.
-//
-// SeekFirst is O(log(n)).
-func (c *SetCursor[T]) SeekFirst() { c.inner.SeekFirst() }
-
-// SeekLast moves the cursor to the last item in the set.
-//
-// SeekLast is O(log(n)).
-func (c *SetCursor[T]) SeekLast() { c.inner.SeekLast() }
-
-// SeekLastLess moves the cursor to the item in the set just before x.
-//
-// SeekLastLess is O(log(n)).
-func (c *SetCursor[T]) SeekLastLess(x T) { c.inner.SeekLastLess(x) }
-
-// SeekLastLessOrEqual moves the cursor to the greatest item in the set that is less than or equal
-// to x.
-//
-// SeekLastLessOrEqual is O(log(n)).
-func (c *SetCursor[T]) SeekLastLessOrEqual(x T) { c.inner.SeekLastLessOrEqual(x) }
-
-// SeekFirstGreaterOrEqual moves the cursor to the least item in the set that is greater than or
-// equal to x.
-//
-// SeetFirstGreaterOrEqual is O(log(n)).
-func (c *SetCursor[T]) SeekFirstGreaterOrEqual(x T) { c.inner.SeekFirstGreaterOrEqual(x) }
-
-// SeekFirstGreater moves the cursor to the item in the set just after x.
-//
-// SeekFirstGreater is O(log(n)).
-func (c *SetCursor[T]) SeekFirstGreater(x T) { c.inner.SeekFirstGreater(x) }
-
-// Next moves the cursor to the next item in the set.
-//
-// Next is amortized O(1) unless the map has been modified since the last cursor move, in which
-// case it's O(log(n)).
-func (c *SetCursor[T]) Next() { c.inner.Next() }
-
-// Prev moves the cursor to the previous item in the set.
-//
-// Prev is amortized O(1) unless the map has been modified since the last cursor move, in which
-// case it's O(log(n)).
-func (c *SetCursor[T]) Prev() { c.inner.Prev() }
-
-// Ok returns false if the cursor is not currently placed at an item, for example if Next advances
-// past the last item.
-func (c *SetCursor[T]) Ok() bool { return c.inner.Ok() }
-
-// Item returns the item that the cursor is at. Panics if Ok is false.
-func (c *SetCursor[T]) Item() T { return c.inner.Key() }
-
-// Forward returns an iterator that starts from the cursor's position and yields all of the elements
-// greater than or equal to the cursor in ascending order.
-//
-// This iterator's Next method is amortized O(1), unless the map changes in which case the
-// following Next is O(log(n)) where n is the number of elements in the map.
-func (c *SetCursor[T]) Forward() iterator.Iterator[T] {
-	return iterator.Map(c.inner.Forward(), func(pair KVPair[T, struct{}]) T {
+// The set may be safely modified during iteration and the iterator will continue from the
+// next-lowest item. Thus the iterator will see new items that are after the current position
+// of the iterator according to less, but will not necessarily see a consistent snapshot of the
+// state of the set.
+func (s Set[T]) Range(lower Bound[T], upper Bound[T]) iterator.Iterator[T] {
+	return iterator.Map(s.t.Range(lower, upper), func(pair KVPair[T, struct{}]) T {
 		return pair.Key
 	})
 }
 
-// Backward returns an iterator that starts from the cursor's position and yields all of the
-// elements less than or equal to the cursor in descending order.
+// RangeReverse returns an iterator that yields the elements of the set between the given bounds in
+// descending order.
 //
-// This iterator's Next method is amortized O(1), unless the map changes in which case the
-// following Next is O(log(n)) where n is the number of elements in the map.
-func (c *SetCursor[T]) Backward() iterator.Iterator[T] {
-	return iterator.Map(c.inner.Backward(), func(pair KVPair[T, struct{}]) T {
+// The set may be safely modified during iteration and the iterator will continue from the
+// next-lowest item. Thus the iterator will see new items that are after the current position
+// of the iterator according to less, but will not necessarily see a consistent snapshot of the
+// state of the set.
+func (s Set[T]) RangeReverse(lower Bound[T], upper Bound[T]) iterator.Iterator[T] {
+	return iterator.Map(s.t.RangeReverse(lower, upper), func(pair KVPair[T, struct{}]) T {
 		return pair.Key
 	})
 }

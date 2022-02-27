@@ -75,6 +75,20 @@ func (s *chanStream[T]) Next(ctx context.Context) (T, error) {
 
 func (s *chanStream[T]) Close() {}
 
+// Empty returns a Stream that yields stream.End immediately.
+func Empty[T any]() Stream[T] {
+	return emptyStream[T]{}
+}
+
+type emptyStream[T any] struct{}
+
+func (s emptyStream[T]) Next(ctx context.Context) (T, error) {
+	var zero T
+	return zero, End
+}
+
+func (s emptyStream[T]) Close() {}
+
 // Error returns a Stream that immediately produces err from Next.
 func Error[T any](err error) Stream[T] {
 	return errorStream[T]{err}

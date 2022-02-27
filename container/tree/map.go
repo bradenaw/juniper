@@ -65,97 +65,57 @@ func (m Map[K, V]) Last() (K, V) {
 	return m.t.Last()
 }
 
-// Iterate returns an iterator that yields the elements of the map in sorted order by key.
+// Iterate returns an iterator that yields the elements of the map in ascending order by key.
 //
 // The map may be safely modified during iteration and the iterator will continue from the
 // next-lowest key. Thus the iterator will see new elements that are after the current position of
 // the iterator according to less, but will not necessarily see a consistent snapshot of the state
 // of the map.
 func (m Map[K, V]) Iterate() iterator.Iterator[KVPair[K, V]] {
-	return m.Cursor().Forward()
+	return m.Range(Unbounded[K](), Unbounded[K]())
 }
 
-// Cursor returns a cursor into the map placed at the first element.
-func (m Map[K, V]) Cursor() *MapCursor[K, V] {
-	inner := m.t.Cursor()
-	return &MapCursor[K, V]{
-		inner: inner,
-	}
+type boundType int
+
+const (
+	boundInclude boundType = iota + 1
+	boundExclude
+	boundUnbounded
+)
+
+// Bound is an endpoint for a range.
+type Bound[K any] struct {
+	type_ boundType
+	key   K
 }
 
-// MapCursor is a cursor into a Map.
+// Included returns a Bound that goes up to and including key.
+func Included[K any](key K) Bound[K] { return Bound[K]{type_: boundInclude, key: key} }
+
+// Included returns a Bound that goes up to but not including key.
+func Excluded[K any](key K) Bound[K] { return Bound[K]{type_: boundExclude, key: key} }
+
+// Included returns a Bound at the end of the collection.
+func Unbounded[K any]() Bound[K] { return Bound[K]{type_: boundUnbounded} }
+
+// Range returns an iterator that yields the elements of the map between the given bounds in
+// ascending order by key.
 //
-// A cursor is usable while a map is being modified. If the element the cursor is at is deleted,
-// Key() will continue to return the key and Value() will return the zero value of V until it is
-// moved.
-type MapCursor[K any, V any] struct {
-	inner cursor[K, V]
+// The map may be safely modified during iteration and the iterator will continue from the
+// next-lowest key. Thus the iterator will see new elements that are after the current position of
+// the iterator according to less, but will not necessarily see a consistent snapshot of the state
+// of the map.
+func (m Map[K, V]) Range(lower Bound[K], upper Bound[K]) iterator.Iterator[KVPair[K, V]] {
+	return m.t.Range(lower, upper)
 }
 
-// SeekFirst moves the cursor to the first element in the map.
+// RangeReverse returns an iterator that yields the elements of the map between the given bounds in
+// descending order by key.
 //
-// SeekFirst is O(log(n)).
-func (c *MapCursor[K, V]) SeekFirst() { c.inner.SeekFirst() }
-
-// SeekLast moves the cursor to the last element in the map.
-//
-// SeekLast is O(log(n)).
-func (c *MapCursor[K, V]) SeekLast() { c.inner.SeekLast() }
-
-// SeekLastLess moves the cursor to the element in the map just before k.
-//
-// SeekLastLess is O(log(n)).
-func (c *MapCursor[K, V]) SeekLastLess(k K) { c.inner.SeekLastLess(k) }
-
-// SeekLastLessOrEqual moves the cursor to the element in the map with the greatest key that is less
-// than or equal to k.
-//
-// SeekLastLessOrEqual is O(log(n)).
-func (c *MapCursor[K, V]) SeekLastLessOrEqual(k K) { c.inner.SeekLastLessOrEqual(k) }
-
-// SeekFirstGreaterOrEqual moves the cursor to the element in the map with the least key that is
-// greater than or equal to k.
-//
-// SeetFirstGreaterOrEqual is O(log(n)).
-func (c *MapCursor[K, V]) SeekFirstGreaterOrEqual(k K) { c.inner.SeekFirstGreaterOrEqual(k) }
-
-// SeekFirstGreater moves the cursor to the element in the map just after k.
-//
-// SeekFirstGreater is O(log(n)).
-func (c *MapCursor[K, V]) SeekFirstGreater(k K) { c.inner.SeekFirstGreater(k) }
-
-// Next moves the cursor to the next element in the map.
-//
-// Next is amortized O(1) unless the map has been modified since the last cursor move, in which
-// case it's O(log(n)).
-func (c *MapCursor[K, V]) Next() { c.inner.Next() }
-
-// Prev moves the cursor to the previous element in the map.
-//
-// Prev is amortized O(1) unless the map has been modified since the last cursor move, in which
-// case it's O(log(n)).
-func (c *MapCursor[K, V]) Prev() { c.inner.Prev() }
-
-// Ok returns false if the cursor is not currently placed at an element, for example if Next
-// advances past the last element.
-func (c *MapCursor[K, V]) Ok() bool { return c.inner.Ok() }
-
-// Key returns the key of the element that the cursor is at. Panics if Ok is false.
-func (c *MapCursor[K, V]) Key() K { return c.inner.Key() }
-
-// Value returns the value of the element that the cursor is at. Panics if Ok is false.
-func (c *MapCursor[K, V]) Value() V { return c.inner.Value() }
-
-// Forward returns an iterator that starts from the cursor's position and yields all of the elements
-// greater than or equal to the cursor in ascending order.
-//
-// This iterator's Next method is amortized O(1), unless the map changes in which case the
-// following Next is O(log(n)) where n is the number of elements in the map.
-func (c *MapCursor[K, V]) Forward() iterator.Iterator[KVPair[K, V]] { return c.inner.Forward() }
-
-// Backward returns an iterator that starts from the cursor's position and yields all of the
-// elements less than or equal to the cursor in descending order.
-//
-// This iterator's Next method is amortized O(1), unless the map changes in which case the
-// following Next is O(log(n)) where n is the number of elements in the map.
-func (c *MapCursor[K, V]) Backward() iterator.Iterator[KVPair[K, V]] { return c.inner.Backward() }
+// The map may be safely modified during iteration and the iterator will continue from the
+// next-lowest key. Thus the iterator will see new elements that are after the current position of
+// the iterator according to less, but will not necessarily see a consistent snapshot of the state
+// of the map.
+func (m Map[K, V]) RangeReverse(lower Bound[K], upper Bound[K]) iterator.Iterator[KVPair[K, V]] {
+	return m.t.RangeReverse(lower, upper)
+}

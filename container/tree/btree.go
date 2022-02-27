@@ -195,7 +195,6 @@ func (t *btree[K, V]) Last() (K, V) {
 
 func (t *btree[K, V]) Cursor() cursor[K, V] {
 	c := cursor[K, V]{t: t}
-	c.SeekFirst()
 	return c
 }
 
@@ -885,4 +884,60 @@ func (iter *backwardIterator[K, V]) Next() (KVPair[K, V], bool) {
 	v := iter.c.valueUnchecked()
 	iter.c.Prev()
 	return KVPair[K, V]{k, v}, true
+}
+
+func (t *btree[K, V]) Range(lower Bound[K], upper Bound[K]) iterator.Iterator[KVPair[K, V]] {
+	c := t.Cursor()
+	switch lower.type_ {
+	case boundUnbounded:
+		c.SeekFirst()
+	case boundInclude:
+		c.SeekFirstGreaterOrEqual(lower.key)
+	case boundExclude:
+		c.SeekFirstGreater(lower.key)
+	default:
+		panic("unknown bound")
+	}
+	switch upper.type_ {
+	case boundInclude:
+		return iterator.While(c.Forward(), func(pair KVPair[K, V]) bool {
+			return xsort.LessOrEqual(t.less, pair.Key, upper.key)
+		})
+	case boundExclude:
+		return iterator.While(c.Forward(), func(pair KVPair[K, V]) bool {
+			return t.less(pair.Key, upper.key)
+		})
+	case boundUnbounded:
+		return c.Forward()
+	default:
+		panic("unknown bound")
+	}
+}
+
+func (t *btree[K, V]) RangeReverse(lower Bound[K], upper Bound[K]) iterator.Iterator[KVPair[K, V]] {
+	c := t.Cursor()
+	switch upper.type_ {
+	case boundInclude:
+		c.SeekLastLessOrEqual(upper.key)
+	case boundExclude:
+		c.SeekLastLess(upper.key)
+	case boundUnbounded:
+		c.SeekLast()
+	default:
+		panic("unknown bound")
+	}
+	switch lower.type_ {
+	case boundInclude:
+		return iterator.While(c.Backward(), func(pair KVPair[K, V]) bool {
+			return xsort.GreaterOrEqual(t.less, pair.Key, lower.key)
+		})
+	case boundExclude:
+		return iterator.While(c.Backward(), func(pair KVPair[K, V]) bool {
+			return xsort.Greater(t.less, pair.Key, lower.key)
+		})
+	case boundUnbounded:
+		return c.Backward()
+	default:
+		panic("unknown bound")
+	}
 }
