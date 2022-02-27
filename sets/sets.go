@@ -54,6 +54,16 @@ func (s Map[T]) Iterate() iterator.Iterator[T] {
 	return &setIterator[T]{inner: reflect.ValueOf(s).MapRange()}
 }
 
+func (s Map[T]) IterateInternal(f func(T) bool) {
+	for t := range s {
+		if !f(t) {
+			break
+		}
+	}
+}
+
+var _ withIterateInternal[byte] = Map[byte]{}
+
 // Set is a minimal interface to a set. It is implemented by sets.Map and container/tree.Set, among
 // others.
 type Set[T any] interface {
@@ -64,17 +74,34 @@ type Set[T any] interface {
 	Iterate() iterator.Iterator[T]
 }
 
+type withIterateInternal[T any] interface {
+	IterateInternal(func(T) bool)
+}
+
+func iterateInternal[T any](s Set[T], f func(T) bool) {
+	if s, ok := s.(withIterateInternal[T]); ok {
+		s.IterateInternal(f)
+		return
+	}
+	iter := s.Iterate()
+	for {
+		item, ok := iter.Next()
+		if !ok {
+			break
+		}
+		if !f(item) {
+			break
+		}
+	}
+}
+
 // Union adds to out out all items from sets and returns out.
 func Union[T any](out Set[T], sets ...Set[T]) Set[T] {
 	for _, set := range sets {
-		iter := set.Iterate()
-		for {
-			item, ok := iter.Next()
-			if !ok {
-				break
-			}
+		iterateInternal(set, func(item T) bool {
 			out.Add(item)
-		}
+			return true
+		})
 	}
 	return out
 }
@@ -89,35 +116,25 @@ func Intersection[T comparable](out Set[T], sets ...Set[T]) Set[T] {
 	// of each of the below loops. Use set size as an approximation.
 	xsort.Slice(sets, func(a, b Set[T]) bool { return a.Len() < b.Len() })
 
-	iter := sets[0].Iterate()
-Outer:
-	for {
-		item, ok := iter.Next()
-		if !ok {
-			break
-		}
-
+	iterateInternal(sets[0], func(item T) bool {
 		for j := 1; j < len(sets); j++ {
 			if !sets[j].Contains(item) {
-				continue Outer
+				return true
 			}
 		}
 		out.Add(item)
-	}
+		return true
+	})
 	return out
 }
 
 // Difference adds to out all items that appear in a but not in b and returns out.
 func Difference[T comparable](out, a, b Set[T]) Set[T] {
-	iter := a.Iterate()
-	for {
-		item, ok := iter.Next()
-		if !ok {
-			break
-		}
+	iterateInternal(a, func(item T) bool {
 		if !b.Contains(item) {
 			out.Add(item)
 		}
-	}
+		return true
+	})
 	return out
 }
