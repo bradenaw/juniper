@@ -235,7 +235,7 @@ func (iter *mapIterator[U]) Next() (U, bool) {
 			iter.m.Lock()
 			iter.inFlight--
 			if iter.inFlight == iter.bufferSize-1 {
-				iter.cond.Broadcast()
+				iter.cond.Signal()
 			}
 			iter.m.Unlock()
 			return item.value, true
