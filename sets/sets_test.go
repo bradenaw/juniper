@@ -57,6 +57,30 @@ func ExampleIntersection() {
 	// map[1:{} 4:{}]
 }
 
+func ExampleIntersects() {
+	a := sets.Map[int]{
+		1: {},
+		2: {},
+	}
+	b := sets.Map[int]{
+		1: {},
+		3: {},
+	}
+	c := sets.Map[int]{
+		3: {},
+		4: {},
+	}
+
+	fmt.Println(sets.Intersects[int](a, b))
+	fmt.Println(sets.Intersects[int](b, c))
+	fmt.Println(sets.Intersects[int](a, c))
+
+	// Output:
+	// true
+	// true
+	// false
+}
+
 func ExampleDifference() {
 	a := sets.Map[int]{
 		1: {},

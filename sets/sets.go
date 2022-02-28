@@ -107,7 +107,7 @@ func Union[T any](out Set[T], sets ...Set[T]) Set[T] {
 }
 
 // Intersection adds to out all items that appear in all sets and returns out.
-func Intersection[T comparable](out Set[T], sets ...Set[T]) Set[T] {
+func Intersection[T any](out Set[T], sets ...Set[T]) Set[T] {
 	if len(sets) == 0 {
 		return out
 	}
@@ -128,8 +128,31 @@ func Intersection[T comparable](out Set[T], sets ...Set[T]) Set[T] {
 	return out
 }
 
+// Intersects returns true if the given sets have any items in common.
+func Intersects[T any](sets ...Set[T]) bool {
+	if len(sets) == 0 {
+		return false
+	}
+
+	// Ideally we check from most-selective to least-selective so we can do the fewest iterations
+	// of each of the below loops. Use set size as an approximation.
+	xsort.Slice(sets, func(a, b Set[T]) bool { return a.Len() < b.Len() })
+
+	out := false
+	iterateInternal(sets[0], func(item T) bool {
+		for j := 1; j < len(sets); j++ {
+			if !sets[j].Contains(item) {
+				return true
+			}
+		}
+		out = true
+		return false
+	})
+	return out
+}
+
 // Difference adds to out all items that appear in a but not in b and returns out.
-func Difference[T comparable](out, a, b Set[T]) Set[T] {
+func Difference[T any](out, a, b Set[T]) Set[T] {
 	iterateInternal(a, func(item T) bool {
 		if !b.Contains(item) {
 			out.Add(item)
