@@ -614,7 +614,7 @@ func Compact[T comparable](s Stream[T]) Stream[T] {
 }
 
 // CompactFunc elides adjacent duplicates from s, using eq to determine duplicates.
-func CompactFunc[T comparable](s Stream[T], eq func(T, T) bool) Stream[T] {
+func CompactFunc[T any](s Stream[T], eq func(T, T) bool) Stream[T] {
 	return &compactStream[T]{
 		inner: s,
 		first: true,
