@@ -41,9 +41,6 @@ func rShuffle[T any, R randRand](r R, a []T) {
 // Sample pseudo-randomly picks k ints uniformly without replacement from [0, n).
 //
 // If n < k, returns all ints in [0, n).
-//
-// The output is not in any particular order. If a pseudo-random order is desired, the output should
-// be passed to Shuffle.
 func Sample(n int, k int) []int {
 	return rSample(defaultRand{}, n, k)
 }
@@ -51,19 +48,30 @@ func Sample(n int, k int) []int {
 // RSample pseudo-randomly picks k ints uniformly without replacement from [0, n).
 //
 // If n < k, returns all ints in [0, n).
-//
-// The output is not in any particular order. If a pseudo-random order is desired, the output should
-// be passed to Shuffle.
 func RSample(r *rand.Rand, n int, k int) []int {
 	return rSample(r, n, k)
+}
+
+func rSample[R randRand](r R, n int, k int) []int {
+	out := make([]int, k)
+	samp := newSampler(r, k)
+	for {
+		next, replace := samp.Next()
+		if next >= n {
+			break
+		}
+		out[replace] = next
+	}
+	if n < k {
+		out = out[:n]
+	}
+	rShuffle(r, out)
+	return out
 }
 
 // SampleIterator pseudo-randomly picks k items uniformly without replacement from iter.
 //
 // If iter yields fewer than k items, returns all of them.
-//
-// The output is not in any particular order. If a pseudo-random order is desired, the output should
-// be passed to Shuffle.
 func SampleIterator[T any](iter iterator.Iterator[T], k int) []T {
 	return rSampleIterator(defaultRand{}, iter, k)
 }
@@ -71,9 +79,6 @@ func SampleIterator[T any](iter iterator.Iterator[T], k int) []T {
 // RSampleIterator pseudo-randomly picks k items uniformly without replacement from iter.
 //
 // If iter yields fewer than k items, returns all of them.
-//
-// The output is not in any particular order. If a pseudo-random order is desired, the output should
-// be passed to Shuffle.
 func RSampleIterator[T any](r *rand.Rand, iter iterator.Iterator[T], k int) []T {
 	return rSampleIterator(r, iter, k)
 }
@@ -101,15 +106,13 @@ Outer:
 	if i < k {
 		out = out[:i]
 	}
+	rShuffle(r, out)
 	return out
 }
 
 // SampleStream pseudo-randomly picks k items uniformly without replacement from s.
 //
 // If s yields fewer than k items, returns all of them.
-//
-// The output is not in any particular order. If a pseudo-random order is desired, the output should
-// be passed to Shuffle.
 func SampleStream[T any](ctx context.Context, s stream.Stream[T], k int) ([]T, error) {
 	return rSampleStream(ctx, defaultRand{}, s, k)
 }
@@ -117,9 +120,6 @@ func SampleStream[T any](ctx context.Context, s stream.Stream[T], k int) ([]T, e
 // RSampleStream pseudo-randomly picks k items uniformly without replacement from s.
 //
 // If s yields fewer than k items, returns all of them.
-//
-// The output is not in any particular order. If a pseudo-random order is desired, the output should
-// be passed to Shuffle.
 func RSampleStream[T any](
 	ctx context.Context,
 	r *rand.Rand,
@@ -161,15 +161,13 @@ Outer:
 	if i < k {
 		out = out[:i]
 	}
+	rShuffle(r, out)
 	return out, nil
 }
 
 // SampleSlice pseudo-randomly picks k items uniformly without replacement from a.
 //
 // If len(a) < k, returns all items in a.
-//
-// The output is not in any particular order. If a pseudo-random order is desired, the output should
-// be passed to Shuffle.
 func SampleSlice[T any](a []T, k int) []T {
 	return rSampleSlice(defaultRand{}, a, k)
 }
@@ -177,9 +175,6 @@ func SampleSlice[T any](a []T, k int) []T {
 // RSampleSlice pseudo-randomly picks k items uniformly without replacement from a.
 //
 // If len(a) < k, returns all items in a.
-//
-// The output is not in any particular order. If a pseudo-random order is desired, the output should
-// be passed to Shuffle.
 func RSampleSlice[T any](r *rand.Rand, a []T, k int) []T {
 	return rSampleSlice(r, a, k)
 }
@@ -197,22 +192,7 @@ func rSampleSlice[T any, R randRand](r R, a []T, k int) []T {
 	if len(a) < k {
 		out = out[:len(a)]
 	}
-	return out
-}
-
-func rSample[R randRand](r R, n int, k int) []int {
-	out := make([]int, k)
-	samp := newSampler(r, k)
-	for {
-		next, replace := samp.Next()
-		if next >= n {
-			break
-		}
-		out[replace] = next
-	}
-	if n < k {
-		out = out[:n]
-	}
+	rShuffle(r, out)
 	return out
 }
 

@@ -12,8 +12,14 @@ func ExampleSample() {
 
 	sample := xrand.RSample(r, 100, 5)
 
-	fmt.Println(sample)
+	for _, x := range sample {
+		fmt.Println(x)
+	}
 
-	// Output:
-	// [45 71 88 93 60]
+	// Unordered output:
+	// 45
+	// 71
+	// 88
+	// 93
+	// 60
 }
