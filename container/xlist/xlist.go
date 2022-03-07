@@ -37,7 +37,7 @@ func (l *List[T]) PushFront(value T) *Node[T] {
 	return node
 }
 
-// PushFront adds a new node with the given value to the back of the list.
+// PushBack adds a new node with the given value to the back of the list.
 func (l *List[T]) PushBack(value T) *Node[T] {
 	node := &Node[T]{
 		prev:  l.back,
