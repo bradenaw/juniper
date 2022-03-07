@@ -38,34 +38,34 @@ func New[T any](less xsort.Less[T], initial []T) Heap[T] {
 }
 
 // Len returns the current number of elements in the heap.
-func (h *Heap[T]) Len() int {
+func (h Heap[T]) Len() int {
 	return h.inner.Len()
 }
 
 // Grow allocates sufficient space to add n more elements without needing to reallocate.
-func (h *Heap[T]) Grow(n int) {
+func (h Heap[T]) Grow(n int) {
 	h.inner.Grow(n)
 }
 
 // Push adds item to the heap.
-func (h *Heap[T]) Push(item T) {
+func (h Heap[T]) Push(item T) {
 	h.inner.Push(item)
 }
 
 // Pop removes and returns the minimum item in the heap. It panics if h.Len()==0.
-func (h *Heap[T]) Pop() T {
+func (h Heap[T]) Pop() T {
 	return h.inner.Pop()
 }
 
 // Peek returns the minimum item in the heap. It panics if h.Len()==0.
-func (h *Heap[T]) Peek() T {
+func (h Heap[T]) Peek() T {
 	return h.inner.Peek()
 }
 
 // Iterate iterates over the elements of the heap.
 //
 // The iterator panics if the heap has been modified since iteration started.
-func (h *Heap[T]) Iterate() iterator.Iterator[T] {
+func (h Heap[T]) Iterate() iterator.Iterator[T] {
 	return h.inner.Iterate()
 }
 
@@ -124,17 +124,17 @@ func NewPriorityQueue[K comparable, P any](
 }
 
 // Len returns the current number of elements in the priority queue.
-func (h *PriorityQueue[K, P]) Len() int {
+func (h PriorityQueue[K, P]) Len() int {
 	return h.inner.Len()
 }
 
 // Grow allocates sufficient space to add n more elements without needing to reallocate.
-func (h *PriorityQueue[K, P]) Grow(n int) {
+func (h PriorityQueue[K, P]) Grow(n int) {
 	h.inner.Grow(n)
 }
 
 // Update updates the priority of k to p, or adds it to the priority queue if not present.
-func (h *PriorityQueue[K, P]) Update(k K, p P) {
+func (h PriorityQueue[K, P]) Update(k K, p P) {
 	idx, ok := h.m[k]
 	if ok {
 		h.inner.UpdateAt(idx, KP[K, P]{k, p})
@@ -144,25 +144,25 @@ func (h *PriorityQueue[K, P]) Update(k K, p P) {
 }
 
 // Pop removes and returns the lowest-P item in the priority queue. It panics if h.Len()==0.
-func (h *PriorityQueue[K, P]) Pop() K {
+func (h PriorityQueue[K, P]) Pop() K {
 	item := h.inner.Pop()
 	delete(h.m, item.K)
 	return item.K
 }
 
 // Peek returns the key of the lowest-P item in the priority queue. It panics if h.Len()==0.
-func (h *PriorityQueue[K, P]) Peek() K {
+func (h PriorityQueue[K, P]) Peek() K {
 	return h.inner.Peek().K
 }
 
 // Contains returns true if the given key is present in the priority queue.
-func (h *PriorityQueue[K, P]) Contains(k K) bool {
+func (h PriorityQueue[K, P]) Contains(k K) bool {
 	_, ok := h.m[k]
 	return ok
 }
 
 // Priority returns the priority of k, or the zero value of P if k is not present.
-func (h *PriorityQueue[K, P]) Priority(k K) P {
+func (h PriorityQueue[K, P]) Priority(k K) P {
 	idx, ok := h.m[k]
 	if ok {
 		return h.inner.Item(idx).P
@@ -172,7 +172,7 @@ func (h *PriorityQueue[K, P]) Priority(k K) P {
 }
 
 // Remove removes the item with the given key if present.
-func (h *PriorityQueue[K, P]) Remove(k K) {
+func (h PriorityQueue[K, P]) Remove(k K) {
 	i, ok := h.m[k]
 	if !ok {
 		return
@@ -184,6 +184,6 @@ func (h *PriorityQueue[K, P]) Remove(k K) {
 // Iterate iterates over the elements of the priority queue.
 //
 // The iterator panics if the priority queue has been modified since iteration started.
-func (h *PriorityQueue[K, P]) Iterate() iterator.Iterator[K] {
+func (h PriorityQueue[K, P]) Iterate() iterator.Iterator[K] {
 	return iterator.Map(h.inner.Iterate(), func(kp KP[K, P]) K { return kp.K })
 }
