@@ -77,7 +77,7 @@ func FuzzDeque(f *testing.F) {
 				require2.Equal(t, oracleItem, dequeItem)
 			},
 			func(i int) {
-				if i < 0 || i > len(oracle) {
+				if i < 0 || i >= len(oracle) {
 					t.Logf("Item(%d) should panic", i)
 					defer func() { recover() }()
 					deque.Item(i)
