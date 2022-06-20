@@ -806,3 +806,46 @@ func TestRange(t *testing.T) {
 		[]uint16{124, 125, 126, 127},
 	)
 }
+
+func TestGetContains(t *testing.T) {
+	tree := newBtree[uint16, int](xsort.OrderedLess[uint16])
+
+	for i := 0; i < 128; i++ {
+		tree.Put(uint16(i*2), i*4)
+	}
+	for i := 0; i < 128; i++ {
+		key := uint16(i * 2)
+		require2.True(t, tree.Contains(key))
+		require2.Equal(t, tree.Get(key), int(key)*2)
+	}
+	for i := 0; i <= 128; i++ {
+		key := uint16(i*2 - 1)
+		require2.True(t, !tree.Contains(key))
+		require2.Equal(t, tree.Get(key), 0)
+	}
+}
+
+func TestDelete(t *testing.T) {
+	tree := newBtree[uint16, int](xsort.OrderedLess[uint16])
+	for i := 0; i < 128; i++ {
+		tree.Put(uint16(i)+1, i*2)
+	}
+	require2.Equal(t, tree.Len(), 128)
+	tree.Delete(0)
+	tree.Delete(129)
+	require2.Equal(t, tree.Len(), 128)
+
+	for tree.Len() > 0 {
+		key := uint16(0)
+		l := tree.Len()
+		if tree.Len()%2 == 0 {
+			key, _ = tree.First()
+		} else {
+			key, _ = tree.Last()
+		}
+		require2.True(t, tree.Contains(key))
+		tree.Delete(key)
+		require2.True(t, !tree.Contains(key))
+		require2.Equal(t, tree.Len(), l-1)
+	}
+}
