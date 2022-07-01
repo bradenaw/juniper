@@ -41,6 +41,8 @@ func rShuffle[T any, R randRand](r R, a []T) {
 // Sample pseudo-randomly picks k ints uniformly without replacement from [0, n).
 //
 // If n < k, returns all ints in [0, n).
+//
+// Requires O(k) time and space.
 func Sample(n int, k int) []int {
 	return rSample(defaultRand{}, n, k)
 }
@@ -48,6 +50,8 @@ func Sample(n int, k int) []int {
 // RSample pseudo-randomly picks k ints uniformly without replacement from [0, n).
 //
 // If n < k, returns all ints in [0, n).
+//
+// Requires O(k) time and space.
 func RSample(r *rand.Rand, n int, k int) []int {
 	return rSample(r, n, k)
 }
@@ -72,6 +76,9 @@ func rSample[R randRand](r R, n int, k int) []int {
 // SampleIterator pseudo-randomly picks k items uniformly without replacement from iter.
 //
 // If iter yields fewer than k items, returns all of them.
+//
+// Uses a reservoir sample (https://en.wikipedia.org/wiki/Reservoir_sampling), which uses time
+// linear in the length of iter but only O(k) extra space.
 func SampleIterator[T any](iter iterator.Iterator[T], k int) []T {
 	return rSampleIterator(defaultRand{}, iter, k)
 }
@@ -79,6 +86,9 @@ func SampleIterator[T any](iter iterator.Iterator[T], k int) []T {
 // RSampleIterator pseudo-randomly picks k items uniformly without replacement from iter.
 //
 // If iter yields fewer than k items, returns all of them.
+//
+// Uses a reservoir sample (https://en.wikipedia.org/wiki/Reservoir_sampling), which uses time
+// linear in the length of iter but only O(k) extra space.
 func RSampleIterator[T any](r *rand.Rand, iter iterator.Iterator[T], k int) []T {
 	return rSampleIterator(r, iter, k)
 }
@@ -113,6 +123,9 @@ Outer:
 // SampleStream pseudo-randomly picks k items uniformly without replacement from s.
 //
 // If s yields fewer than k items, returns all of them.
+//
+// Uses a reservoir sample (https://en.wikipedia.org/wiki/Reservoir_sampling), which uses time
+// linear in the length of s but only O(k) extra space.
 func SampleStream[T any](ctx context.Context, s stream.Stream[T], k int) ([]T, error) {
 	return rSampleStream(ctx, defaultRand{}, s, k)
 }
@@ -120,6 +133,9 @@ func SampleStream[T any](ctx context.Context, s stream.Stream[T], k int) ([]T, e
 // RSampleStream pseudo-randomly picks k items uniformly without replacement from s.
 //
 // If s yields fewer than k items, returns all of them.
+//
+// Uses a reservoir sample (https://en.wikipedia.org/wiki/Reservoir_sampling), which uses time
+// linear in the length of s but only O(k) extra space.
 func RSampleStream[T any](
 	ctx context.Context,
 	r *rand.Rand,
@@ -168,6 +184,9 @@ Outer:
 // SampleSlice pseudo-randomly picks k items uniformly without replacement from a.
 //
 // If len(a) < k, returns all items in a.
+//
+// Uses a reservoir sample (https://en.wikipedia.org/wiki/Reservoir_sampling), which uses O(k) time
+// and space.
 func SampleSlice[T any](a []T, k int) []T {
 	return rSampleSlice(defaultRand{}, a, k)
 }
@@ -175,6 +194,9 @@ func SampleSlice[T any](a []T, k int) []T {
 // RSampleSlice pseudo-randomly picks k items uniformly without replacement from a.
 //
 // If len(a) < k, returns all items in a.
+//
+// Uses a reservoir sample (https://en.wikipedia.org/wiki/Reservoir_sampling), which uses O(k) time
+// and space.
 func RSampleSlice[T any](r *rand.Rand, a []T, k int) []T {
 	return rSampleSlice(r, a, k)
 }
