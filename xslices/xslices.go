@@ -407,3 +407,36 @@ func uniqueInto[T comparable](into []T, s []T) []T {
 	}
 	return into
 }
+
+// Intersect returns a slice containing elements common to each in. If an element appear at least X
+// times in each in, it will appear X times in the returned slice. Intersect makes no guarantees
+// about the order of the returned elements.
+//
+// Intersect returns a nil slice when ins have no elements in common.
+func Intersect[T comparable](in ...[]T) []T {
+	visits := map[T][]int{}
+	for i, s := range in {
+		for _, e := range s {
+			if visits[e] == nil {
+				visits[e] = make([]int, len(in))
+			}
+			visits[e][i] += 1
+		}
+	}
+
+	var out []T
+	for k, v := range visits {
+		min := Reduce(v, -1, func(a int, e int) int {
+			if a < 0 || a > e {
+				return e
+			}
+			return a
+		})
+
+		for i := 0; i < min; i++ {
+			out = append(out, k)
+		}
+	}
+
+	return out
+}
