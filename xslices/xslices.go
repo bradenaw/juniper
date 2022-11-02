@@ -122,6 +122,19 @@ func Equal[T comparable](a, b []T) bool {
 	return true
 }
 
+// EqualFunc returns true if a and b contain the same items in the same order according to eq.
+func EqualFunc[T any](a, b []T, eq func(T, T) bool) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if !eq(a[i], b[i]) {
+			return false
+		}
+	}
+	return true
+}
+
 // Fill fills s with copies of x.
 func Fill[T any](s []T, x T) {
 	for i := range s {

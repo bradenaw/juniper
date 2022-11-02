@@ -1,6 +1,7 @@
 package xslices_test
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 	"strings"
@@ -141,6 +142,21 @@ func ExampleEqual() {
 	fmt.Println(xslices.Equal(x, y))
 	fmt.Println(xslices.Equal(x[:2], y))
 	fmt.Println(xslices.Equal(z, y))
+
+	// Output:
+	// true
+	// false
+	// false
+}
+
+func ExampleEqualFunc() {
+	x := [][]byte{[]byte("a"), []byte("b"), []byte("c")}
+	y := [][]byte{[]byte("a"), []byte("b"), []byte("c")}
+	z := [][]byte{[]byte("a"), []byte("b"), []byte("d")}
+
+	fmt.Println(xslices.EqualFunc(x, y, bytes.Equal))
+	fmt.Println(xslices.EqualFunc(x[:2], y, bytes.Equal))
+	fmt.Println(xslices.EqualFunc(z, y, bytes.Equal))
 
 	// Output:
 	// true
