@@ -184,6 +184,32 @@ func (s *PipeSender[T]) Send(ctx context.Context, x T) error {
 	}
 }
 
+// TrySend attempts to send x to the receiver, but returns (false, nil) if the pipe's buffer is
+// already full instead of blocking. If the receiver is already closed, returns ErrClosedPipe. If
+// ctx expires before x can be sent, returns ctx.Err().
+//
+// A (true, nil) return does not necessarily mean that the receiver will see x, since the receiver
+// may close early.
+//
+// TrySend may be called concurrently with other Sends and with Close.
+func (s *PipeSender[T]) TrySend(ctx context.Context, x T) (bool, error) {
+	select {
+	case <-ctx.Done():
+		return false, ctx.Err()
+	case <-s.streamDone:
+		return false, ErrClosedPipe
+	case <-s.senderDone:
+		return false, *s.senderErr
+	default:
+	}
+	select {
+	case s.c <- x:
+		return true, nil
+	default:
+		return false, nil
+	}
+}
+
 // Close closes the PipeSender, signalling to the receiver that no more values will be sent. If an
 // error is provided, it will surface to the receiver's Next and to any concurrent Sends.
 //
