@@ -47,6 +47,12 @@ func (h Heap[T]) Grow(n int) {
 	h.inner.Grow(n)
 }
 
+// Shrink reallocates the backing buffer for h, if necessary, so that it fits only the current size
+// plus at most n extra items.
+func (h Heap[T]) Shrink(n int) {
+	h.inner.Shrink(n)
+}
+
 // Push adds item to the heap.
 func (h Heap[T]) Push(item T) {
 	h.inner.Push(item)

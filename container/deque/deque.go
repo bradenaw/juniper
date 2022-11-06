@@ -14,10 +14,8 @@ var errDequeModified = errors.New("deque modified during iteration")
 const (
 	// A non-empty deque has space for at least this many items.
 	minSize = 16
-	// When growing a full deque, reallocate with len(r.a)*growFactor.
+	// When growing a full deque, reallocate with len(d.a)*growFactor.
 	growFactor = 2
-	// Shrink a deque that is 1/shrinkFactor full, down to 1/shrinkFactor size.
-	shrinkFactor = 16
 )
 
 // Deque is a double-ended queue, allowing push and pop to both the front and back of the queue.
@@ -34,189 +32,191 @@ type Deque[T any] struct {
 }
 
 // Len returns the number of items in the deque.
-func (r *Deque[T]) Len() int {
-	if r.a == nil || r.back == -1 {
+func (d *Deque[T]) Len() int {
+	if d.a == nil || d.back == -1 {
 		return 0
 	}
 
-	if r.front <= r.back {
-		return r.back - r.front + 1
+	if d.front <= d.back {
+		return d.back - d.front + 1
 	}
-	return len(r.a) - r.front + r.back + 1
+	return len(d.a) - d.front + d.back + 1
 }
 
 // Grow allocates sufficient space to add n more items without needing to reallocate.
-func (r *Deque[T]) Grow(n int) {
-	extraCap := len(r.a) - r.Len()
+func (d *Deque[T]) Grow(n int) {
+	extraCap := len(d.a) - d.Len()
 	if extraCap < n {
-		r.resize(len(r.a) + n)
+		d.resize(len(d.a) + n)
+	}
+}
+
+// Shrink reallocates the backing buffer for d, if necessary, so that it fits only the current size
+// plus at most n extra items.
+func (d *Deque[T]) Shrink(n int) {
+	if n < 0 {
+		panic("Shrink() with a negative number of extras")
+	}
+	if len(d.a)-d.Len() > n {
+		d.resize(d.Len() + n)
 	}
 }
 
 // PushFront adds item to the front of the deque.
-func (r *Deque[T]) PushFront(item T) {
-	if r.Len() == 0 {
-		r.a = make([]T, minSize)
-		r.a[0] = item
-		r.back = 0
+func (d *Deque[T]) PushFront(item T) {
+	if d.Len() == 0 {
+		d.a = make([]T, minSize)
+		d.a[0] = item
+		d.back = 0
 		return
 	}
-	r.maybeExpand()
-	r.front = positiveMod(r.front-1, len(r.a))
-	r.a[r.front] = item
-	r.gen++
+	d.maybeExpand()
+	d.front = positiveMod(d.front-1, len(d.a))
+	d.a[d.front] = item
+	d.gen++
 }
 
 // PushFront adds item to the back of the deque.
-func (r *Deque[T]) PushBack(item T) {
-	if r.Len() == 0 {
-		r.a = make([]T, minSize)
-		r.a[0] = item
-		r.back = 0
+func (d *Deque[T]) PushBack(item T) {
+	if d.Len() == 0 {
+		d.a = make([]T, minSize)
+		d.a[0] = item
+		d.back = 0
 		return
 	}
-	r.maybeExpand()
-	r.back = (r.back + 1) % len(r.a)
-	r.a[r.back] = item
-	r.gen++
+	d.maybeExpand()
+	d.back = (d.back + 1) % len(d.a)
+	d.a[d.back] = item
+	d.gen++
 }
 
 // Guarantees that there is room in the deque.
-func (r *Deque[T]) maybeExpand() {
-	if r.Len() == len(r.a) {
-		r.resize(xmath.Max(minSize, len(r.a)*2))
+func (d *Deque[T]) maybeExpand() {
+	if d.Len() == len(d.a) {
+		d.resize(xmath.Max(minSize, len(d.a)*2))
 	}
 }
 
-func (r *Deque[T]) maybeShrink() {
-	l := r.Len()
-	if l > minSize && l < len(r.a)/shrinkFactor {
-		r.resize(len(r.a) / shrinkFactor)
-	}
-}
-
-func (r *Deque[T]) resize(n int) {
-	oldLen := r.Len()
+func (d *Deque[T]) resize(n int) {
+	oldLen := d.Len()
 	newA := make([]T, n)
-	if !(r.a == nil || r.back == -1) {
-		if r.front <= r.back {
-			copy(newA, r.a[r.front:r.back+1])
+	if !(d.a == nil || d.back == -1) {
+		if d.front <= d.back {
+			copy(newA, d.a[d.front:d.back+1])
 		} else {
-			copy(newA, r.a[r.front:])
-			copy(newA[len(r.a)-r.front:], r.a[:r.back+1])
+			copy(newA, d.a[d.front:])
+			copy(newA[len(d.a)-d.front:], d.a[:d.back+1])
 		}
 	}
-	r.a = newA
-	r.front = 0
-	r.back = oldLen - 1
+	d.a = newA
+	d.front = 0
+	d.back = oldLen - 1
 }
 
 // PopFront removes and returns the item at the front of the deque. It panics if the deque is empty.
-func (r *Deque[T]) PopFront() T {
-	l := r.Len()
+func (d *Deque[T]) PopFront() T {
+	l := d.Len()
 	if l == 0 {
 		panic(errDequeEmpty)
 	}
-	item := r.a[r.front]
+	item := d.a[d.front]
 	if l == 1 {
-		r.a = nil
-		r.front = 0
-		r.back = -1
+		d.a = nil
+		d.front = 0
+		d.back = -1
 		return item
 	}
 	var zero T
-	r.a[r.front] = zero
-	r.front = (r.front + 1) % len(r.a)
-	r.maybeShrink()
-	r.gen++
+	d.a[d.front] = zero
+	d.front = (d.front + 1) % len(d.a)
+	d.gen++
 	return item
 }
 
 // PopBack removes and returns the item at the back of the deque. It panics if the deque is empty.
-func (r *Deque[T]) PopBack() T {
-	l := r.Len()
+func (d *Deque[T]) PopBack() T {
+	l := d.Len()
 	if l == 0 {
 		panic(errDequeEmpty)
 	}
-	item := r.a[r.back]
+	item := d.a[d.back]
 	if l == 1 {
-		r.a = nil
-		r.front = 0
-		r.back = -1
+		d.a = nil
+		d.front = 0
+		d.back = -1
 		return item
 	}
 	var zero T
-	r.a[r.back] = zero
-	r.back = positiveMod(r.back-1, len(r.a))
-	r.maybeShrink()
-	r.gen++
+	d.a[d.back] = zero
+	d.back = positiveMod(d.back-1, len(d.a))
+	d.gen++
 	return item
 }
 
 // Front returns the item at the front of the deque. It panics if the deque is empty.
-func (r *Deque[T]) Front() T {
-	if r.back == -1 {
+func (d *Deque[T]) Front() T {
+	if d.back == -1 {
 		panic("deque index out of range")
 	}
-	return r.a[r.front]
+	return d.a[d.front]
 }
 
 // Back returns the item at the back of the deque. It panics if the deque is empty.
-func (r *Deque[T]) Back() T {
-	return r.a[r.back]
+func (d *Deque[T]) Back() T {
+	return d.a[d.back]
 }
 
-// Item returns the ith item in the deque. 0 is the front and r.Len()-1 is the back.
-func (r *Deque[T]) Item(i int) T {
-	if i < 0 || i >= r.Len() {
+// Item returns the ith item in the deque. 0 is the front and d.Len()-1 is the back.
+func (d *Deque[T]) Item(i int) T {
+	if i < 0 || i >= d.Len() {
 		panic("deque index out of range")
 	}
-	idx := (r.front + i) % len(r.a)
-	return r.a[idx]
+	idx := (d.front + i) % len(d.a)
+	return d.a[idx]
 }
 
-func positiveMod(l, r int) int {
-	x := l % r
+func positiveMod(l, d int) int {
+	x := l % d
 	if x < 0 {
-		return x + r
+		return x + d
 	}
 	return x
 }
 
 type dequeIterator[T any] struct {
-	r    *Deque[T]
+	d    *Deque[T]
 	i    int
 	done bool
 	gen  int
 }
 
 func (iter *dequeIterator[T]) Next() (T, bool) {
-	if iter.gen != iter.r.gen {
+	if iter.gen != iter.d.gen {
 		panic(errDequeModified)
 	}
 	var zero T
-	if iter.r.Len() == 0 {
+	if iter.d.Len() == 0 {
 		return zero, false
 	}
 	if iter.done {
 		return zero, false
 	}
-	item := iter.r.a[iter.i]
-	if iter.i == iter.r.back {
+	item := iter.d.a[iter.i]
+	if iter.i == iter.d.back {
 		iter.done = true
 	}
-	iter.i = (iter.i + 1) % len(iter.r.a)
+	iter.i = (iter.i + 1) % len(iter.d.a)
 	return item, true
 }
 
 // Iterate iterates over the elements of the deque.
 //
 // The iterator panics if the deque has been modified since iteration started.
-func (r *Deque[T]) Iterate() iterator.Iterator[T] {
+func (d *Deque[T]) Iterate() iterator.Iterator[T] {
 	return &dequeIterator[T]{
-		r:    r,
-		i:    r.front,
+		d:    d,
+		i:    d.front,
 		done: false,
-		gen:  r.gen,
+		gen:  d.gen,
 	}
 }
