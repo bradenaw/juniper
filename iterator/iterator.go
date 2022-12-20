@@ -42,19 +42,19 @@ func (iter *chanIterator[T]) Next() (T, bool) {
 //
 // The following are equivalent:
 //
-//   for i := 0; i < n; i++ {
-//     fmt.Println(n)
-//   }
+//	for i := 0; i < n; i++ {
+//	  fmt.Println(n)
+//	}
 //
 //
-//   iter := iterator.Counter(n)
-//   for {
-//     item, ok := iter.Next()
-//     if !ok {
-//       break
-//     }
-//     fmt.Println(item)
-//   }
+//	iter := iterator.Counter(n)
+//	for {
+//	  item, ok := iter.Next()
+//	  if !ok {
+//	    break
+//	  }
+//	  fmt.Println(item)
+//	}
 func Counter(n int) Iterator[int] {
 	return &counterIterator{i: 0, n: n}
 }
@@ -190,7 +190,7 @@ func Equal[T comparable](iters ...Iterator[T]) bool {
 			if ok != iterIOk {
 				return false
 			}
-			if item != iterIItem {
+			if ok && item != iterIItem {
 				return false
 			}
 		}
