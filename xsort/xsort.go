@@ -4,7 +4,7 @@ package xsort
 import (
 	"sort"
 
-	"golang.org/x/exp/constraints"
+	"constraints"
 
 	"github.com/bradenaw/juniper/internal/heap"
 	"github.com/bradenaw/juniper/iterator"
