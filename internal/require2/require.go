@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"constraints"
+	"golang.org/x/exp/constraints"
 )
 
 func Equal[T comparable](t *testing.T, expected T, actual T) {
