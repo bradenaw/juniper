@@ -25,6 +25,10 @@ func Do(
 		parallelism = runtime.GOMAXPROCS(-1)
 	}
 
+	if parallelism > n {
+		parallelism = n
+	}
+
 	if parallelism == 1 {
 		for i := 0; i < n; i++ {
 			f(i)
@@ -66,6 +70,10 @@ func DoContext(
 ) error {
 	if parallelism <= 0 {
 		parallelism = runtime.GOMAXPROCS(-1)
+	}
+
+	if parallelism > n {
+		parallelism = n
 	}
 
 	if parallelism == 1 {
