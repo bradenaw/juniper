@@ -6,6 +6,34 @@ import (
 	"github.com/bradenaw/juniper/xmaps"
 )
 
+func ExampleReverse() {
+	a := map[string]int{
+		"foo": 2,
+		"bar": 1,
+		"baz": 2,
+	}
+
+	fmt.Println(xmaps.Reverse(a))
+
+	// Output:
+}
+
+func ExampleReverseSingle() {
+	a := map[string]int{
+		"foo": 1,
+		"bar": 2,
+		"baz": 3,
+	}
+
+	reversed, ok := xmaps.ReverseSingle(a)
+	fmt.Println(ok)
+	fmt.Println(reversed)
+
+	// Output:
+	// true
+	// map[1:foo 2:bar 3:baz]
+}
+
 func ExampleUnion() {
 	a := xmaps.Set[int]{
 		1: {},

@@ -1,10 +1,13 @@
 package xmaps
 
 import (
+	"fmt"
+
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/bradenaw/juniper/xsort"
 )
 
+// Reverse returns a map from m's values to each of the keys that mapped to it.
 func Reverse[M ~map[K]V, K comparable, V comparable](m M) map[V][]K {
 	result := make(map[V][]K, len(m))
 	for k, v := range m {
@@ -13,16 +16,35 @@ func Reverse[M ~map[K]V, K comparable, V comparable](m M) map[V][]K {
 	return result
 }
 
+// ReverseSingle returns a map of m's values to m's keys. If there are any duplicate values, the
+// resulting map has an arbitrary choice of the associated keys and the second return is false.
 func ReverseSingle[M ~map[K]V, K comparable, V comparable](m M) (map[V]K, bool) {
 	result := make(map[V]K, len(m))
-	ok := true
+	allOk := true
 	for k, v := range m {
 		if _, ok := result[v]; ok {
-			ok = false
+			allOk = false
 		}
 		result[v] = k
 	}
-	return result, ok
+	return result, allOk
+}
+
+// FromKeysAndValues returns a map from keys[i] to values[i]. If there are any duplicate keys, the
+// resulting map has an arbitrary choice of the associated values and the second return is false.
+func FromKeysAndValues[K comparable, V any](keys []K, values []V) (map[K]V, bool) {
+	if len(keys) != len(values) {
+		panic(fmt.Sprintf("len(keys)=%d, len(values)=%d", len(keys), len(values)))
+	}
+	m := make(map[K]V, len(keys))
+	allOk := true
+	for i := range keys {
+		if _, ok := m[keys[i]]; ok {
+			allOk = false
+		}
+		m[keys[i]] = values[i]
+	}
+	return m, allOk
 }
 
 type Set[T comparable] map[T]struct{}
