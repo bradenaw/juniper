@@ -7,7 +7,7 @@ import (
 	"github.com/bradenaw/juniper/xsort"
 )
 
-// Reverse returns a map from m's values to each of the keys that mapped to it.
+// Reverse returns a map from m's values to each of the keys that mapped to it in arbitrary order.
 func Reverse[M ~map[K]V, K comparable, V comparable](m M) map[V][]K {
 	result := make(map[V][]K, len(m))
 	for k, v := range m {
@@ -30,8 +30,18 @@ func ReverseSingle[M ~map[K]V, K comparable, V comparable](m M) (map[V]K, bool) 
 	return result, allOk
 }
 
+// ToIndex returns a map from keys[i] to i.
+func ToIndex[K comparable](keys []K) map[K]int {
+	m := make(map[K]int, len(keys))
+	for i := range keys {
+		m[keys[i]] = i
+	}
+	return m
+}
+
 // FromKeysAndValues returns a map from keys[i] to values[i]. If there are any duplicate keys, the
-// resulting map has an arbitrary choice of the associated values and the second return is false.
+// resulting map has an arbitrary choice of the associated values and the second return is false. It
+// panics if len(keys)!=len(values).
 func FromKeysAndValues[K comparable, V any](keys []K, values []V) (map[K]V, bool) {
 	if len(keys) != len(values) {
 		panic(fmt.Sprintf("len(keys)=%d, len(values)=%d", len(keys), len(values)))
@@ -47,8 +57,19 @@ func FromKeysAndValues[K comparable, V any](keys []K, values []V) (map[K]V, bool
 	return m, allOk
 }
 
+// Set[T] is shorthand for map[T]struct{} with convenience methods.
 type Set[T comparable] map[T]struct{}
 
+// Add adds item to the set.
+func (s Set[T]) Add(item T) { s[item] = struct{}{} }
+
+// Remove removes item from the set.
+func (s Set[T]) Remove(item T) { delete(s, item) }
+
+// Contains returns true if item is in the set.
+func (s Set[T]) Contains(item T) bool { _, ok := s[item]; return ok }
+
+// SetFromSlice returns a Set whose elements are items.
 func SetFromSlice[T comparable](items []T) Set[T] {
 	result := make(Set[T], len(items))
 	for _, k := range items {
@@ -57,16 +78,18 @@ func SetFromSlice[T comparable](items []T) Set[T] {
 	return result
 }
 
+// Union returns a set containing all elements of all input sets.
 func Union[S ~map[T]struct{}, T comparable](sets ...S) S {
+	// Size estimate: the smallest possible result is the largest input set, if it's a superset of
+	// all of the others.
 	size := 0
-	first := true
 	for _, set := range sets {
-		if first || len(set) < size {
+		if len(set) > size {
 			size = len(set)
 		}
-		first = false
 	}
 	out := make(S, size)
+
 	for _, set := range sets {
 		for k := range set {
 			out[k] = struct{}{}
@@ -75,7 +98,9 @@ func Union[S ~map[T]struct{}, T comparable](sets ...S) S {
 	return out
 }
 
+// Intersection returns a set of the items that all input sets have in common.
 func Intersection[S ~map[T]struct{}, T comparable](sets ...S) S {
+	// The smallest intersection is 0, so don't guess about capacity.
 	out := make(S)
 	if len(sets) == 0 {
 		return out
@@ -98,6 +123,7 @@ func Intersection[S ~map[T]struct{}, T comparable](sets ...S) S {
 	return out
 }
 
+// Intersects returns true if the input sets have any element in common.
 func Intersects[S ~map[T]struct{}, T comparable](sets ...S) bool {
 	if len(sets) == 0 {
 		return false
@@ -122,12 +148,15 @@ func Intersects[S ~map[T]struct{}, T comparable](sets ...S) bool {
 	return false
 }
 
+// Difference returns all items of a that do not appear in b.
 func Difference[S ~map[T]struct{}, T comparable](a, b S) S {
+	// Size estimate: the smallest possible result is if all items of b are in a.
 	size := len(a) - len(b)
 	if size < 0 {
 		size = 0
 	}
 	result := make(S, size)
+
 	for k := range a {
 		if _, ok := b[k]; !ok {
 			result[k] = struct{}{}

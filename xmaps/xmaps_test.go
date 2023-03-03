@@ -13,9 +13,16 @@ func ExampleReverse() {
 		"baz": 2,
 	}
 
-	fmt.Println(xmaps.Reverse(a))
+	reversed := xmaps.Reverse(a)
 
-	// Output:
+	fmt.Println(1, reversed[1][0])
+	fmt.Println(2, reversed[2][0])
+	fmt.Println(2, reversed[2][1])
+
+	// Unordered output:
+	// 1 bar
+	// 2 foo
+	// 2 baz
 }
 
 func ExampleReverseSingle() {
@@ -32,6 +39,15 @@ func ExampleReverseSingle() {
 	// Output:
 	// true
 	// map[1:foo 2:bar 3:baz]
+}
+
+func ExampleToIndex() {
+	m := []string{"foo", "bar", "baz"}
+
+	fmt.Println(xmaps.ToIndex(m))
+
+	// Output:
+	// map[bar:1 baz:2 foo:0]
 }
 
 func ExampleUnion() {
