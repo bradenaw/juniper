@@ -1,3 +1,4 @@
+// Package xmaps contains utilities for working with maps.
 package xmaps
 
 import (
