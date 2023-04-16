@@ -26,23 +26,11 @@ iterators, and streams.
 - `xsort` contains extensions to the standard library package `sort`. Notably, it also has the
   definition for `xsort.Less`, which is how custom orderings can be defined for sorting and also for
   ordered collections like from `container/tree`.
-- You can probably guess what's in the packages `sets`, `xerrors`, `xmath`, `xmath/xrand`, `xsync`,
-  and `xtime`.
+- You can probably guess what's in the packages `xerrors`, `xmath`, `xmath/xrand`, `xsync`, and
+  `xtime`.
 
 Packages that overlap directly with a standard library package are named the same but with an `x`
 prefix for "extensions", e.g. `sort` and `xsort`. `xslices` is named so because a `slices` package
-is planned for Go 1.19.
+is planned for Go 1.21.
 
 See the [docs](https://pkg.go.dev/github.com/bradenaw/juniper) for more.
-
-## Status
-
-Things should basically work. The container packages have been tested decently well using the [new
-built-in coverage-based fuzzer](https://go.dev/doc/fuzz/) (it's a pleasure, by the way, other than
-having to translate from the built-in fuzz argument types). `container/tree` has been benchmarked
-and tweaked for some extra performance. It's far from hyper-optimized, but should be efficient
-enough. Most of the simpler functions are tested only with their examples.
-
-Since I no longer work at a megacorp running a huge global deployment of Go, I no longer have that
-at my disposal to certify any of this as battle-hardened. However, the quality of code here is high
-enough that I would've been comfortable using anything here in the systems that I worked on.
