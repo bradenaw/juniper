@@ -67,10 +67,12 @@ func (c *ContextCond) Wait(ctx context.Context) error {
 
 // Group manages a group of goroutines.
 type Group struct {
-	baseCtx context.Context
-	ctx     context.Context
-	cancel  context.CancelFunc
-	wg      sync.WaitGroup
+	ctx    context.Context
+	cancel context.CancelFunc
+	// held in R when spawning to check if ctx is already cancelled and in W when cancelling ctx to
+	// make sure we never cause wg to go 0->1 while inside Wait()
+	m  sync.RWMutex
+	wg sync.WaitGroup
 }
 
 // NewGroup returns a Group ready for use. The context passed to any of the f functions will be a
@@ -78,19 +80,30 @@ type Group struct {
 func NewGroup(ctx context.Context) *Group {
 	bgCtx, cancel := context.WithCancel(ctx)
 	return &Group{
-		baseCtx: ctx,
-		ctx:     bgCtx,
-		cancel:  cancel,
+		ctx:    bgCtx,
+		cancel: cancel,
 	}
 }
 
-// Once calls f once from another goroutine.
-func (g *Group) Once(f func(ctx context.Context)) {
+// helper even though it's exactly g.Do so that the goroutine stack for a spawned function doesn't
+// confusingly show all of them as created by Do.
+func (g *Group) spawn(f func()) {
+	g.m.RLock()
+	if g.ctx.Err() != nil {
+		return
+	}
 	g.wg.Add(1)
+	g.m.RUnlock()
+
 	go func() {
-		f(g.ctx)
+		f()
 		g.wg.Done()
 	}()
+}
+
+// Do calls f once from another goroutine.
+func (g *Group) Do(f func(ctx context.Context)) {
+	g.spawn(func() { f(g.ctx) })
 }
 
 // returns a random duration in [d - jitter, d + jitter]
@@ -104,9 +117,7 @@ func (g *Group) Periodic(
 	jitter time.Duration,
 	f func(ctx context.Context),
 ) {
-	g.wg.Add(1)
-	go func() {
-		defer g.wg.Done()
+	g.spawn(func() {
 		t := time.NewTimer(jitterDuration(interval, jitter))
 		defer t.Stop()
 		for {
@@ -121,16 +132,15 @@ func (g *Group) Periodic(
 			t.Reset(jitterDuration(interval, jitter))
 			f(g.ctx)
 		}
-	}()
+	})
 }
 
 // Trigger spawns a goroutine which calls f whenever the returned function is called. If f is
 // already running when triggered, f will run again immediately when it finishes.
 func (g *Group) Trigger(f func(ctx context.Context)) func() {
 	c := make(chan struct{}, 1)
-	g.wg.Add(1)
-	go func() {
-		defer g.wg.Done()
+
+	g.spawn(func() {
 		for {
 			if g.ctx.Err() != nil {
 				return
@@ -142,7 +152,7 @@ func (g *Group) Trigger(f func(ctx context.Context)) func() {
 			}
 			f(g.ctx)
 		}
-	}()
+	})
 
 	return func() {
 		select {
@@ -161,9 +171,7 @@ func (g *Group) PeriodicOrTrigger(
 	f func(ctx context.Context),
 ) func() {
 	c := make(chan struct{}, 1)
-	g.wg.Add(1)
-	go func() {
-		defer g.wg.Done()
+	g.spawn(func() {
 		t := time.NewTimer(jitterDuration(interval, jitter))
 		defer t.Stop()
 		for {
@@ -183,7 +191,7 @@ func (g *Group) PeriodicOrTrigger(
 			}
 			f(g.ctx)
 		}
-	}()
+	})
 
 	return func() {
 		select {
@@ -193,19 +201,19 @@ func (g *Group) PeriodicOrTrigger(
 	}
 }
 
-// Stop cancels the context passed to spawned goroutines.
+// Stop cancels the context passed to spawned goroutines. After the group is stopped, no more
+// goroutines will be spawned.
 func (g *Group) Stop() {
+	g.m.Lock()
 	g.cancel()
+	g.m.Unlock()
 }
 
-// Wait cancels the context passed to any of the spawned goroutines and waits for all spawned
-// goroutines to exit.
-//
-// It is not safe to call Wait concurrently with any other method on g.
-func (g *Group) Wait() {
-	g.cancel()
+// StopAndWait cancels the context passed to any of the spawned goroutines and waits for all spawned
+// goroutines to exit. After the group is stopped, no more goroutines will be spawned.
+func (g *Group) StopAndWait() {
+	g.Stop()
 	g.wg.Wait()
-	g.ctx, g.cancel = context.WithCancel(g.baseCtx)
 }
 
 // Lazy makes a lazily-initialized value. On first access, it uses f to create the value. Later
