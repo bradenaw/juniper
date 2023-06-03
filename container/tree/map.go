@@ -92,10 +92,10 @@ type Bound[K any] struct {
 // Included returns a Bound that goes up to and including key.
 func Included[K any](key K) Bound[K] { return Bound[K]{type_: boundInclude, key: key} }
 
-// Included returns a Bound that goes up to but not including key.
+// Excluded returns a Bound that goes up to but not including key.
 func Excluded[K any](key K) Bound[K] { return Bound[K]{type_: boundExclude, key: key} }
 
-// Included returns a Bound at the end of the collection.
+// Unbounded returns a Bound at the end of the collection.
 func Unbounded[K any]() Bound[K] { return Bound[K]{type_: boundUnbounded} }
 
 // Range returns an iterator that yields the elements of the map between the given bounds in
