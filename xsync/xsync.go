@@ -90,6 +90,7 @@ func NewGroup(ctx context.Context) *Group {
 func (g *Group) spawn(f func()) {
 	g.m.RLock()
 	if g.ctx.Err() != nil {
+		g.m.RUnlock()
 		return
 	}
 	g.wg.Add(1)
