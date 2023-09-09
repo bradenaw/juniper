@@ -16,16 +16,14 @@ const maxKVs = branchFactor - 1
 
 // < minKVs means we need to merge with a neighboring sibling
 //
-//	      ┌───────────────────╴size of underfilled node
-//	      │          ┌────────╴size of sibling (any larger and t.steal() would work instead)
-//	      │          │      ┌─╴separator between the two in parent
-//	┌─────┴────┐   ┌─┴──┐  ┌┴┐
-//
+// |           ┌───────────────────╴size of underfilled node
+// |           │          ┌────────╴size of sibling (any larger and t.steal() would work instead)
+// |           │          │      ┌─╴separator between the two in parent
+// |     ┌─────┴────┐   ┌─┴──┐  ┌┴┐
 // thus, (minKVs - 1) + minKVs + 1   <= maxKVs
-//
-//	└───┬───┘
-//	    └──╴(any larger and we wouldn't be able to fit everything
-//	        into a single node)
+// |                                  └───┬───┘
+// |                                      └──╴(any larger and we wouldn't be able to fit everything
+// |                                          into a single node)
 //
 // thus 2*minKVs <= maxKVs, so round-down is appropriate here
 //
@@ -55,17 +53,17 @@ func newBtree[K any, V any](less xsort.Less[K]) *btree[K, V] {
 	}
 }
 
-// keys                 0           1           2                      n-1                        //
-// values               0           1           2                      n-1                        //
-// children       0           1           2          ...         n-1          n                   //
-//
-//	└┬┘         └┬┘                                             └┬┘                  //
-//	 │           └─╴contains keys greater than keys[0] and less  │                   //
-//	 │              than keys[1]                                 │                   //
-//	 │                                                           │                   //
-//	 └─────────────╴contains keys less than keys[0]              │                   //
-//	                                                             │                   //
-//	                contains keys greater than keys[n-1]╶────────┘                   //
+// |  keys                 0           1           2                      n-1                   | //
+// |  values               0           1           2                      n-1                   | //
+// |  children       0           1           2          ...         n-1          n              | //
+// |                                                                                            | //
+// |                └┬┘         └┬┘                                             └┬┘             | //
+// |                 │           └─╴contains keys greater than keys[0] and less  │              | //
+// |                 │              than keys[1]                                 │              | //
+// |                 │                                                           │              | //
+// |                 └─────────────╴contains keys less than keys[0]              │              | //
+// |                                                                             │              | //
+// |                                contains keys greater than keys[n-1]╶────────┘              | //
 type node[K any, V any] struct {
 	// Odd ordering of fields is for better cache locality, actually does improve performance
 	// slightly. n and the first key are always accessed on search.
@@ -307,14 +305,14 @@ func (t *btree[K, V]) merge(x *node[K, V]) {
 //
 // Assumes either left or right has n < minKVs and the other has n == minKVs.
 //
-//	           parent                                      parent                       //
-//	         ┌───────────────┐                           ┌───────────────┐              //
-//	         │   a   g   l   │                           │   a   l       │              //
-//	         └╴•╶─╴•╶─╴•╶─╴•─┘                           └╴•╶─╴•╶─╴•╶────┘              //
-//	 left   ┌──────┘   └───────┐  right                 left   │                        //
-//	┌───────┴───────┐  ┌───────┴───────┐               ┌───────┴───────┐                //
-//	│   c           │  │   h           │    ╶────>     │   c   g   h   │                //
-//	└╴•╶─╴•╶─╴•╶─╴•╶┘  └╴•╶─╴•╶────────┘               └╴•╶─╴•╶─╴•╶─╴•╶┘                //
+// |                     parent                                      parent                     | //
+// |                   ┌───────────────┐                           ┌───────────────┐            | //
+// |                   │   a   g   l   │                           │   a   l       │            | //
+// |                   └╴•╶─╴•╶─╴•╶─╴•─┘                           └╴•╶─╴•╶─╴•╶────┘            | //
+// |           left   ┌──────┘   └───────┐  right                 left   │                      | //
+// |          ┌───────┴───────┐  ┌───────┴───────┐               ┌───────┴───────┐              | //
+// |          │   c           │  │   h           │    ╶────>     │   c   g   h   │              | //
+// |          └╴•╶─╴•╶─╴•╶─╴•╶┘  └╴•╶─╴•╶────────┘               └╴•╶─╴•╶─╴•╶─╴•╶┘              | //
 func (t *btree[K, V]) mergeTwo(left, right *node[K, V]) {
 	parent := left.parent
 	idxInParent := slices.Index(parent.children[:], left)
@@ -401,19 +399,19 @@ func (t *btree[K, V]) siblings(x *node[K, V]) (*node[K, V], *node[K, V]) {
 	return left, right
 }
 
-//	               parent                                            parent                      //
-//	             ┌───────────────┐                                 ┌───────────────┐             //
-//	             │  [g]          │                                 │  [c]          │             //
-//	             └╴•╶─╴•╶────────┘                                 └╴•╶─╴•╶────────┘             //
-//	left    ┌──────┘   └───────┐  right               left    ┌──────┘   └───────┐  right        //
-//	┌───────┴───────┐  ┌───────┴───────┐              ┌───────┴───────┐  ┌───────┴───────┐       //
-//	│   a   b  [c]  │  │   h   i       │    ╶────>    │   a   b   [ ] │  │  [g]  h   i   │       //
-//	└╴•╶─╴•╶─╴•╶─[•]┘  └╴•╶─╴•╶─╴•╶────┘              └╴•╶─╴•╶─╴•╶────┘  └[•]─╴•╶─╴•╶─╴•╶┘       //
-//	              │                                                        │                     //
-//	              │   child                                                │   child             //
-//	      ┌───────┴───────┐                                        ┌───────┴───────┐             //
-//	      │   d   e   f   │                                        │   d   e   f   │             //
-//	      └╴•╶─╴•╶─╴•╶─╴•╶┘                                        └╴•╶─╴•╶─╴•╶─╴•╶┘             //
+// |                   parent                                            parent                 | //
+// |                 ┌───────────────┐                                 ┌───────────────┐        | //
+// |                 │  [g]          │                                 │  [c]          │        | //
+// |                 └╴•╶─╴•╶────────┘                                 └╴•╶─╴•╶────────┘        | //
+// |    left    ┌──────┘   └───────┐  right               left    ┌──────┘   └───────┐  right   | //
+// |    ┌───────┴───────┐  ┌───────┴───────┐              ┌───────┴───────┐  ┌───────┴───────┐  | //
+// |    │   a   b  [c]  │  │   h   i       │    ╶────>    │   a   b   [ ] │  │  [g]  h   i   │  | //
+// |    └╴•╶─╴•╶─╴•╶─[•]┘  └╴•╶─╴•╶─╴•╶────┘              └╴•╶─╴•╶─╴•╶────┘  └[•]─╴•╶─╴•╶─╴•╶┘  | //
+// |                  │                                                        │                | //
+// |                  │   child                                                │   child        | //
+// |          ┌───────┴───────┐                                        ┌───────┴───────┐        | //
+// |          │   d   e   f   │                                        │   d   e   f   │        | //
+// |          └╴•╶─╴•╶─╴•╶─╴•╶┘                                        └╴•╶─╴•╶─╴•╶─╴•╶┘        | //
 //
 // (Changes marked with [])
 //
@@ -446,19 +444,19 @@ func (t *btree[K, V]) rotateRight(left *node[K, V], right *node[K, V]) {
 	right.n++
 }
 
-//	               parent                                                parent                  //
-//	             ┌───────────────┐                                     ┌───────────────┐         //
-//	             │  [c]          │                                     │  [g]          │         //
-//	             └╴•╶─╴•╶────────┘                                     └╴•╶─╴•╶────────┘         //
-//	left    ┌──────┘   └───────┐  right                   left    ┌──────┘   └───────┐  right    //
-//	┌───────┴───────┐  ┌───────┴───────┐                  ┌───────┴───────┐  ┌───────┴───────┐   //
-//	│   a   b   [ ] │  │  [g]  h   i   │      ╶────>      │   a   b  [c]  │  │ [ ]  h   i    │   //
-//	└╴•╶─╴•╶─╴•╶────┘  └[•]─╴•╶─╴•╶─╴•╶┘                  └╴•╶─╴•╶─╴•╶─[•]┘  └───╴•╶─╴•╶─╴•╶─┘   //
-//	                     │                                              │                        //
-//	                     │   child                                      │   child                //
-//	             ┌───────┴───────┐                              ┌───────┴───────┐                //
-//	             │   d   e   f   │                              │   d   e   f   │                //
-//	             └╴•╶─╴•╶─╴•╶─╴•╶┘                              └╴•╶─╴•╶─╴•╶─╴•╶┘                //
+// |                parent                                                parent                | //
+// |              ┌───────────────┐                                     ┌───────────────┐       | //
+// |              │  [c]          │                                     │  [g]          │       | //
+// |              └╴•╶─╴•╶────────┘                                     └╴•╶─╴•╶────────┘       | //
+// | left    ┌──────┘   └───────┐  right                   left    ┌──────┘   └───────┐  right  | //
+// | ┌───────┴───────┐  ┌───────┴───────┐                  ┌───────┴───────┐  ┌───────┴───────┐ | //
+// | │   a   b   [ ] │  │  [g]  h   i   │      ╶────>      │   a   b  [c]  │  │ [ ]  h   i    │ | //
+// | └╴•╶─╴•╶─╴•╶────┘  └[•]─╴•╶─╴•╶─╴•╶┘                  └╴•╶─╴•╶─╴•╶─[•]┘  └───╴•╶─╴•╶─╴•╶─┘ | //
+// |                      │                                              │                      | //
+// |                      │   child                                      │   child              | //
+// |              ┌───────┴───────┐                              ┌───────┴───────┐              | //
+// |              │   d   e   f   │                              │   d   e   f   │              | //
+// |              └╴•╶─╴•╶─╴•╶─╴•╶┘                              └╴•╶─╴•╶─╴•╶─╴•╶┘              | //
 //
 // (Changes marked with [])
 //
