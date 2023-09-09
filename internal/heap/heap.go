@@ -2,6 +2,7 @@ package heap
 
 import (
 	"errors"
+	"slices"
 
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/xslices"
@@ -9,19 +10,16 @@ import (
 
 var ErrHeapModified = errors.New("heap modified during iteration")
 
-// Duplicated from xsort to avoid dependency cycle.
-type Less[T any] func(a, b T) bool
-
 type Heap[T any] struct {
-	lessFn       Less[T]
+	cmp          func(T, T) int
 	indexChanged func(x T, i int)
 	a            []T
 	gen          int
 }
 
-func New[T any](less Less[T], indexChanged func(x T, i int), initial []T) Heap[T] {
+func New[T any](cmp func(T, T) int, indexChanged func(x T, i int), initial []T) Heap[T] {
 	h := Heap[T]{
-		lessFn:       less,
+		cmp:          cmp,
 		indexChanged: indexChanged,
 		a:            initial,
 	}
@@ -41,7 +39,7 @@ func (h *Heap[T]) Len() int {
 }
 
 func (h *Heap[T]) Grow(n int) {
-	h.a = xslices.Grow(h.a, n)
+	h.a = slices.Grow(h.a, n)
 }
 
 func (h *Heap[T]) Shrink(n int) {
@@ -119,7 +117,7 @@ func (h *Heap[T]) notifyIndexChanged(i int) {
 }
 
 func (h *Heap[T]) less(i, j int) bool {
-	return h.lessFn((h.a)[i], (h.a)[j])
+	return h.cmp((h.a)[i], (h.a)[j]) < 0
 }
 
 func (h *Heap[T]) percolateDown(i int) {

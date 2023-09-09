@@ -15,9 +15,20 @@ type Set[T any] struct {
 // NewSet returns a Set that uses less to determine the sort order of items. If !less(a, b) &&
 // !less(b, a), then a and b are considered the same item. The output of less must not change for
 // any pair of items while they are in the set.
+//
+// NewSetCmp is more efficient and should be used instead wherever possible.
 func NewSet[T any](less xsort.Less[T]) Set[T] {
 	return Set[T]{
-		t: newBtree[T, struct{}](less),
+		t: newBtree[T, struct{}](xsort.LessToCompare(less)),
+	}
+}
+
+// NewSet returns a Set that uses cmp to determine the sort order of items. cmp(a, b) should return
+// a negative number when a < b, a positive number when a > b and zero when a == b. The output of
+// cmp must not change for any pair of items while they are in the set.
+func NewSetCmp[T any](cmp func(T, T) int) Set[T] {
+	return Set[T]{
+		t: newBtree[T, struct{}](cmp),
 	}
 }
 

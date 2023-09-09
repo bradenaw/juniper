@@ -20,7 +20,7 @@ func TestMergeSlices(t *testing.T) {
 			all = append(all, in[i]...)
 		}
 		merged := xsort.MergeSlices(
-			cmp.Less[int],
+			cmp.Compare[int],
 			nil,
 			in...,
 		)
@@ -64,10 +64,10 @@ func FuzzMerge(f *testing.F) {
 		}
 
 		expected := append([]byte{}, b...)
-		xsort.Slice(expected, cmp.Less[byte])
+		slices.Sort(expected)
 
 		merged := xsort.Merge(
-			cmp.Less[byte],
+			cmp.Compare[byte],
 			iterator.Collect(
 				iterator.Map(
 					iterator.Slice(bs),
@@ -97,7 +97,7 @@ func ExampleMerge() {
 	listThree := []string{"s", "z"}
 
 	merged := xsort.Merge(
-		cmp.Less[string],
+		cmp.Compare[string],
 		iterator.Slice(listOne),
 		iterator.Slice(listTwo),
 		iterator.Slice(listThree),
@@ -115,7 +115,7 @@ func ExampleMergeSlices() {
 	listThree := []string{"s", "z"}
 
 	merged := xsort.MergeSlices(
-		cmp.Less[string],
+		cmp.Compare[string],
 		nil,
 		listOne,
 		listTwo,
@@ -132,11 +132,11 @@ func ExampleMinK() {
 	a := []int{7, 4, 3, 8, 2, 1, 6, 9, 0, 5}
 
 	iter := iterator.Slice(a)
-	min3 := xsort.MinK(cmp.Less[int], iter, 3)
+	min3 := xsort.MinK(cmp.Compare[int], iter, 3)
 	fmt.Println(min3)
 
 	iter = iterator.Slice(a)
-	max3 := xsort.MinK(xsort.Reverse(cmp.Less[int]), iter, 3)
+	max3 := xsort.MinK(xsort.ReverseCompare(cmp.Compare[int]), iter, 3)
 	fmt.Println(max3)
 
 	// Output:

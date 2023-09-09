@@ -23,9 +23,7 @@ iterators, and streams.
   extras like `Pipe` and `Batch`.
 - `parallel` contains some shorthand for common uses of goroutines to process slices, iterators, and
   streams in parallel, like `parallel.MapStream`.
-- `xsort` contains extensions to the standard library package `sort`. Notably, it also has the
-  definition for `xsort.Less`, which is how custom orderings can be defined for sorting and also for
-  ordered collections like from `container/tree`.
+- `xsort` contains extensions to the standard library package `sort`.
 - You can probably guess what's in the packages `xerrors`, `xmath`, `xmath/xrand`, `xsync`, and
   `xtime`.
 

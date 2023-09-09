@@ -3,6 +3,7 @@ package xsort
 
 import (
 	"cmp"
+	"slices"
 	"sort"
 
 	"github.com/bradenaw/juniper/internal/heap"
@@ -18,6 +19,17 @@ type Less[T any] func(a, b T) bool
 // Deprecated: cmp.Less is in the standard library as of Go 1.21.
 func OrderedLess[T cmp.Ordered](a, b T) bool {
 	return cmp.Less(a, b)
+}
+
+func LessToCompare[T any](less Less[T]) func(T, T) int {
+	return func(a, b T) int {
+		if less(a, b) {
+			return -1
+		} else if less(b, a) {
+			return 1
+		}
+		return 0
+	}
 }
 
 // Compile-time assert the types match.
@@ -52,6 +64,18 @@ func Equal[T any](less Less[T], a T, b T) bool {
 func Reverse[T any](less Less[T]) Less[T] {
 	return func(a, b T) bool {
 		return less(b, a)
+	}
+}
+
+func ReverseCompare[T any](cmp func(T, T) int) func(T, T) int {
+	return func(a, b T) int {
+		c := cmp(a, b)
+		if -c == c {
+			// Because the range of int is [-2^63, 2^63-1], -math.MinInt overflows and becomes
+			// math.MinInt again, also a negative number.
+			return 1
+		}
+		return -c
 	}
 }
 
@@ -127,7 +151,7 @@ func (iter *mergeIterator[T]) Next() (T, bool) {
 // less.
 //
 // The time complexity of Next() is O(log(k)) where k is len(in).
-func Merge[T any](less Less[T], in ...iterator.Iterator[T]) iterator.Iterator[T] {
+func Merge[T any](cmp func(T, T) int, in ...iterator.Iterator[T]) iterator.Iterator[T] {
 	initial := make([]valueAndSource[T], 0, len(in))
 	for i := range in {
 		item, ok := in[i].Next()
@@ -137,8 +161,8 @@ func Merge[T any](less Less[T], in ...iterator.Iterator[T]) iterator.Iterator[T]
 		initial = append(initial, valueAndSource[T]{item, i})
 	}
 	h := heap.New(
-		func(a, b valueAndSource[T]) bool {
-			return less(a.value, b.value)
+		func(a, b valueAndSource[T]) int {
+			return cmp(a.value, b.value)
 		},
 		func(a valueAndSource[T], i int) {},
 		initial,
@@ -155,13 +179,13 @@ func Merge[T any](less Less[T], in ...iterator.Iterator[T]) iterator.Iterator[T]
 // The results are undefined if the in slices are not already sorted.
 //
 // The time complexity is O(n * log(k)) where n is the total number of items and k is len(in).
-func MergeSlices[T any](less Less[T], out []T, in ...[]T) []T {
+func MergeSlices[T any](cmp func(T, T) int, out []T, in ...[]T) []T {
 	n := 0
 	for i := range in {
 		n += len(in[i])
 	}
-	out = xslices.Grow(out[:0], n)
-	iter := Merge(less, xslices.Map(in, iterator.Slice[T])...)
+	out = slices.Grow(out[:0], n)
+	iter := Merge(cmp, xslices.Map(in, iterator.Slice[T])...)
 	for {
 		item, ok := iter.Next()
 		if !ok {
@@ -172,10 +196,10 @@ func MergeSlices[T any](less Less[T], out []T, in ...[]T) []T {
 	return out
 }
 
-// MinK returns the k minimum items according to less from iter in sorted order. If iter yields
+// MinK returns the k minimum items according to cmp from iter in sorted order. If iter yields
 // fewer than k items, MinK returns all of them.
-func MinK[T any](less Less[T], iter iterator.Iterator[T], k int) []T {
-	h := heap.New[T](heap.Less[T](Reverse(less)), func(a T, i int) {}, nil)
+func MinK[T any](cmp func(T, T) int, iter iterator.Iterator[T], k int) []T {
+	h := heap.New[T](ReverseCompare(cmp), func(a T, i int) {}, nil)
 	for {
 		item, ok := iter.Next()
 		if !ok {

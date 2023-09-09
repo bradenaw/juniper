@@ -25,10 +25,12 @@ type Heap[T any] struct {
 // Heap, so it should not be used after passing to New(). Passing initial is faster (O(n)) than
 // creating an empty heap and pushing each item (O(n * log(n))).
 func New[T any](less xsort.Less[T], initial []T) Heap[T] {
+	return NewCmp(xsort.LessToCompare(less), initial)
+}
+
+func NewCmp[T any](cmp func(T, T) int, initial []T) Heap[T] {
 	inner := heap.New(
-		func(a, b T) bool {
-			return less(a, b)
-		},
+		cmp,
 		func(a T, i int) {},
 		initial,
 	)
@@ -103,6 +105,13 @@ func NewPriorityQueue[K comparable, P any](
 	less xsort.Less[P],
 	initial []KP[K, P],
 ) PriorityQueue[K, P] {
+	return NewPriorityQueueCmp(xsort.LessToCompare(less), initial)
+}
+
+func NewPriorityQueueCmp[K comparable, P any](
+	cmp func(P, P) int,
+	initial []KP[K, P],
+) PriorityQueue[K, P] {
 	h := PriorityQueue[K, P]{
 		m: make(map[K]int),
 	}
@@ -117,8 +126,8 @@ func NewPriorityQueue[K comparable, P any](
 	}
 	initial = filtered
 	inner := heap.New(
-		func(a, b KP[K, P]) bool {
-			return less(a.P, b.P)
+		func(a, b KP[K, P]) int {
+			return cmp(a.P, b.P)
 		},
 		func(x KP[K, P], i int) {
 			h.m[x.K] = i

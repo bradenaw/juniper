@@ -22,9 +22,20 @@ type Map[K any, V any] struct {
 // NewMap returns a Map that uses less to determine the sort order of keys. If !less(a, b) &&
 // !less(b, a), then a and b are considered the same key. The output of less must not change for any
 // pair of keys while they are in the map.
+//
+// NewMapCmp is more efficient and should be used instead wherever possible.
 func NewMap[K any, V any](less xsort.Less[K]) Map[K, V] {
 	return Map[K, V]{
-		t: newBtree[K, V](less),
+		t: newBtree[K, V](xsort.LessToCompare(less)),
+	}
+}
+
+// NewMap returns a Map that uses cmp to determine the sort order of keys. cmp(a, b) should return a
+// negative number when a < b, a positive number when a > b and zero when a == b. The output of cmp
+// must not change for any pair of keys while they are in the map.
+func NewMapCmp[K any, V any](cmp func(K, K) int) Map[K, V] {
+	return Map[K, V]{
+		t: newBtree[K, V](cmp),
 	}
 }
 
