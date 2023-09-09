@@ -1,7 +1,9 @@
 package tree
 
 import (
+	"cmp"
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 
@@ -19,10 +21,10 @@ func orderedhashmapKVPairToKVPair[K any, V any](kv orderedhashmap.KVPair[uint16,
 
 func FuzzBtree(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte) {
-		tree := newBtree[uint16, int](xsort.OrderedLess[uint16])
+		tree := newBtree[uint16, int](cmp.Less[uint16])
 		cursor := tree.Cursor()
 		cursor.SeekFirst()
-		oracle := orderedhashmap.NewMap[uint16, int](xsort.OrderedLess[uint16])
+		oracle := orderedhashmap.NewMap[uint16, int](cmp.Less[uint16])
 		oracleCursor := oracle.Cursor()
 
 		ctr := 0
@@ -45,8 +47,8 @@ func FuzzBtree(f *testing.F) {
 				oraclePairs := iterator.Collect(
 					iterator.Map(oracle.Cursor().Forward(), orderedhashmapKVPairToKVPair[uint16, int]),
 				)
-				xsort.Slice(oraclePairs, func(a, b KVPair[uint16, int]) bool {
-					return a.Key < b.Key
+				slices.SortFunc(oraclePairs, func(a, b KVPair[uint16, int]) int {
+					return cmp.Compare(a.Key, b.Key)
 				})
 
 				c := tree.Cursor()
@@ -389,7 +391,7 @@ func TestRotateLeft(t *testing.T) {
 }
 
 func TestMergeMulti(t *testing.T) {
-	tree := newBtree[uint16, int](xsort.OrderedLess[uint16])
+	tree := newBtree[uint16, int](cmp.Less[uint16])
 	i := 0
 	for treeHeight(tree) < 3 {
 		tree.Put(uint16(i), i)
@@ -432,12 +434,13 @@ func TestMergeMulti(t *testing.T) {
 	t.Logf("removed %#v", removed)
 	t.Logf(treeToString(tree))
 
-	expected = xslices.Remove(
+	idx := slices.IndexFunc(expected, func(pair KVPair[uint16, int]) bool {
+		return pair.Key == removed
+	})
+	expected = slices.Delete(
 		expected,
-		xslices.IndexFunc(expected, func(pair KVPair[uint16, int]) bool {
-			return pair.Key == removed
-		}),
-		1,
+		idx,
+		idx+1,
 	)
 	nNodesAfter := numNodes(tree)
 	c = tree.Cursor()
@@ -507,7 +510,7 @@ func requireTreesEqual(t *testing.T, a, b *btree[byte, int]) {
 func makeTree(t *testing.T, root *node[byte, int]) *btree[byte, int] {
 	tree := &btree[byte, int]{
 		root: root,
-		less: xsort.OrderedLess[byte],
+		less: cmp.Less[byte],
 	}
 	tree.size = numItems(tree)
 	checkTree(t, tree)
@@ -728,19 +731,19 @@ func TestAmalgam1(t *testing.T) {
 			copy(expectedValues[:], values[:])
 			var expectedChildren [branchFactor + 1]*node[byte, byte]
 			copy(expectedChildren[:], children[:])
-			idx := xsort.Search(expectedKeys[:len(expectedKeys)-1], xsort.OrderedLess[byte], extraKey)
-			xslices.Insert(expectedKeys[:len(expectedKeys)-1], idx, extraKey)
-			xslices.Insert(expectedValues[:len(expectedKeys)-1], idx, extraValue)
-			xslices.Insert(expectedChildren[:len(expectedChildren)-1], idx+1, extraChild)
+			idx, _ := slices.BinarySearchFunc(expectedKeys[:len(expectedKeys)-1], extraKey, cmp.Compare[byte])
+			slices.Insert(expectedKeys[:len(expectedKeys)-1], idx, extraKey)
+			slices.Insert(expectedValues[:len(expectedKeys)-1], idx, extraValue)
+			slices.Insert(expectedChildren[:len(expectedChildren)-1], idx+1, extraChild)
 			require2.Truef(
 				t,
-				xsort.SliceIsSorted(expectedKeys[:], xsort.OrderedLess[byte]),
+				slices.IsSortedFunc(expectedKeys[:], cmp.Compare[byte]),
 				"%#v",
 				expectedKeys,
 			)
 
 			a := newAmalgam1(
-				xsort.OrderedLess[byte],
+				cmp.Less[byte],
 				&keys,
 				&values,
 				&children,
@@ -773,7 +776,7 @@ func TestAmalgam1(t *testing.T) {
 }
 
 func TestRange(t *testing.T) {
-	tree := newBtree[uint16, int](xsort.OrderedLess[uint16])
+	tree := newBtree[uint16, int](cmp.Less[uint16])
 
 	for i := 0; i < 128; i++ {
 		tree.Put(uint16(i), i)
@@ -808,7 +811,7 @@ func TestRange(t *testing.T) {
 }
 
 func TestGetContains(t *testing.T) {
-	tree := newBtree[uint16, int](xsort.OrderedLess[uint16])
+	tree := newBtree[uint16, int](cmp.Less[uint16])
 
 	for i := 0; i < 128; i++ {
 		tree.Put(uint16(i*2), i*4)
@@ -826,7 +829,7 @@ func TestGetContains(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	tree := newBtree[uint16, int](xsort.OrderedLess[uint16])
+	tree := newBtree[uint16, int](cmp.Less[uint16])
 	for i := 0; i < 128; i++ {
 		tree.Put(uint16(i)+1, i*2)
 	}

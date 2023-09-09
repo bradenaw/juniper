@@ -219,15 +219,10 @@ func (g *Group) StopAndWait() {
 
 // Lazy makes a lazily-initialized value. On first access, it uses f to create the value. Later
 // accesses all receive the same value.
+//
+// Deprecated: sync.OnceValue is in the standard library as of Go 1.21.
 func Lazy[T any](f func() T) func() T {
-	var once sync.Once
-	var val T
-	return func() T {
-		once.Do(func() {
-			val = f()
-		})
-		return val
-	}
+	return sync.OnceValue(f)
 }
 
 // Map is a typesafe wrapper over sync.Map.

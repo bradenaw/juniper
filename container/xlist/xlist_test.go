@@ -1,11 +1,11 @@
 package xlist
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/bradenaw/juniper/internal/fuzz"
 	"github.com/bradenaw/juniper/internal/require2"
-	"github.com/bradenaw/juniper/xslices"
 )
 
 func FuzzList(f *testing.F) {
@@ -65,7 +65,7 @@ func FuzzList(f *testing.F) {
 				idx = idx % len(oracle)
 				t.Logf("InsertBefore(%d, node @ %d)", value, idx)
 				l.InsertBefore(value, nodeAt(idx))
-				oracle = xslices.Insert(oracle, idx, value)
+				oracle = slices.Insert(oracle, idx, value)
 			},
 			func(value int, idx int) {
 				if len(oracle) == 0 || idx < 0 {
@@ -74,7 +74,7 @@ func FuzzList(f *testing.F) {
 				idx = idx % len(oracle)
 				t.Logf("InsertAfter(%d, node @ %d)", value, idx)
 				l.InsertAfter(value, nodeAt(idx))
-				oracle = xslices.Insert(oracle, idx+1, value)
+				oracle = slices.Insert(oracle, idx+1, value)
 			},
 			func(idx int) {
 				if len(oracle) == 0 || idx < 0 {
@@ -83,7 +83,7 @@ func FuzzList(f *testing.F) {
 				idx = idx % len(oracle)
 				t.Logf("Remove(node @ %d)", idx)
 				l.Remove(nodeAt(idx))
-				oracle = xslices.Remove(oracle, idx, 1)
+				oracle = slices.Delete(oracle, idx, idx+1)
 			},
 			func(src, dest int) {
 				if len(oracle) == 0 || src < 0 || dest < 0 {
@@ -94,11 +94,11 @@ func FuzzList(f *testing.F) {
 				t.Logf("MoveBefore(node @ %d, node @ %d)", src, dest)
 				l.MoveBefore(nodeAt(src), nodeAt(dest))
 				item := oracle[src]
-				oracle = xslices.Remove(oracle, src, 1)
+				oracle = slices.Delete(oracle, src, src+1)
 				if dest > src {
 					dest--
 				}
-				oracle = xslices.Insert(oracle, dest, item)
+				oracle = slices.Insert(oracle, dest, item)
 			},
 			func(src, dest int) {
 				if len(oracle) == 0 || src < 0 || dest < 0 {
@@ -109,11 +109,11 @@ func FuzzList(f *testing.F) {
 				t.Logf("MoveAfter(node @ %d, node @ %d)", src, dest)
 				l.MoveAfter(nodeAt(src), nodeAt(dest))
 				item := oracle[src]
-				oracle = xslices.Remove(oracle, src, 1)
+				oracle = slices.Delete(oracle, src, src+1)
 				if dest >= src {
 					dest--
 				}
-				oracle = xslices.Insert(oracle, dest+1, item)
+				oracle = slices.Insert(oracle, dest+1, item)
 			},
 			func(idx int) {
 				if len(oracle) == 0 || idx < 0 {
@@ -123,7 +123,7 @@ func FuzzList(f *testing.F) {
 				t.Logf("MoveToFront(node @ %d)", idx)
 				l.MoveToFront(nodeAt(idx))
 				item := oracle[idx]
-				oracle = xslices.Remove(oracle, idx, 1)
+				oracle = slices.Delete(oracle, idx, idx+1)
 				oracle = append([]int{item}, oracle...)
 			},
 			func(idx int) {
@@ -134,7 +134,7 @@ func FuzzList(f *testing.F) {
 				t.Logf("MoveToBack(node @ %d)", idx)
 				l.MoveToBack(nodeAt(idx))
 				item := oracle[idx]
-				oracle = xslices.Remove(oracle, idx, 1)
+				oracle = slices.Delete(oracle, idx, idx+1)
 				oracle = append(oracle, item)
 			},
 		)

@@ -15,6 +15,8 @@ import (
 type Less[T any] func(a, b T) bool
 
 // OrderedLess is an implementation of Less for constraints.Ordered types by using the < operator.
+//
+// Deprecated: cmp.Less is in the standard library as of Go 1.21.
 func OrderedLess[T constraints.Ordered](a, b T) bool {
 	return a < b
 }
@@ -57,6 +59,8 @@ func Reverse[T any](less Less[T]) Less[T] {
 // Slice sorts x in-place using the given less function to compare items.
 //
 // Follows the same rules as sort.Slice.
+//
+// Deprecated: slices.SortFunc is in the standard library as of Go 1.21.
 func Slice[T any](x []T, less Less[T]) {
 	sort.Slice(x, func(i, j int) bool {
 		return less(x[i], x[j])
@@ -66,6 +70,8 @@ func Slice[T any](x []T, less Less[T]) {
 // SliceStable stably sorts x in-place using the given less function to compare items.
 //
 // Follows the same rules as sort.SliceStable.
+//
+// Deprecated: slices.SortStableFunc is in the standard library as of Go 1.21.
 func SliceStable[T any](x []T, less Less[T]) {
 	sort.SliceStable(x, func(i, j int) bool {
 		return less(x[i], x[j])
@@ -75,6 +81,8 @@ func SliceStable[T any](x []T, less Less[T]) {
 // SliceIsSorted returns true if x is in sorted order according to the given less function.
 //
 // Follows the same rules as sort.SliceIsSorted.
+//
+// Deprecated: slices.IsSortedFunc is in the standard library as of Go 1.21.
 func SliceIsSorted[T any](x []T, less Less[T]) bool {
 	return sort.SliceIsSorted(x, func(i, j int) bool {
 		return less(x[i], x[j])
@@ -83,6 +91,8 @@ func SliceIsSorted[T any](x []T, less Less[T]) bool {
 
 // Search searches for item in x, assumed sorted according to less, and returns the index. The
 // return value is the index to insert item at if it is not present (it could be len(a)).
+//
+// Deprecated: slices.BinarySearchFunc is in the standard library as of Go 1.21.
 func Search[T any](x []T, less Less[T], item T) int {
 	return sort.Search(len(x), func(i int) bool {
 		return less(item, x[i]) || !less(x[i], item)

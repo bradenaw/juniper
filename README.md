@@ -14,8 +14,8 @@ iterators, and streams.
   more ergonomic, along with a `PriorityQueue` that allows setting priorities by key.
 - `container/xlist` contains a linked-list similar to the standard library's `container/list`, but
   type-safe.
-- `xslices` contains some commonly-used slice operations, like `Insert`, `Remove`, `Chunk`,
-  `Filter`, and `Compact`.
+- `xslices` contains some commonly-used slice operations, like `Chunk`, `Reverse`, `Clear`, and
+  `Join`.
 - `iterator` contains an iterator interface used by the containers, along with functions to
   manipulate them, like `Map`, `While`, and `Reduce`.
 - `stream` contains a stream interface, which is an iterator that can fail. Useful for iterating
@@ -30,7 +30,6 @@ iterators, and streams.
   `xtime`.
 
 Packages that overlap directly with a standard library package are named the same but with an `x`
-prefix for "extensions", e.g. `sort` and `xsort`. `xslices` is named so because a `slices` package
-is planned for Go 1.21.
+prefix for "extensions", e.g. `sort` and `xsort`.
 
 See the [docs](https://pkg.go.dev/github.com/bradenaw/juniper) for more.

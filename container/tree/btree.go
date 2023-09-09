@@ -1,6 +1,8 @@
 package tree
 
 import (
+	"slices"
+
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/bradenaw/juniper/xsort"
@@ -13,14 +15,18 @@ const branchFactor = 16
 const maxKVs = branchFactor - 1
 
 // < minKVs means we need to merge with a neighboring sibling
-//             ┌───────────────────╴size of underfilled node
-//             │          ┌────────╴size of sibling (any larger and t.steal() would work instead)
-//             │          │      ┌─╴separator between the two in parent
-//       ┌─────┴────┐   ┌─┴──┐  ┌┴┐
+//
+//	      ┌───────────────────╴size of underfilled node
+//	      │          ┌────────╴size of sibling (any larger and t.steal() would work instead)
+//	      │          │      ┌─╴separator between the two in parent
+//	┌─────┴────┐   ┌─┴──┐  ┌┴┐
+//
 // thus, (minKVs - 1) + minKVs + 1   <= maxKVs
-//                                   └───┬───┘
-//                                       └──╴(any larger and we wouldn't be able to fit everything
-//                                           into a single node)
+//
+//	└───┬───┘
+//	    └──╴(any larger and we wouldn't be able to fit everything
+//	        into a single node)
+//
 // thus 2*minKVs <= maxKVs, so round-down is appropriate here
 //
 // Does not apply to the root.
@@ -30,8 +36,8 @@ const minKVs = maxKVs / 2
 // 1. Every node except the root has n >= minKVs.
 // 2. The root has n >= 1 if the tree is non-empty.
 // 3. Every node has node.n+1 children or no children.
-//    - Notably, most nodes are leaves so we can do better space-wise if we can elide the children
-//      array from internal nodes entirely.
+//   - Notably, most nodes are leaves so we can do better space-wise if we can elide the children
+//     array from internal nodes entirely.
 type btree[K, V any] struct {
 	root *node[K, V]
 	less xsort.Less[K]
@@ -52,13 +58,14 @@ func newBtree[K any, V any](less xsort.Less[K]) *btree[K, V] {
 // keys                 0           1           2                      n-1                        //
 // values               0           1           2                      n-1                        //
 // children       0           1           2          ...         n-1          n                   //
-//               └┬┘         └┬┘                                             └┬┘                  //
-//                │           └─╴contains keys greater than keys[0] and less  │                   //
-//                │              than keys[1]                                 │                   //
-//                │                                                           │                   //
-//                └─────────────╴contains keys less than keys[0]              │                   //
-//                                                                            │                   //
-//                               contains keys greater than keys[n-1]╶────────┘                   //
+//
+//	└┬┘         └┬┘                                             └┬┘                  //
+//	 │           └─╴contains keys greater than keys[0] and less  │                   //
+//	 │              than keys[1]                                 │                   //
+//	 │                                                           │                   //
+//	 └─────────────╴contains keys less than keys[0]              │                   //
+//	                                                             │                   //
+//	                contains keys greater than keys[n-1]╶────────┘                   //
 type node[K any, V any] struct {
 	// Odd ordering of fields is for better cache locality, actually does improve performance
 	// slightly. n and the first key are always accessed on search.
@@ -268,7 +275,7 @@ func (t *btree[K, V]) overfill(x *node[K, V], k K, v V, afterK *node[K, V]) {
 
 		parent := left.parent
 		if !parent.full() {
-			idxInParent := xslices.Index(parent.children[:], left)
+			idxInParent := slices.Index(parent.children[:], left)
 			insertOne(parent.keys[:int(parent.n)+1], idxInParent, sepKey)
 			insertOne(parent.values[:int(parent.n)+1], idxInParent, sepValue)
 			insertOne(parent.children[:int(parent.n)+2], idxInParent+1, right)
@@ -300,17 +307,17 @@ func (t *btree[K, V]) merge(x *node[K, V]) {
 //
 // Assumes either left or right has n < minKVs and the other has n == minKVs.
 //
-//                       parent                                      parent                       //
-//                     ┌───────────────┐                           ┌───────────────┐              //
-//                     │   a   g   l   │                           │   a   l       │              //
-//                     └╴•╶─╴•╶─╴•╶─╴•─┘                           └╴•╶─╴•╶─╴•╶────┘              //
-//             left   ┌──────┘   └───────┐  right                 left   │                        //
-//            ┌───────┴───────┐  ┌───────┴───────┐               ┌───────┴───────┐                //
-//            │   c           │  │   h           │    ╶────>     │   c   g   h   │                //
-//            └╴•╶─╴•╶─╴•╶─╴•╶┘  └╴•╶─╴•╶────────┘               └╴•╶─╴•╶─╴•╶─╴•╶┘                //
+//	           parent                                      parent                       //
+//	         ┌───────────────┐                           ┌───────────────┐              //
+//	         │   a   g   l   │                           │   a   l       │              //
+//	         └╴•╶─╴•╶─╴•╶─╴•─┘                           └╴•╶─╴•╶─╴•╶────┘              //
+//	 left   ┌──────┘   └───────┐  right                 left   │                        //
+//	┌───────┴───────┐  ┌───────┴───────┐               ┌───────┴───────┐                //
+//	│   c           │  │   h           │    ╶────>     │   c   g   h   │                //
+//	└╴•╶─╴•╶─╴•╶─╴•╶┘  └╴•╶─╴•╶────────┘               └╴•╶─╴•╶─╴•╶─╴•╶┘                //
 func (t *btree[K, V]) mergeTwo(left, right *node[K, V]) {
 	parent := left.parent
-	idxInParent := xslices.Index(parent.children[:], left)
+	idxInParent := slices.Index(parent.children[:], left)
 	sepKey := parent.keys[idxInParent]
 	sepValue := parent.values[idxInParent]
 
@@ -383,7 +390,7 @@ func (t *btree[K, V]) siblings(x *node[K, V]) (*node[K, V], *node[K, V]) {
 	if x.parent == nil {
 		return nil, nil
 	}
-	idx := xslices.Index(x.parent.children[:], x)
+	idx := slices.Index(x.parent.children[:], x)
 	var left, right *node[K, V]
 	if idx > 0 {
 		left = x.parent.children[idx-1]
@@ -394,24 +401,25 @@ func (t *btree[K, V]) siblings(x *node[K, V]) (*node[K, V], *node[K, V]) {
 	return left, right
 }
 
-//                  parent                                            parent                      //
-//                ┌───────────────┐                                 ┌───────────────┐             //
-//                │  [g]          │                                 │  [c]          │             //
-//                └╴•╶─╴•╶────────┘                                 └╴•╶─╴•╶────────┘             //
-//   left    ┌──────┘   └───────┐  right               left    ┌──────┘   └───────┐  right        //
-//   ┌───────┴───────┐  ┌───────┴───────┐              ┌───────┴───────┐  ┌───────┴───────┐       //
-//   │   a   b  [c]  │  │   h   i       │    ╶────>    │   a   b   [ ] │  │  [g]  h   i   │       //
-//   └╴•╶─╴•╶─╴•╶─[•]┘  └╴•╶─╴•╶─╴•╶────┘              └╴•╶─╴•╶─╴•╶────┘  └[•]─╴•╶─╴•╶─╴•╶┘       //
-//                 │                                                        │                     //
-//                 │   child                                                │   child             //
-//         ┌───────┴───────┐                                        ┌───────┴───────┐             //
-//         │   d   e   f   │                                        │   d   e   f   │             //
-//         └╴•╶─╴•╶─╴•╶─╴•╶┘                                        └╴•╶─╴•╶─╴•╶─╴•╶┘             //
+//	               parent                                            parent                      //
+//	             ┌───────────────┐                                 ┌───────────────┐             //
+//	             │  [g]          │                                 │  [c]          │             //
+//	             └╴•╶─╴•╶────────┘                                 └╴•╶─╴•╶────────┘             //
+//	left    ┌──────┘   └───────┐  right               left    ┌──────┘   └───────┐  right        //
+//	┌───────┴───────┐  ┌───────┴───────┐              ┌───────┴───────┐  ┌───────┴───────┐       //
+//	│   a   b  [c]  │  │   h   i       │    ╶────>    │   a   b   [ ] │  │  [g]  h   i   │       //
+//	└╴•╶─╴•╶─╴•╶─[•]┘  └╴•╶─╴•╶─╴•╶────┘              └╴•╶─╴•╶─╴•╶────┘  └[•]─╴•╶─╴•╶─╴•╶┘       //
+//	              │                                                        │                     //
+//	              │   child                                                │   child             //
+//	      ┌───────┴───────┐                                        ┌───────┴───────┐             //
+//	      │   d   e   f   │                                        │   d   e   f   │             //
+//	      └╴•╶─╴•╶─╴•╶─╴•╶┘                                        └╴•╶─╴•╶─╴•╶─╴•╶┘             //
+//
 // (Changes marked with [])
 //
 // Assumes left and right are siblings and right is not full.
 func (t *btree[K, V]) rotateRight(left *node[K, V], right *node[K, V]) {
-	idxInParent := xslices.Index(left.parent.children[:], left)
+	idxInParent := slices.Index(left.parent.children[:], left)
 	oldSepK := left.parent.keys[idxInParent]
 	oldSepV := left.parent.values[idxInParent]
 	child := left.children[left.n]
@@ -438,24 +446,25 @@ func (t *btree[K, V]) rotateRight(left *node[K, V], right *node[K, V]) {
 	right.n++
 }
 
-//                  parent                                                parent                  //
-//                ┌───────────────┐                                     ┌───────────────┐         //
-//                │  [c]          │                                     │  [g]          │         //
-//                └╴•╶─╴•╶────────┘                                     └╴•╶─╴•╶────────┘         //
-//   left    ┌──────┘   └───────┐  right                   left    ┌──────┘   └───────┐  right    //
-//   ┌───────┴───────┐  ┌───────┴───────┐                  ┌───────┴───────┐  ┌───────┴───────┐   //
-//   │   a   b   [ ] │  │  [g]  h   i   │      ╶────>      │   a   b  [c]  │  │ [ ]  h   i    │   //
-//   └╴•╶─╴•╶─╴•╶────┘  └[•]─╴•╶─╴•╶─╴•╶┘                  └╴•╶─╴•╶─╴•╶─[•]┘  └───╴•╶─╴•╶─╴•╶─┘   //
-//                        │                                              │                        //
-//                        │   child                                      │   child                //
-//                ┌───────┴───────┐                              ┌───────┴───────┐                //
-//                │   d   e   f   │                              │   d   e   f   │                //
-//                └╴•╶─╴•╶─╴•╶─╴•╶┘                              └╴•╶─╴•╶─╴•╶─╴•╶┘                //
+//	               parent                                                parent                  //
+//	             ┌───────────────┐                                     ┌───────────────┐         //
+//	             │  [c]          │                                     │  [g]          │         //
+//	             └╴•╶─╴•╶────────┘                                     └╴•╶─╴•╶────────┘         //
+//	left    ┌──────┘   └───────┐  right                   left    ┌──────┘   └───────┐  right    //
+//	┌───────┴───────┐  ┌───────┴───────┐                  ┌───────┴───────┐  ┌───────┴───────┐   //
+//	│   a   b   [ ] │  │  [g]  h   i   │      ╶────>      │   a   b  [c]  │  │ [ ]  h   i    │   //
+//	└╴•╶─╴•╶─╴•╶────┘  └[•]─╴•╶─╴•╶─╴•╶┘                  └╴•╶─╴•╶─╴•╶─[•]┘  └───╴•╶─╴•╶─╴•╶─┘   //
+//	                     │                                              │                        //
+//	                     │   child                                      │   child                //
+//	             ┌───────┴───────┐                              ┌───────┴───────┐                //
+//	             │   d   e   f   │                              │   d   e   f   │                //
+//	             └╴•╶─╴•╶─╴•╶─╴•╶┘                              └╴•╶─╴•╶─╴•╶─╴•╶┘                //
+//
 // (Changes marked with [])
 //
 // Assumes left and right are siblings and left is not full.
 func (t *btree[K, V]) rotateLeft(left *node[K, V], right *node[K, V]) {
-	idxInParent := xslices.Index(right.parent.children[:], right)
+	idxInParent := slices.Index(right.parent.children[:], right)
 	oldSepK := right.parent.keys[idxInParent-1]
 	oldSepV := right.parent.values[idxInParent-1]
 	child := right.children[0]
@@ -523,7 +532,7 @@ func removeOne[T any](a []T, idx int) {
 
 // Inserts x into a at index idx, shifting the rest of the elements over. Clobbers a[len(a)-1].
 //
-// Faster in this package than xslices.Insert for use on node.{keys,values,children} since they never
+// Faster in this package than slices.Insert for use on node.{keys,values,children} since they never
 // grow.
 func insertOne[T any](a []T, idx int, x T) {
 	copy(a[idx+1:], a[idx:])
@@ -545,13 +554,14 @@ type amalgam1[K any, V any] struct {
 // extraKey may belong in any position.
 //
 // Example:
-//      keys           extraKey
-//   [a   c   e]     +    d
-//  0   1   2   3           extraChild
 //
-//               amalgam
-//           [a   c   d            e]
-//          0   1   2   extraChild   3
+//	    keys           extraKey
+//	 [a   c   e]     +    d
+//	0   1   2   3           extraChild
+//
+//	             amalgam
+//	         [a   c   d            e]
+//	        0   1   2   extraChild   3
 func newAmalgam1[K any, V any](
 	less xsort.Less[K],
 	keys *[maxKVs]K,
@@ -648,7 +658,7 @@ func (c *cursor[K, V]) Next() {
 			c.curr = nil
 			return
 		}
-		idx := xslices.Index(c.curr.parent.children[:], c.curr)
+		idx := slices.Index(c.curr.parent.children[:], c.curr)
 		c.curr = c.curr.parent
 		c.i = idx
 		if c.i < int(c.curr.n) {
@@ -685,7 +695,7 @@ func (c *cursor[K, V]) Prev() {
 			c.curr = nil
 			return
 		}
-		idx := xslices.Index(c.curr.parent.children[:], c.curr)
+		idx := slices.Index(c.curr.parent.children[:], c.curr)
 		c.curr = c.curr.parent
 		c.i = idx - 1
 		if c.i >= 0 {
