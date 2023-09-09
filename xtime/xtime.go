@@ -80,7 +80,9 @@ func NewJitterTicker(d time.Duration, jitter time.Duration) *JitterTicker {
 		d:      d,
 		jitter: jitter,
 	}
+	t.m.Lock()
 	t.schedule()
+	t.m.Unlock()
 	return t
 }
 

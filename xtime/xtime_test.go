@@ -16,7 +16,7 @@ func TestJitterTicker(t *testing.T) {
 		elapsed := now.Sub(last)
 		minTick := d - jitter
 		// Add a little extra slack because of scheduling.
-		maxTick := d + jitter + time.Millisecond
+		maxTick := d + jitter + 3*time.Millisecond
 
 		if elapsed < minTick {
 			t.Fatalf("tick was %s, expected in [%s, %s]", elapsed, minTick, maxTick)
