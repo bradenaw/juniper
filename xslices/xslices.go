@@ -40,6 +40,8 @@ func Chunk[T any](s []T, chunkSize int) [][]T {
 }
 
 // Clear fills s with the zero value of T.
+//
+// Deprecated: clear is a builtin as of Go 1.21.
 func Clear[T any](s []T) {
 	var zero T
 	Fill(s, zero)

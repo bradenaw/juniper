@@ -4,6 +4,8 @@ package xmath
 import "cmp"
 
 // Min returns the minimum of a and b based on the < operator.
+//
+// Deprecated: min is a builtin as of Go 1.21.
 func Min[T cmp.Ordered](a, b T) T {
 	if a < b {
 		return a
@@ -12,6 +14,8 @@ func Min[T cmp.Ordered](a, b T) T {
 }
 
 // Max returns the maximum of a and b based on the > operator.
+//
+// Deprecated: max is a builtin as of Go 1.21.
 func Max[T cmp.Ordered](a, b T) T {
 	if a > b {
 		return a
