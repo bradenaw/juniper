@@ -4,6 +4,8 @@ package xtime
 import (
 	"context"
 	"fmt"
+	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -45,4 +47,87 @@ func SleepContext(ctx context.Context, d time.Duration) error {
 	case <-t.C:
 		return nil
 	}
+}
+
+// A JitterTicker holds a channel that delivers "ticks" of a clock at intervals.
+type JitterTicker struct {
+	C <-chan time.Time
+
+	c      chan time.Time
+	m      sync.Mutex
+	d      time.Duration
+	jitter time.Duration
+	timer  *time.Timer
+}
+
+// NewJitterTicker is similar to time.NewTicker, but jitters the ticks by the given amount. That is,
+// each tick will be d+/-jitter apart.
+//
+// The duration d must be greater than zero and jitter must be less than d; if not, NewJitterTicker
+// will panic.
+func NewJitterTicker(d time.Duration, jitter time.Duration) *JitterTicker {
+	if d <= 0 {
+		panic("non-positive interval for NewJitterTicker")
+	}
+	if jitter >= d {
+		panic("jitter greater than d")
+	}
+
+	c := make(chan time.Time, 1)
+	t := &JitterTicker{
+		C:      c,
+		c:      c,
+		d:      d,
+		jitter: jitter,
+	}
+	t.schedule()
+	return t
+}
+
+func (t *JitterTicker) schedule() {
+	if t.timer != nil {
+		t.timer.Stop()
+	}
+	next := t.d + time.Duration(rand.Int63n(int64(t.jitter*2))) - (t.jitter)
+	t.timer = time.AfterFunc(next, func() {
+		t.m.Lock()
+		if t.timer != nil {
+			select {
+			case t.c <- time.Now():
+			default:
+			}
+			t.schedule()
+		}
+		t.m.Unlock()
+	})
+}
+
+// Reset stops the ticker and resets its period to be the specified duration and jitter. The next
+// tick will arrive after the new period elapses.
+//
+// The duration d must be greater than zero and jitter must be less than d; if not, Reset will
+// panic.
+func (t *JitterTicker) Reset(d time.Duration, jitter time.Duration) {
+	if d <= 0 {
+		panic("non-positive interval for NewJitterTicker")
+	}
+	if jitter >= d {
+		panic("jitter greater than d")
+	}
+
+	t.m.Lock()
+	t.d = d
+	t.jitter = jitter
+	t.schedule()
+	t.m.Unlock()
+}
+
+// Stop turns off the JitterTicker. After it returns, no more ticks will be sent. Stop does not
+// close the channel, to prevent a concurrent goroutine reading from the channel from seeing an
+// erroneous "tick".
+func (t *JitterTicker) Stop() {
+	t.m.Lock()
+	t.timer.Stop()
+	t.timer = nil
+	t.m.Unlock()
 }
