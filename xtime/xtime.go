@@ -56,6 +56,7 @@ type JitterTicker struct {
 	c      chan time.Time
 	m      sync.Mutex
 	d      time.Duration
+	gen    int
 	jitter time.Duration
 	timer  *time.Timer
 }
@@ -91,9 +92,15 @@ func (t *JitterTicker) schedule() {
 		t.timer.Stop()
 	}
 	next := t.d + time.Duration(rand.Int63n(int64(t.jitter*2))) - (t.jitter)
+
+	// To prevent a latent goroutine already spawned but not yet running the below function from
+	// delivering a tick after Stop/Reset.
+	t.gen++
+	gen := t.gen
+
 	t.timer = time.AfterFunc(next, func() {
 		t.m.Lock()
-		if t.timer != nil {
+		if t.gen == gen {
 			select {
 			case t.c <- time.Now():
 			default:
