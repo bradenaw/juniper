@@ -2,9 +2,8 @@
 package xsort
 
 import (
+	"cmp"
 	"sort"
-
-	"golang.org/x/exp/constraints"
 
 	"github.com/bradenaw/juniper/internal/heap"
 	"github.com/bradenaw/juniper/iterator"
@@ -14,11 +13,11 @@ import (
 // Returns true if a is less than b. Must follow the same rules as sort.Interface.Less.
 type Less[T any] func(a, b T) bool
 
-// OrderedLess is an implementation of Less for constraints.Ordered types by using the < operator.
+// OrderedLess is an implementation of Less for cmp.Ordered types by using the < operator.
 //
 // Deprecated: cmp.Less is in the standard library as of Go 1.21.
-func OrderedLess[T constraints.Ordered](a, b T) bool {
-	return a < b
+func OrderedLess[T cmp.Ordered](a, b T) bool {
+	return cmp.Less(a, b)
 }
 
 // Compile-time assert the types match.
