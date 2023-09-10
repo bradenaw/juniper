@@ -5,7 +5,6 @@ import (
 	"slices"
 
 	"github.com/bradenaw/juniper/iterator"
-	"github.com/bradenaw/juniper/xslices"
 )
 
 var ErrHeapModified = errors.New("heap modified during iteration")
@@ -43,7 +42,12 @@ func (h *Heap[T]) Grow(n int) {
 }
 
 func (h *Heap[T]) Shrink(n int) {
-	h.a = xslices.Shrink(h.a, n)
+	// Copied from xslices to avoid import cycle.
+	if cap(h.a) > len(h.a)+n {
+		x2 := make([]T, len(h.a)+n)
+		copy(x2, h.a)
+		h.a = x2[:len(h.a)]
+	}
 }
 
 func (h *Heap[T]) Push(item T) {

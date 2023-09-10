@@ -2,7 +2,10 @@
 package xslices
 
 import (
+	"cmp"
 	"slices"
+
+	"github.com/bradenaw/juniper/internal/heap"
 )
 
 // All returns true if f(s[i]) returns true for all i. Trivially, returns true if s is empty.
@@ -240,6 +243,45 @@ func Map[T any, U any](s []T, f func(T) U) []U {
 	return out
 }
 
+func MaxK[S []E, E cmp.Ordered](s S, k int) []E {
+	return MaxKFunc(s, k, cmp.Compare[E])
+}
+
+// MaxKFunc returns the k maximum items according to cmp from s in descending order. If s has fewer
+// than k items, MaxKFunc returns all of them.
+func MaxKFunc[S []E, E any](s S, k int, cmp func(E, E) int) []E {
+	h := heap.New[E](cmp, func(a E, i int) {}, nil)
+	h.Grow(k)
+
+	for i := range s {
+		h.Push(s[i])
+		if h.Len() > k {
+			h.Pop()
+		}
+	}
+	out := make([]E, h.Len())
+	for i := len(out) - 1; i >= 0; i-- {
+		out[i] = h.Pop()
+	}
+	return out
+}
+
+func MinK[S []E, E cmp.Ordered](s S, k int) []E {
+	return MinKFunc(s, k, cmp.Compare[E])
+}
+
+// MinKFunc returns the k minimum items according to cmp from s in ascending order. If s has fewer
+// than k items, MinKFunc returns all of them.
+func MinKFunc[S []E, E any](s S, k int, cmp func(E, E) int) []E {
+	return MaxKFunc(s, k, func(a, b E) int {
+		c := cmp(a, b)
+		if c == -c {
+			return 1
+		}
+		return -c
+	})
+}
+
 // Partition moves elements of s such that all elements for which f returns false are at the
 // beginning and all elements for which f returns true are at the end. It makes no other guarantees
 // about the final order of elements. Returns the index of the first element for which f returned
@@ -349,6 +391,91 @@ func Runs[T any](s []T, same func(a, b T) bool) [][]T {
 		runs = append(runs, s[start:])
 	}
 	return runs
+}
+
+func SortedMerge[T cmp.Ordered](in ...[]T) []T {
+	return SortedMergeFunc(in, cmp.Compare[T])
+}
+
+func SortedMerge2[T cmp.Ordered](a []T, b []T) []T {
+	return SortedMerge2Func(a, b, cmp.Compare[T])
+}
+
+type valueAndSource[T any] struct {
+	value  T
+	source int
+}
+
+func SortedMerge2Func[T any](a []T, b []T, cmp func(T, T) int) []T {
+	out := make([]T, 0, len(a)+len(b))
+
+	i := 0
+	j := 0
+	for i < len(a) || j < len(b) {
+		if i >= len(a) {
+			out = out[:cap(out)]
+			copy(out[i+j:], b[j:])
+			break
+		} else if j >= len(b) {
+			out = out[:cap(out)]
+			copy(out[i+j:], a[i:])
+			break
+		} else if cmp(a[i], b[j]) < 0 {
+			out = append(out, a[i])
+			i++
+		} else {
+			out = append(out, b[j])
+			j++
+		}
+	}
+	return out
+}
+
+func SortedMergeFunc[T any](in [][]T, cmp func(T, T) int) []T {
+	if len(in) == 2 {
+		return SortedMerge2Func(in[0], in[1], cmp)
+	}
+	n := 0
+	for i := range in {
+		n += len(in[i])
+	}
+	out := make([]T, 0, n)
+
+	initial := make([]valueAndSource[T], 0, len(in))
+	for i := range in {
+		if len(in[i]) == 0 {
+			continue
+		}
+		item := in[i][0]
+		initial = append(initial, valueAndSource[T]{item, i})
+	}
+
+	h := heap.New(
+		func(a, b valueAndSource[T]) int {
+			return cmp(a.value, b.value)
+		},
+		func(a valueAndSource[T], i int) {},
+		initial,
+	)
+
+	idxs := make([]int, len(in))
+	for i := range idxs {
+		idxs[i] = 1
+	}
+
+	for h.Len() > 0 {
+		item := h.Pop()
+
+		out = append(out, item.value)
+		if idxs[item.source] < len(in[item.source]) {
+			h.Push(valueAndSource[T]{
+				value:  in[item.source][idxs[item.source]],
+				source: item.source,
+			})
+			idxs[item.source]++
+		}
+	}
+	return out
 }
 
 // Shrink shrinks s's capacity by reallocating, if necessary, so that cap(s) <= len(s) + n.
