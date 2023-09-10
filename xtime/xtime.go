@@ -137,6 +137,7 @@ func (t *JitterTicker) Reset(d time.Duration, jitter time.Duration) {
 func (t *JitterTicker) Stop() {
 	t.m.Lock()
 	t.timer.Stop()
+	t.gen++
 	t.timer = nil
 	t.m.Unlock()
 }
