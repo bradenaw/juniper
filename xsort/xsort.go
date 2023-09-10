@@ -67,6 +67,7 @@ func Reverse[T any](less Less[T]) Less[T] {
 	}
 }
 
+// ReverseCompare returns a comparison function that orders elements the opposite of cmp.
 func ReverseCompare[T any](cmp func(T, T) int) func(T, T) int {
 	return func(a, b T) int {
 		c := cmp(a, b)
