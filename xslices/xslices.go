@@ -243,13 +243,15 @@ func Map[T any, U any](s []T, f func(T) U) []U {
 	return out
 }
 
-func MaxK[S []E, E cmp.Ordered](s S, k int) []E {
+// MaxK returns the k maximum items from s in descending order. If s has fewer than k items, MaxK
+// returns all of them.
+func MaxK[S ~[]E, E cmp.Ordered](s S, k int) []E {
 	return MaxKFunc(s, k, cmp.Compare[E])
 }
 
 // MaxKFunc returns the k maximum items according to cmp from s in descending order. If s has fewer
 // than k items, MaxKFunc returns all of them.
-func MaxKFunc[S []E, E any](s S, k int, cmp func(E, E) int) []E {
+func MaxKFunc[S ~[]E, E any](s S, k int, cmp func(E, E) int) []E {
 	h := heap.New[E](cmp, func(a E, i int) {}, nil)
 	h.Grow(k)
 
@@ -266,16 +268,19 @@ func MaxKFunc[S []E, E any](s S, k int, cmp func(E, E) int) []E {
 	return out
 }
 
-func MinK[S []E, E cmp.Ordered](s S, k int) []E {
+// MinK returns the k minimum items from s in ascending order. If s has fewer than k items, MinK
+// returns all of them.
+func MinK[S ~[]E, E cmp.Ordered](s S, k int) []E {
 	return MinKFunc(s, k, cmp.Compare[E])
 }
 
 // MinKFunc returns the k minimum items according to cmp from s in ascending order. If s has fewer
 // than k items, MinKFunc returns all of them.
-func MinKFunc[S []E, E any](s S, k int, cmp func(E, E) int) []E {
+func MinKFunc[S ~[]E, E any](s S, k int, cmp func(E, E) int) []E {
 	return MaxKFunc(s, k, func(a, b E) int {
+		// Copy of xsort.ReverseCompare to avoid dependency cycle.
 		c := cmp(a, b)
-		if c == -c {
+		if -c == c {
 			return 1
 		}
 		return -c

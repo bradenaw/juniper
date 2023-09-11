@@ -341,6 +341,38 @@ func ExampleMap() {
 	// [0.5 1 1.5]
 }
 
+func ExampleMaxK() {
+	x := xslices.MaxK([]int{0, 1}, 3)
+	fmt.Println(x)
+
+	x = xslices.MaxK([]int{1, 0, 2}, 3)
+	fmt.Println(x)
+
+	x = xslices.MaxK([]int{7, 4, 3, 8, 2, 1, 6, 9, 0, 5}, 3)
+	fmt.Println(x)
+
+	// Output:
+	// [1 0]
+	// [2 1 0]
+	// [9 8 7]
+}
+
+func ExampleMinK() {
+	x := xslices.MinK([]int{1, 0}, 3)
+	fmt.Println(x)
+
+	x = xslices.MinK([]int{1, 0, 2}, 3)
+	fmt.Println(x)
+
+	x = xslices.MinK([]int{7, 4, 3, 8, 2, 1, 6, 9, 0, 5}, 3)
+	fmt.Println(x)
+
+	// Output:
+	// [0 1]
+	// [0 1 2]
+	// [0 1 2]
+}
+
 func ExamplePartition() {
 	s := []int{11, 3, 4, 2, 7, 8, 0, 1, 14}
 
