@@ -1,13 +1,14 @@
 package require2
 
 import (
-	"cmp"
 	"errors"
 	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
 	"testing"
+
+	"golang.org/x/exp/constraints"
 )
 
 func Equal[T comparable](t *testing.T, expected T, actual T) {
@@ -81,25 +82,25 @@ func ErrorIs(t *testing.T, err error, match error) {
 	}
 }
 
-func Greater[T cmp.Ordered](t *testing.T, a T, b T) {
+func Greater[T constraints.Ordered](t *testing.T, a T, b T) {
 	if !(a > b) {
 		fatalf(t, "assertion failed: %#v > %#v", a, b)
 	}
 }
 
-func GreaterOrEqual[T cmp.Ordered](t *testing.T, a T, b T) {
+func GreaterOrEqual[T constraints.Ordered](t *testing.T, a T, b T) {
 	if !(a >= b) {
 		fatalf(t, "assertion failed: %#v >= %#v", a, b)
 	}
 }
 
-func Less[T cmp.Ordered](t *testing.T, a T, b T) {
+func Less[T constraints.Ordered](t *testing.T, a T, b T) {
 	if !(a < b) {
 		fatalf(t, "assertion failed: %#v < %#v", a, b)
 	}
 }
 
-func LessOrEqual[T cmp.Ordered](t *testing.T, a T, b T) {
+func LessOrEqual[T constraints.Ordered](t *testing.T, a T, b T) {
 	if !(a <= b) {
 		fatalf(t, "assertion failed: %#v <= %#v", a, b)
 	}
