@@ -175,6 +175,15 @@ func (d *Deque[T]) Item(i int) T {
 	return d.a[idx]
 }
 
+// Set sets the ith item in the deque. 0 is the front and d.Len()-1 is the back.
+func (d *Deque[T]) Set(i int, t T) {
+	if i < 0 || i >= d.Len() {
+		panic("deque index out of range")
+	}
+	idx := (d.front + i) % len(d.a)
+	d.a[idx] = t
+}
+
 func positiveMod(l, d int) int {
 	x := l % d
 	if x < 0 {

@@ -55,9 +55,12 @@ func FuzzDeque(f *testing.F) {
 			func() {
 				if len(oracle) == 0 {
 					t.Log("Front() should panic")
-					defer func() { recover() }()
-					deque.Front()
-					t.FailNow()
+					func() {
+						defer func() { recover() }()
+						deque.Front()
+						t.FailNow()
+					}()
+					return
 				}
 				oracleItem := oracle[0]
 				t.Logf("Front() -> %#v", oracleItem)
@@ -67,9 +70,12 @@ func FuzzDeque(f *testing.F) {
 			func() {
 				if len(oracle) == 0 {
 					t.Log("Back() should panic")
-					defer func() { recover() }()
-					deque.Back()
-					t.FailNow()
+					func() {
+						defer func() { recover() }()
+						deque.Back()
+						t.FailNow()
+					}()
+					return
 				}
 				oracleItem := oracle[len(oracle)-1]
 				t.Logf("Back() -> %#v", oracleItem)
@@ -79,14 +85,31 @@ func FuzzDeque(f *testing.F) {
 			func(i int) {
 				if i < 0 || i >= len(oracle) {
 					t.Logf("Item(%d) should panic", i)
-					defer func() { recover() }()
-					deque.Item(i)
-					t.FailNow()
+					func() {
+						defer func() { recover() }()
+						deque.Item(i)
+						t.FailNow()
+					}()
+					return
 				}
 				oracleItem := oracle[i]
 				t.Logf("Item(%d) -> %#v", i, oracleItem)
 				dequeItem := deque.Item(i)
 				require2.Equal(t, oracleItem, dequeItem)
+			},
+			func(i int, x byte) {
+				if i < 0 || i >= len(oracle) {
+					t.Logf("Set(%d, x) should panic", i)
+					func() {
+						defer func() { recover() }()
+						deque.Item(i)
+						t.FailNow()
+					}()
+					return
+				}
+				t.Logf("Set(%d, %d)", i, x)
+				oracle[i] = x
+				deque.Set(i, x)
 			},
 			func() {
 				t.Log("Iterate()")
