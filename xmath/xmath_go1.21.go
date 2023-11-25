@@ -8,20 +8,14 @@ import "cmp"
 //
 // Deprecated: min is a builtin as of Go 1.21.
 func Min[T cmp.Ordered](a, b T) T {
-	if a < b {
-		return a
-	}
-	return b
+	return min(a, b)
 }
 
 // Max returns the maximum of a and b based on the > operator.
 //
 // Deprecated: max is a builtin as of Go 1.21.
 func Max[T cmp.Ordered](a, b T) T {
-	if a > b {
-		return a
-	}
-	return b
+	return max(a, b)
 }
 
 // Clamp clamps the value of x to within min and max.
