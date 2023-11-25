@@ -777,6 +777,37 @@ func (s *flattenStream[T]) Close() {
 	s.inner.Close()
 }
 
+func FlattenSlices[T any](s Stream[[]T]) Stream[T] {
+	return &flattenSlicesStream[T]{
+		inner: s,
+	}
+}
+
+type flattenSlicesStream[T any] struct {
+	inner  Stream[[]T]
+	buffer []T
+}
+
+func (s *flattenSlicesStream[T]) Next(ctx context.Context) (T, error) {
+	var zero T
+	for {
+		if len(s.buffer) > 0 {
+			item := s.buffer[0]
+			s.buffer[0] = zero
+			s.buffer = s.buffer[1:]
+			return item, nil
+		}
+
+		var err error
+		s.buffer, err = s.inner.Next(ctx)
+		if err != nil {
+			return zero, err
+		}
+	}
+}
+
+func (s *flattenSlicesStream[T]) Close() { s.inner.Close() }
+
 // Join returns a Stream that yields all elements from streams[0], then all elements from
 // streams[1], and so on.
 func Join[T any](streams ...Stream[T]) Stream[T] {
