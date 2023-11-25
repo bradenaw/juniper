@@ -1,6 +1,9 @@
 # Juniper
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/bradenaw/juniper.svg)](https://pkg.go.dev/github.com/bradenaw/juniper)
+[![Go 1.18](https://github.com/bradenaw/juniper/actions/workflows/go1.18.yml/badge.svg)](https://github.com/bradenaw/juniper/actions/workflows/go1.18.yml)
+[![Go 1.19](https://github.com/bradenaw/juniper/actions/workflows/go1.19.yml/badge.svg)](https://github.com/bradenaw/juniper/actions/workflows/go1.19.yml)
+[![Go 1.20](https://github.com/bradenaw/juniper/actions/workflows/go1.20.yml/badge.svg)](https://github.com/bradenaw/juniper/actions/workflows/go1.20.yml)
 [![Go 1.21](https://github.com/bradenaw/juniper/actions/workflows/go1.21.yml/badge.svg)](https://github.com/bradenaw/juniper/actions/workflows/go1.21.yml)
 [![Fuzz](https://github.com/bradenaw/juniper/actions/workflows/fuzz.yml/badge.svg)](https://github.com/bradenaw/juniper/actions/workflows/fuzz.yml)
 

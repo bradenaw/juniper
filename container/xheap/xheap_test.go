@@ -1,25 +1,24 @@
 package xheap
 
 import (
-	"cmp"
-	"slices"
 	"testing"
 
 	"github.com/bradenaw/juniper/internal/require2"
 	"github.com/bradenaw/juniper/iterator"
+	"github.com/bradenaw/juniper/xsort"
 )
 
 func FuzzHeap(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b1 []byte, b2 []byte) {
 		t.Logf("initial: %#v", b1)
 		t.Logf("pushed:  %#v", b2)
-		h := New(cmp.Less[byte], append([]byte{}, b1...))
+		h := New(xsort.OrderedLess[byte], append([]byte{}, b1...))
 		for i := range b2 {
 			h.Push(b2[i])
 		}
 
 		outByIterate := iterator.Collect(h.Iterate())
-		slices.Sort(outByIterate)
+		xsort.Slice(outByIterate, xsort.OrderedLess[byte])
 		if outByIterate == nil {
 			outByIterate = []byte{}
 		}
@@ -32,7 +31,7 @@ func FuzzHeap(f *testing.F) {
 
 		expected := append(append([]byte{}, b1...), b2...)
 		t.Logf("expected:        %#v", expected)
-		slices.Sort(expected)
+		xsort.Slice(expected, xsort.OrderedLess[byte])
 		t.Logf("expected sorted: %#v", expected)
 
 		require2.SlicesEqual(t, expected, outByPop)
@@ -68,7 +67,7 @@ func FuzzPriorityQueue(f *testing.F) {
 		t.Logf("initial:        %#v", initial)
 		t.Logf("initial oracle: %#v", oracle)
 
-		h := NewPriorityQueue(cmp.Less[float32], initial)
+		h := NewPriorityQueue(xsort.OrderedLess[float32], initial)
 
 		oracleLowestP := func() float32 {
 			first := true

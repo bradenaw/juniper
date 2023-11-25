@@ -1,10 +1,8 @@
 package xsort_test
 
 import (
-	"cmp"
 	"fmt"
 	"math/rand"
-	"slices"
 	"testing"
 
 	"github.com/bradenaw/juniper/internal/require2"
@@ -16,15 +14,15 @@ func TestMergeSlices(t *testing.T) {
 	check := func(in ...[]int) {
 		var all []int
 		for i := range in {
-			require2.True(t, slices.IsSorted(in[i]))
+			require2.True(t, xsort.SliceIsSorted(in[i], xsort.OrderedLess[int]))
 			all = append(all, in[i]...)
 		}
 		merged := xsort.MergeSlices(
-			cmp.Less[int],
+			xsort.OrderedLess[int],
 			nil,
 			in...,
 		)
-		require2.True(t, slices.IsSorted(merged))
+		require2.True(t, xsort.SliceIsSorted(merged, xsort.OrderedLess[int]))
 		require2.ElementsMatch(t, all, merged)
 	}
 
@@ -60,14 +58,14 @@ func FuzzMerge(f *testing.F) {
 			bs[j] = append(bs[j], b[i])
 		}
 		for i := range bs {
-			slices.Sort(bs[i])
+			xsort.Slice(bs[i], xsort.OrderedLess[byte])
 		}
 
 		expected := append([]byte{}, b...)
-		xsort.Slice(expected, cmp.Less[byte])
+		xsort.Slice(expected, xsort.OrderedLess[byte])
 
 		merged := xsort.Merge(
-			cmp.Less[byte],
+			xsort.OrderedLess[byte],
 			iterator.Collect(
 				iterator.Map(
 					iterator.Slice(bs),
@@ -83,8 +81,8 @@ func FuzzMerge(f *testing.F) {
 func ExampleSearch() {
 	x := []string{"a", "f", "h", "i", "p", "z"}
 
-	fmt.Println(xsort.Search(x, cmp.Less[string], "h"))
-	fmt.Println(xsort.Search(x, cmp.Less[string], "k"))
+	fmt.Println(xsort.Search(x, xsort.OrderedLess[string], "h"))
+	fmt.Println(xsort.Search(x, xsort.OrderedLess[string], "k"))
 
 	// Output:
 	// 2
@@ -97,7 +95,7 @@ func ExampleMerge() {
 	listThree := []string{"s", "z"}
 
 	merged := xsort.Merge(
-		cmp.Less[string],
+		xsort.OrderedLess[string],
 		iterator.Slice(listOne),
 		iterator.Slice(listTwo),
 		iterator.Slice(listThree),
@@ -115,7 +113,7 @@ func ExampleMergeSlices() {
 	listThree := []string{"s", "z"}
 
 	merged := xsort.MergeSlices(
-		cmp.Less[string],
+		xsort.OrderedLess[string],
 		nil,
 		listOne,
 		listTwo,
@@ -132,11 +130,11 @@ func ExampleMinK() {
 	a := []int{7, 4, 3, 8, 2, 1, 6, 9, 0, 5}
 
 	iter := iterator.Slice(a)
-	min3 := xsort.MinK(cmp.Less[int], iter, 3)
+	min3 := xsort.MinK(xsort.OrderedLess[int], iter, 3)
 	fmt.Println(min3)
 
 	iter = iterator.Slice(a)
-	max3 := xsort.MinK(xsort.Reverse(cmp.Less[int]), iter, 3)
+	max3 := xsort.MinK(xsort.Reverse(xsort.OrderedLess[int]), iter, 3)
 	fmt.Println(max3)
 
 	// Output:

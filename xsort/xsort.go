@@ -2,7 +2,6 @@
 package xsort
 
 import (
-	"cmp"
 	"sort"
 
 	"github.com/bradenaw/juniper/internal/heap"
@@ -12,13 +11,6 @@ import (
 
 // Returns true if a is less than b. Must follow the same rules as sort.Interface.Less.
 type Less[T any] func(a, b T) bool
-
-// OrderedLess is an implementation of Less for cmp.Ordered types by using the < operator.
-//
-// Deprecated: cmp.Less is in the standard library as of Go 1.21.
-func OrderedLess[T cmp.Ordered](a, b T) bool {
-	return cmp.Less(a, b)
-}
 
 // Compile-time assert the types match.
 var _ Less[int] = OrderedLess[int]

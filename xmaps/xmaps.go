@@ -2,9 +2,10 @@
 package xmaps
 
 import (
-	"cmp"
 	"fmt"
-	"slices"
+
+	"github.com/bradenaw/juniper/xslices"
+	"github.com/bradenaw/juniper/xsort"
 )
 
 // Reverse returns a map from m's values to each of the keys that mapped to it in arbitrary order.
@@ -106,8 +107,8 @@ func Intersection[S ~map[T]struct{}, T comparable](sets ...S) S {
 		return out
 	}
 
-	sets = slices.Clone(sets)
-	slices.SortFunc(sets, func(a, b S) int { return cmp.Compare(len(a), len(b)) })
+	sets = xslices.Clone(sets)
+	xsort.Slice(sets, func(a, b S) bool { return len(a) < len(b) })
 
 	for k := range sets[0] {
 		include := true
@@ -132,8 +133,8 @@ func Intersects[S ~map[T]struct{}, T comparable](sets ...S) bool {
 
 	// Ideally we check from most-selective to least-selective so we can do the fewest iterations
 	// of each of the below loops. Use set size as an approximation.
-	sets = slices.Clone(sets)
-	slices.SortFunc(sets, func(a, b S) int { return cmp.Compare(len(a), len(b)) })
+	sets = xslices.Clone(sets)
+	xsort.Slice(sets, func(a, b S) bool { return len(a) < len(b) })
 
 	for k := range sets[0] {
 		include := true
