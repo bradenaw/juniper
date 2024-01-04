@@ -20,8 +20,15 @@ type ContextCond struct {
 // NewContextCond returns a new ContextCond with l as its Locker.
 func NewContextCond(l sync.Locker) *ContextCond {
 	return &ContextCond{
-		L:  l,
-		ch: make(chan struct{}),
+		L: l,
+		// The 1-buffering here does mean that the cond will 'remember' signals in poor fashion,
+		// because it means a misused Signal/Wait may still work.
+		//
+		// However, it's necessary because otherwise there is a race in Wait() - without the
+		// buffering here, we could see a Signal() attempt to deliver to the channel after Wait has
+		// reached c.L.Unlock() but before reaching the select, which will then lead to a missed
+		// wakeup.
+		ch: make(chan struct{}, 1),
 	}
 }
 
@@ -31,7 +38,7 @@ func NewContextCond(l sync.Locker) *ContextCond {
 func (c *ContextCond) Broadcast() {
 	c.m.Lock()
 	close(c.ch)
-	c.ch = make(chan struct{})
+	c.ch = make(chan struct{}, 1)
 	c.m.Unlock()
 }
 
