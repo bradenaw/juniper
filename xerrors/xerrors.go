@@ -39,13 +39,17 @@ func (err withStack) Unwrap() error {
 	return err.inner
 }
 
+var noError = errors.New("no error")
+
 // WithStack returns an error that wraps err and adds the call stack of the call to WithStack to
 // Error(). If err is nil or already has a stack attached, returns err.
 func WithStack(err error) error {
 	if err == nil {
 		return nil
 	}
-	if errors.Is(err, withStack{}) {
+	// use noError in case anything along err's chain has a custom Is that calls Error() for some
+	// reason.
+	if errors.Is(err, withStack{inner: noError}) {
 		return err
 	}
 	var buf [64]uintptr
