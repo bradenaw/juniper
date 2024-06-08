@@ -24,7 +24,13 @@ type Map[K any, V any] struct {
 // pair of keys while they are in the map.
 func NewMap[K any, V any](less xsort.Less[K]) Map[K, V] {
 	return Map[K, V]{
-		t: newBtree[K, V](less),
+		t: newBtree[K, V](xsort.LessCompare(less)),
+	}
+}
+
+func NewMapCmp[K any, V any](compare func(K, K) int) Map[K, V] {
+	return Map[K, V]{
+		t: newBtree[K, V](compare),
 	}
 }
 

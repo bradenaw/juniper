@@ -12,3 +12,7 @@ import (
 func OrderedLess[T cmp.Ordered](a, b T) bool {
 	return cmp.Less(a, b)
 }
+
+func Compare[T cmp.Ordered](a, b T) int {
+	return cmp.Compare(a, b)
+}

@@ -47,6 +47,18 @@ func Reverse[T any](less Less[T]) Less[T] {
 	}
 }
 
+func LessCompare[T any](less Less[T]) func(T, T) int {
+	return func(a, b T) int {
+		if less(a, b) {
+			return -1
+		} else if less(b, a) {
+			return 1
+		} else {
+			return 0
+		}
+	}
+}
+
 // Slice sorts x in-place using the given less function to compare items.
 //
 // Follows the same rules as sort.Slice.
