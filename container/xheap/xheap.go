@@ -37,6 +37,12 @@ func New[T any](less xsort.Less[T], initial []T) Heap[T] {
 	}
 }
 
+func NewCmp[T any](compare func(T, T) int, initial []T) Heap[T] {
+	return New(func(a, b T) bool {
+		return compare(a, b) < 0
+	}, initial)
+}
+
 // Len returns the current number of elements in the heap.
 func (h Heap[T]) Len() int {
 	return h.inner.Len()
@@ -127,6 +133,15 @@ func NewPriorityQueue[K comparable, P any](
 	)
 	h.inner = &inner
 	return h
+}
+
+func NewPriorityQueueCmp[K comparable, P any](
+	compare func(P, P) int,
+	initial []KP[K, P],
+) PriorityQueue[K, P] {
+	return NewPriorityQueue(func(a, b P) bool {
+		return compare(a, b) < 0
+	}, initial)
 }
 
 // Len returns the current number of elements in the priority queue.

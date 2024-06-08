@@ -3,7 +3,6 @@ package tree
 import (
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/xslices"
-	"github.com/bradenaw/juniper/xsort"
 )
 
 // Maximum number of children each node can have.
@@ -35,19 +34,19 @@ const minKVs = maxKVs / 2
 //   - Notably, most nodes are leaves so we can do better space-wise if we can elide the children
 //     array from internal nodes entirely.
 type btree[K, V any] struct {
-	root *node[K, V]
-	less xsort.Less[K]
-	size int
+	root    *node[K, V]
+	compare func(K, K) int
+	size    int
 	// incremented when tree structure changes - used to quickly avoid reseeking cursor moving
 	// through an unchanging tree
 	gen int
 }
 
-func newBtree[K any, V any](less xsort.Less[K]) *btree[K, V] {
+func newBtree[K any, V any](compare func(K, K) int) *btree[K, V] {
 	return &btree[K, V]{
-		less: less,
-		root: &node[K, V]{},
-		size: 0,
+		compare: compare,
+		root:    &node[K, V]{},
+		size:    0,
 	}
 }
 
@@ -205,7 +204,7 @@ func (t *btree[K, V]) Cursor() cursor[K, V] {
 func (t *btree[K, V]) insertIntoLeaf(x *node[K, V], k K, v V) {
 	idx := 0
 	for idx < int(x.n) {
-		if t.less(k, x.keys[idx]) {
+		if t.compare(k, x.keys[idx]) < 0 {
 			break
 		}
 		idx++
@@ -219,7 +218,7 @@ func (t *btree[K, V]) insertIntoLeaf(x *node[K, V], k K, v V) {
 // adds a separater to x's parent, which may cause it to overflow and also need a split.
 func (t *btree[K, V]) overfill(x *node[K, V], k K, v V, afterK *node[K, V]) {
 	for {
-		all := newAmalgam1(t.less, &x.keys, &x.values, &x.children, k, v, afterK)
+		all := newAmalgam1(t.compare, &x.keys, &x.values, &x.children, k, v, afterK)
 
 		left := x
 		right := &node[K, V]{}
@@ -491,9 +490,10 @@ func (t *btree[K, V]) searchNode(k K, x *node[K, V]) (idx int, inNode bool) {
 	// benchmark suggests that linear search is in fact faster than binary search, at least for int
 	// keys and branchFactor <= 32.
 	for i := 0; i < int(x.n); i++ {
-		if t.less(k, x.keys[i]) {
+		c := t.compare(k, x.keys[i])
+		if c < 0 {
 			return i, false
-		} else if !t.less(x.keys[i], k) {
+		} else if c == 0 {
 			return i, true
 		}
 	}
@@ -559,7 +559,7 @@ type amalgam1[K any, V any] struct {
 //	         [a   c   d            e]
 //	        0   1   2   extraChild   3
 func newAmalgam1[K any, V any](
-	less xsort.Less[K],
+	compare func(K, K) int,
 	keys *[maxKVs]K,
 	values *[maxKVs]V,
 	children *[branchFactor]*node[K, V],
@@ -569,7 +569,7 @@ func newAmalgam1[K any, V any](
 ) amalgam1[K, V] {
 	extraIdx := func() int {
 		for i := range *keys {
-			if less(extraKey, keys[i]) {
+			if compare(extraKey, keys[i]) < 0 {
 				return i
 			}
 		}
@@ -736,7 +736,8 @@ func (c *cursor[K, V]) SeekLastLess(k K) {
 	if !c.seek(k) {
 		return
 	}
-	if xsort.LessOrEqual(c.t.less, k, c.k) {
+
+	if c.t.compare(k, c.k) <= 0 {
 		c.Prev()
 	}
 }
@@ -745,7 +746,7 @@ func (c *cursor[K, V]) SeekLastLessOrEqual(k K) {
 	if !c.seek(k) {
 		return
 	}
-	if c.t.less(k, c.k) {
+	if c.t.compare(k, c.k) < 0 {
 		c.Prev()
 	}
 }
@@ -754,7 +755,7 @@ func (c *cursor[K, V]) SeekFirstGreaterOrEqual(k K) {
 	if !c.seek(k) {
 		return
 	}
-	if xsort.Greater(c.t.less, k, c.k) {
+	if c.t.compare(k, c.k) > 0 {
 		c.Next()
 	}
 }
@@ -763,7 +764,7 @@ func (c *cursor[K, V]) SeekFirstGreater(k K) {
 	if !c.seek(k) {
 		return
 	}
-	if xsort.GreaterOrEqual(c.t.less, k, c.k) {
+	if c.t.compare(k, c.k) >= 0 {
 		c.Next()
 	}
 }
@@ -843,7 +844,7 @@ func (c *cursor[K, V]) lost() bool {
 	// zero value also. Unlinking a node during merge sets n=0, so that's handled here too.
 	return c.gen != c.t.gen &&
 		c.curr != nil &&
-		(c.i >= int(c.curr.n) || !xsort.Equal(c.t.less, c.k, c.curr.keys[c.i]))
+		(c.i >= int(c.curr.n) || c.t.compare(c.k, c.curr.keys[c.i]) != 0)
 }
 
 func (c *cursor[K, V]) Forward() iterator.Iterator[KVPair[K, V]] {
@@ -907,11 +908,11 @@ func (t *btree[K, V]) Range(lower Bound[K], upper Bound[K]) iterator.Iterator[KV
 	switch upper.type_ {
 	case boundInclude:
 		return iterator.While(c.Forward(), func(pair KVPair[K, V]) bool {
-			return xsort.LessOrEqual(t.less, pair.Key, upper.key)
+			return t.compare(pair.Key, upper.key) <= 0
 		})
 	case boundExclude:
 		return iterator.While(c.Forward(), func(pair KVPair[K, V]) bool {
-			return t.less(pair.Key, upper.key)
+			return t.compare(pair.Key, upper.key) < 0
 		})
 	case boundUnbounded:
 		return c.Forward()
@@ -935,11 +936,11 @@ func (t *btree[K, V]) RangeReverse(lower Bound[K], upper Bound[K]) iterator.Iter
 	switch lower.type_ {
 	case boundInclude:
 		return iterator.While(c.Backward(), func(pair KVPair[K, V]) bool {
-			return xsort.GreaterOrEqual(t.less, pair.Key, lower.key)
+			return t.compare(pair.Key, lower.key) >= 0
 		})
 	case boundExclude:
 		return iterator.While(c.Backward(), func(pair KVPair[K, V]) bool {
-			return xsort.Greater(t.less, pair.Key, lower.key)
+			return t.compare(pair.Key, lower.key) > 0
 		})
 	case boundUnbounded:
 		return c.Backward()

@@ -13,13 +13,23 @@ import (
 	"github.com/bradenaw/juniper/xsort"
 )
 
+func compare[T byte | uint16](x, y T) int {
+	if x < y {
+		return -1
+	}
+	if x > y {
+		return 1
+	}
+	return 0
+}
+
 func orderedhashmapKVPairToKVPair[K any, V any](kv orderedhashmap.KVPair[uint16, int]) KVPair[uint16, int] {
 	return KVPair[uint16, int]{kv.K, kv.V}
 }
 
 func FuzzBtree(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte) {
-		tree := newBtree[uint16, int](xsort.OrderedLess[uint16])
+		tree := newBtree[uint16, int](compare[uint16])
 		cursor := tree.Cursor()
 		cursor.SeekFirst()
 		oracle := orderedhashmap.NewMap[uint16, int](xsort.OrderedLess[uint16])
@@ -389,7 +399,7 @@ func TestRotateLeft(t *testing.T) {
 }
 
 func TestMergeMulti(t *testing.T) {
-	tree := newBtree[uint16, int](xsort.OrderedLess[uint16])
+	tree := newBtree[uint16, int](compare[uint16])
 	i := 0
 	for treeHeight(tree) < 3 {
 		tree.Put(uint16(i), i)
@@ -506,8 +516,8 @@ func requireTreesEqual(t *testing.T, a, b *btree[byte, int]) {
 
 func makeTree(t *testing.T, root *node[byte, int]) *btree[byte, int] {
 	tree := &btree[byte, int]{
-		root: root,
-		less: xsort.OrderedLess[byte],
+		root:    root,
+		compare: compare[byte],
 	}
 	tree.size = numItems(tree)
 	checkTree(t, tree)
@@ -623,8 +633,8 @@ func checkTree[K comparable, V comparable](t *testing.T, tree *btree[K, V]) {
 				left := x.children[i]
 				right := x.children[i+1]
 				k := x.keys[i]
-				require2.True(t, tree.less(left.keys[int(left.n)-1], k))
-				require2.True(t, tree.less(k, right.keys[0]))
+				require2.Less(t, tree.compare(left.keys[int(left.n)-1], k), 0)
+				require2.Less(t, tree.compare(k, right.keys[0]), 0)
 			}
 		}
 		if x == tree.root {
@@ -634,7 +644,9 @@ func checkTree[K comparable, V comparable](t *testing.T, tree *btree[K, V]) {
 		} else {
 			require2.GreaterOrEqual(t, int(x.n), minKVs)
 		}
-		require2.True(t, xsort.SliceIsSorted(x.keys[:int(x.n)], tree.less))
+		require2.True(t, xsort.SliceIsSorted(x.keys[:int(x.n)], func(a, b K) bool {
+			return tree.compare(a, b) < 0
+		}))
 		require2.True(t, xslices.All(x.keys[int(x.n):], isZero[K]))
 		require2.True(t, xslices.All(x.values[int(x.n):], isZero[V]))
 		require2.Truef(
@@ -740,7 +752,7 @@ func TestAmalgam1(t *testing.T) {
 			)
 
 			a := newAmalgam1(
-				xsort.OrderedLess[byte],
+				compare[byte],
 				&keys,
 				&values,
 				&children,
@@ -773,7 +785,7 @@ func TestAmalgam1(t *testing.T) {
 }
 
 func TestRange(t *testing.T) {
-	tree := newBtree[uint16, int](xsort.OrderedLess[uint16])
+	tree := newBtree[uint16, int](compare[uint16])
 
 	for i := 0; i < 128; i++ {
 		tree.Put(uint16(i), i)
@@ -808,7 +820,7 @@ func TestRange(t *testing.T) {
 }
 
 func TestGetContains(t *testing.T) {
-	tree := newBtree[uint16, int](xsort.OrderedLess[uint16])
+	tree := newBtree[uint16, int](compare[uint16])
 
 	for i := 0; i < 128; i++ {
 		tree.Put(uint16(i*2), i*4)
@@ -826,7 +838,7 @@ func TestGetContains(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	tree := newBtree[uint16, int](xsort.OrderedLess[uint16])
+	tree := newBtree[uint16, int](compare[uint16])
 	for i := 0; i < 128; i++ {
 		tree.Put(uint16(i)+1, i*2)
 	}

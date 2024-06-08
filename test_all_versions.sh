@@ -6,7 +6,7 @@ go_versions=(1.18 1.19 1.20 1.21)
 
 latest="${go_versions[-1]}"
 if ! go version | grep "go$latest"; then
-    echo >2 "go version expected $latest, got $(go version)"
+    echo >&2 "go version expected $latest, got $(go version)"
     exit 1
 fi
 

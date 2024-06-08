@@ -17,7 +17,13 @@ type Set[T any] struct {
 // any pair of items while they are in the set.
 func NewSet[T any](less xsort.Less[T]) Set[T] {
 	return Set[T]{
-		t: newBtree[T, struct{}](less),
+		t: newBtree[T, struct{}](xsort.LessCompare(less)),
+	}
+}
+
+func NewSetCmp[T any](compare func(T, T) int) Set[T] {
+	return Set[T]{
+		t: newBtree[T, struct{}](compare),
 	}
 }
 
