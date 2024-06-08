@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-go_versions=(1.18 1.19 1.20 1.21)
+go_versions=(1.19 1.20 1.21.4 1.22)
 
 latest="${go_versions[-1]}"
 if ! go version | grep "go$latest"; then
