@@ -456,3 +456,16 @@ func ExampleUniqueInPlace() {
 	// Output:
 	// [a b c]
 }
+
+func ExampleIntersect() {
+	intersection := xslices.Intersect(
+		[]string{"a", "b", "b", "c", "d"},
+		[]string{"a", "b", "b", "c"},
+		[]string{"a", "b", "b"},
+	)
+
+	fmt.Println(intersection)
+
+	// Output:
+	// [a b b]
+}
