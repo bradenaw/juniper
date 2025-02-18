@@ -5,9 +5,12 @@ package parallel
 import (
 	"fmt"
 	"iter"
+	"slices"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/bradenaw/juniper/internal/require2"
 )
 
 type mapSeqInts func(
@@ -93,6 +96,35 @@ func TestMapSeq(t *testing.T) {
 		}
 
 		t.Logf("effective parallelism: %f", measurer.Average())
+	}
+
+	t.Run("Chan", func(t *testing.T) {
+		check(t, MapSeqChan)
+	})
+
+	t.Run("Mutex", func(t *testing.T) {
+		check(t, MapSeqMutex)
+	})
+}
+
+func TestMapSeqEarlyTerminate(t *testing.T) {
+	check := func(t *testing.T, f mapSeqInts) {
+		it := f(count(1000), 64, -1, func(x int) int {
+			// Ensure that even if the map function finishes at different times, we still put the
+			// items back in the right order for output.
+			time.Sleep(time.Duration(x%10) * time.Millisecond)
+			return x
+		})
+
+		var actual []int
+		for x := range it {
+			if x == 500 {
+				break
+			}
+			actual = append(actual, x)
+		}
+
+		require2.SlicesEqual(t, actual, slices.Collect(count(500)))
 	}
 
 	t.Run("Chan", func(t *testing.T) {

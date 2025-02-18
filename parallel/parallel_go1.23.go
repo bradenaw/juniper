@@ -112,6 +112,13 @@ func MapSeqChan[T any, U any](
 	}
 }
 
+// MapSeqMutex uses parallelism goroutines to call f once for each element yielded by in. The
+// returned iterator returns these results in the same order that in yielded them in.
+//
+// If parallelism <= 0, uses GOMAXPROCS instead.
+//
+// bufferSize is the size of the work buffer. A larger buffer uses more memory but gives better
+// throughput in the face of larger variance in the processing time for f.
 func MapSeqMutex[T any, U any](
 	in iter.Seq[T],
 	parallelism int,
@@ -126,28 +133,52 @@ func MapSeqMutex[T any, U any](
 	}
 
 	return func(yield func(U) bool) {
+		var wg sync.WaitGroup
+		wg.Add(parallelism + 1)
+		defer wg.Wait()
+
 		var mu sync.Mutex
+		// True when in has stopped producing items, so all we need to do is make sure everything
+		// we've alredy received from it gets processed.
 		inDone := false
+		// True when yield has returned false, meaning the caller has broken out of their loop. They
+		// won't ask for any more items so all of the background work can exit immediately.
 		outDone := false
 
+		// Queue of work to be done by the mapper goroutines.
 		var work deque.Deque[valueAndIndex[T]]
+		// There can only be this many in flight at once, so we'll never need to grow larger than
+		// this.
 		work.Grow(bufferSize)
+		// Signalled when items are added to `work`.
 		workAvailable := sync.NewCond(&mu)
 
+		// The heap of results, ordered by the index they arrived from `in` at.
 		h := xheap.New(func(a, b valueAndIndex[U]) bool { return a.idx < b.idx }, nil /*initial*/)
+		// There can only be this many in flight at once, so we'll never need to grow larger than
+		// this.
 		h.Grow(bufferSize)
 
+		// The number of values that have been read from `in` but have not been produced to `yield`.
+		// Tracked because we bound this to be `bufferSize` so that we do not use unbounded memory
+		// if one invocation of `f` takes a very long time.
 		inFlight := 0
-		// signalled when inFlight goes from bufferSize -> bufferSize-1
+		// Signalled when inFlight goes from bufferSize -> bufferSize-1, or when outDone becomes
+		// true.
 		outBufferAvailable := sync.NewCond(&mu)
-		// signalled when h.Peek().idx==i
+		// Signalled when h.Peek().idx==i, meaning we're ready to yield (at least) the top of h.
 		nextItemAvailable := sync.NewCond(&mu)
+		// The next index that needs to be returned.
 		i := 0
 
+		// The workers that'll be calling f.
 		for range parallelism {
 			go func() {
+				defer wg.Done()
 				mu.Lock()
 				for {
+					// mu is always held here.
+
 					if outDone {
 						mu.Unlock()
 						return
@@ -179,10 +210,14 @@ func MapSeqMutex[T any, U any](
 			}()
 		}
 
+		// One more goroutine to read through `in` and produce it to the workers above.
 		go func() {
+			defer wg.Done()
 			j := 0
 			for x := range in {
 				mu.Lock()
+				// Block if there are already too many in flight to avoid `h` becoming unreasonably
+				// large if one `f` invocation takes a very long time.
 				for inFlight >= bufferSize {
 					if outDone {
 						mu.Unlock()
@@ -202,6 +237,7 @@ func MapSeqMutex[T any, U any](
 
 			mu.Lock()
 			inDone = true
+			// Wake all of the workers so that they can exit.
 			workAvailable.Broadcast()
 			mu.Unlock()
 		}()
