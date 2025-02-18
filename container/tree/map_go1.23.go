@@ -36,11 +36,11 @@ func (m Map[K, V]) Backward() iter.Seq2[K, V] {
 	return kvIterToSeq2(m.RangeReverse(Unbounded[K](), Unbounded[K]()))
 }
 
-func (m Map[K, V]) Range2(lower Bound[K], upper Bound[K]) iter.Seq2[K, V] {
+func (m Map[K, V]) RangeSeq(lower Bound[K], upper Bound[K]) iter.Seq2[K, V] {
 	return kvIterToSeq2(m.Range(lower, upper))
 }
 
-func (m Map[K, V]) RangeReverse2(lower Bound[K], upper Bound[K]) iter.Seq2[K, V] {
+func (m Map[K, V]) RangeReverseSeq(lower Bound[K], upper Bound[K]) iter.Seq2[K, V] {
 	return kvIterToSeq2(m.RangeReverse(lower, upper))
 }
 
