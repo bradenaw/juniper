@@ -12,7 +12,23 @@ import (
 	"github.com/bradenaw/juniper/container/xheap"
 )
 
-func MapSeqChan[T any, U any](
+// MapSeq uses parallelism goroutines to call f once for each element yielded by in. The
+// returned iterator returns these results in the same order that in yielded them in.
+//
+// If parallelism <= 0, uses GOMAXPROCS instead.
+//
+// bufferSize is the size of the work buffer. A larger buffer uses more memory but gives better
+// throughput in the face of larger variance in the processing time for f.
+func MapSeq[T any, U any](
+	in iter.Seq[T],
+	parallelism int,
+	bufferSize int,
+	f func(T) U,
+) iter.Seq[U] {
+	return mapSeqMutex(in, parallelism, bufferSize, f)
+}
+
+func mapSeqChan[T any, U any](
 	in iter.Seq[T],
 	parallelism int,
 	bufferSize int,
@@ -119,7 +135,7 @@ func MapSeqChan[T any, U any](
 //
 // bufferSize is the size of the work buffer. A larger buffer uses more memory but gives better
 // throughput in the face of larger variance in the processing time for f.
-func MapSeqMutex[T any, U any](
+func mapSeqMutex[T any, U any](
 	in iter.Seq[T],
 	parallelism int,
 	bufferSize int,
@@ -133,6 +149,12 @@ func MapSeqMutex[T any, U any](
 	}
 
 	return func(yield func(U) bool) {
+		// TODO: The purpose of wg is to ensure that we're not leaking anything, including by the
+		// caller having an f block for a very long time. Without this, we'd leave behind the worker
+		// goroutine blocked in f and carry on like everyting's fine. Really, the caller needs to
+		// arrange for f to return promptly if they want to wander off.
+		//
+		// This all seems desirable but worth explaining in the comment.
 		var wg sync.WaitGroup
 		wg.Add(parallelism + 1)
 		defer wg.Wait()
@@ -266,6 +288,48 @@ func MapSeqMutex[T any, U any](
 				break
 			}
 			i++
+		}
+	}
+}
+
+// MapSeq2 uses parallelism goroutines to call f once for each pair yielded by in. The returned
+// iterator returns these results in the same order that in yielded them in.
+//
+// If parallelism <= 0, uses GOMAXPROCS instead.
+//
+// bufferSize is the size of the work buffer. A larger buffer uses more memory but gives better
+// throughput in the face of larger variance in the processing time for f.
+func MapSeq2[T0 any, T1 any, U0 any, U1 any](
+	in iter.Seq2[T0, T1],
+	parallelism int,
+	bufferSize int,
+	f func(T0, T1) (U0, U1),
+) iter.Seq2[U0, U1] {
+	type pair[A any, B any] struct {
+		a A
+		b B
+	}
+
+	return func(yield func(U0, U1) bool) {
+		it := MapSeq(
+			func(yield func(pair[T0, T1]) bool) {
+				for t0, t1 := range in {
+					if !yield(pair[T0, T1]{t0, t1}) {
+						return
+					}
+				}
+			},
+			parallelism,
+			bufferSize,
+			func(p pair[T0, T1]) pair[U0, U1] {
+				u0, u1 := f(p.a, p.b)
+				return pair[U0, U1]{u0, u1}
+			},
+		)
+		for p := range it {
+			if !yield(p.a, p.b) {
+				return
+			}
 		}
 	}
 }

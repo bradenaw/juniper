@@ -47,10 +47,10 @@ func BenchmarkMapSeq1000VariableMapTime(b *testing.B) {
 	}
 
 	b.Run("Chan", func(b *testing.B) {
-		run(b, MapSeqChan)
+		run(b, mapSeqChan)
 	})
 	b.Run("Mutex", func(b *testing.B) {
-		run(b, MapSeqMutex)
+		run(b, mapSeqMutex)
 	})
 }
 
@@ -71,10 +71,10 @@ func BenchmarkMapSeqSingleItemTime(b *testing.B) {
 	}
 
 	b.Run("Chan", func(b *testing.B) {
-		run(b, MapSeqChan)
+		run(b, mapSeqChan)
 	})
 	b.Run("Mutex", func(b *testing.B) {
-		run(b, MapSeqMutex)
+		run(b, mapSeqMutex)
 	})
 }
 
@@ -99,11 +99,11 @@ func TestMapSeq(t *testing.T) {
 	}
 
 	t.Run("Chan", func(t *testing.T) {
-		check(t, MapSeqChan)
+		check(t, mapSeqChan)
 	})
 
 	t.Run("Mutex", func(t *testing.T) {
-		check(t, MapSeqMutex)
+		check(t, mapSeqMutex)
 	})
 }
 
@@ -128,11 +128,11 @@ func TestMapSeqEarlyTerminate(t *testing.T) {
 	}
 
 	t.Run("Chan", func(t *testing.T) {
-		check(t, MapSeqChan)
+		check(t, mapSeqChan)
 	})
 
 	t.Run("Mutex", func(t *testing.T) {
-		check(t, MapSeqMutex)
+		check(t, mapSeqMutex)
 	})
 }
 
