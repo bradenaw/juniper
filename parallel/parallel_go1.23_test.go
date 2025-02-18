@@ -82,7 +82,7 @@ func TestMapSeq(t *testing.T) {
 			measurer.Start()
 			// Ensure that even if the map function finishes at different times, we still put the
 			// items back in the right order for output.
-			time.Sleep(time.Duration(10) * time.Millisecond)
+			time.Sleep(time.Duration(x%10) * time.Millisecond)
 			measurer.Stop()
 			return x
 		})
