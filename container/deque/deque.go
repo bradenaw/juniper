@@ -22,11 +22,11 @@ const (
 // Pushes and pops are amortized O(1). The zero-value is ready to use. Deque should not be copied
 // after first use.
 type Deque[T any] struct {
-	// Backing slice for the deque. Empty if the deque is empty.
+	// Backing slice for the deque.
 	a []T
 	// Index of the first item.
 	front int
-	// Index of the last item.
+	// Index of the last item, or -1 if the deque is empty but a is allocated.
 	back int
 	gen  int
 }
@@ -64,28 +64,23 @@ func (d *Deque[T]) Shrink(n int) {
 
 // PushFront adds item to the front of the deque.
 func (d *Deque[T]) PushFront(item T) {
-	if d.Len() == 0 {
-		d.a = make([]T, minSize)
-		d.a[0] = item
-		d.back = 0
-		return
-	}
 	d.maybeExpand()
 	d.front = positiveMod(d.front-1, len(d.a))
 	d.a[d.front] = item
+	if d.back == -1 {
+		d.back = d.front
+	}
 	d.gen++
 }
 
 // PushFront adds item to the back of the deque.
 func (d *Deque[T]) PushBack(item T) {
-	if d.Len() == 0 {
-		d.a = make([]T, minSize)
-		d.a[0] = item
-		d.back = 0
-		return
-	}
 	d.maybeExpand()
-	d.back = (d.back + 1) % len(d.a)
+	if d.back == -1 {
+		d.back = d.front
+	} else {
+		d.back = (d.back + 1) % len(d.a)
+	}
 	d.a[d.back] = item
 	d.gen++
 }
@@ -120,13 +115,13 @@ func (d *Deque[T]) PopFront() T {
 		panic(errDequeEmpty)
 	}
 	item := d.a[d.front]
+	var zero T
 	if l == 1 {
-		d.a = nil
+		d.a[d.front] = zero
 		d.front = 0
 		d.back = -1
 		return item
 	}
-	var zero T
 	d.a[d.front] = zero
 	d.front = (d.front + 1) % len(d.a)
 	d.gen++
@@ -140,13 +135,13 @@ func (d *Deque[T]) PopBack() T {
 		panic(errDequeEmpty)
 	}
 	item := d.a[d.back]
+	var zero T
 	if l == 1 {
-		d.a = nil
+		d.a[d.back] = zero
 		d.front = 0
 		d.back = -1
 		return item
 	}
-	var zero T
 	d.a[d.back] = zero
 	d.back = positiveMod(d.back-1, len(d.a))
 	d.gen++
