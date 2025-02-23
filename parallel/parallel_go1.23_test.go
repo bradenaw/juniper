@@ -5,11 +5,14 @@ package parallel
 import (
 	"fmt"
 	"iter"
+	"runtime"
 	"slices"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/bradenaw/juniper/container/xheap"
 	"github.com/bradenaw/juniper/internal/require2"
 )
 
@@ -19,6 +22,106 @@ type mapSeqInts func(
 	bufferSize int,
 	f func(int) int,
 ) iter.Seq[int]
+
+func mapSeqChan[T any, U any](
+	in iter.Seq[T],
+	parallelism int,
+	bufferSize int,
+	f func(T) U,
+) iter.Seq[U] {
+	if parallelism <= 0 {
+		parallelism = runtime.GOMAXPROCS(-1)
+	}
+	if bufferSize < parallelism {
+		bufferSize = parallelism
+	}
+
+	return func(yield func(U) bool) {
+		var wg sync.WaitGroup
+		wg.Add(parallelism + 1)
+		defer wg.Wait()
+		done := make(chan struct{})
+		defer close(done)
+
+		work := make(chan valueAndIndex[T])
+		out := make(chan valueAndIndex[U])
+		sem := make(chan struct{}, bufferSize)
+		var nDone atomic.Int64
+		for range parallelism {
+			go func() {
+				defer wg.Done()
+				defer func() {
+					if nDone.Add(1) == int64(parallelism) {
+						close(out)
+					}
+				}()
+				for {
+					var item valueAndIndex[T]
+					var ok bool
+					select {
+					case <-done:
+						return
+					case item, ok = <-work:
+					}
+
+					if !ok {
+						return
+					}
+
+					select {
+					case <-done:
+						return
+					case out <- valueAndIndex[U]{
+						idx:   item.idx,
+						value: f(item.value),
+					}:
+					}
+				}
+			}()
+		}
+
+		go func() {
+			defer wg.Done()
+			i := 0
+			for x := range in {
+				select {
+				case <-done:
+					return
+				case sem <- struct{}{}:
+				}
+
+				select {
+				case <-done:
+					return
+				case work <- valueAndIndex[T]{
+					value: x,
+					idx:   i,
+				}:
+				}
+				i++
+			}
+			close(work)
+		}()
+
+		i := 0
+		h := xheap.New(func(a, b valueAndIndex[U]) bool { return a.idx < b.idx }, nil /*initial*/)
+		h.Grow(bufferSize)
+		for {
+			item, ok := <-out
+			if !ok {
+				break
+			}
+			h.Push(item)
+			for h.Len() > 0 && h.Peek().idx == i {
+				if !yield(h.Pop().value) {
+					return
+				}
+				<-sem
+				i++
+			}
+		}
+	}
+}
 
 func forEachParallelism(b *testing.B, f func(b *testing.B, parallelism int)) {
 	for _, parallelism := range []int{1, 4, 16, 64} {
@@ -50,7 +153,7 @@ func BenchmarkMapSeq1000VariableMapTime(b *testing.B) {
 		run(b, mapSeqChan)
 	})
 	b.Run("Mutex", func(b *testing.B) {
-		run(b, mapSeqMutex)
+		run(b, MapSeq)
 	})
 }
 
@@ -74,7 +177,7 @@ func BenchmarkMapSeqSingleItemTime(b *testing.B) {
 		run(b, mapSeqChan)
 	})
 	b.Run("Mutex", func(b *testing.B) {
-		run(b, mapSeqMutex)
+		run(b, MapSeq)
 	})
 }
 
@@ -103,7 +206,7 @@ func TestMapSeq(t *testing.T) {
 	})
 
 	t.Run("Mutex", func(t *testing.T) {
-		check(t, mapSeqMutex)
+		check(t, MapSeq)
 	})
 }
 
@@ -132,7 +235,7 @@ func TestMapSeqEarlyTerminate(t *testing.T) {
 	})
 
 	t.Run("Mutex", func(t *testing.T) {
-		check(t, mapSeqMutex)
+		check(t, MapSeq)
 	})
 }
 

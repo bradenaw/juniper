@@ -6,7 +6,6 @@ import (
 	"iter"
 	"runtime"
 	"sync"
-	"sync/atomic"
 
 	"github.com/bradenaw/juniper/container/deque"
 	"github.com/bradenaw/juniper/container/xheap"
@@ -20,122 +19,6 @@ import (
 // bufferSize is the size of the work buffer. A larger buffer uses more memory but gives better
 // throughput in the face of larger variance in the processing time for f.
 func MapSeq[T any, U any](
-	in iter.Seq[T],
-	parallelism int,
-	bufferSize int,
-	f func(T) U,
-) iter.Seq[U] {
-	return mapSeqMutex(in, parallelism, bufferSize, f)
-}
-
-func mapSeqChan[T any, U any](
-	in iter.Seq[T],
-	parallelism int,
-	bufferSize int,
-	f func(T) U,
-) iter.Seq[U] {
-	if parallelism <= 0 {
-		parallelism = runtime.GOMAXPROCS(-1)
-	}
-	if bufferSize < parallelism {
-		bufferSize = parallelism
-	}
-
-	return func(yield func(U) bool) {
-		var wg sync.WaitGroup
-		wg.Add(parallelism + 1)
-		defer wg.Wait()
-		done := make(chan struct{})
-		defer close(done)
-
-		work := make(chan valueAndIndex[T])
-		out := make(chan valueAndIndex[U])
-		sem := make(chan struct{}, bufferSize)
-		var nDone atomic.Int64
-		for range parallelism {
-			go func() {
-				defer wg.Done()
-				defer func() {
-					if nDone.Add(1) == int64(parallelism) {
-						close(out)
-					}
-				}()
-				for {
-					var item valueAndIndex[T]
-					var ok bool
-					select {
-					case <-done:
-						return
-					case item, ok = <-work:
-					}
-
-					if !ok {
-						return
-					}
-
-					select {
-					case <-done:
-						return
-					case out <- valueAndIndex[U]{
-						idx:   item.idx,
-						value: f(item.value),
-					}:
-					}
-				}
-			}()
-		}
-
-		go func() {
-			defer wg.Done()
-			i := 0
-			for x := range in {
-				select {
-				case <-done:
-					return
-				case sem <- struct{}{}:
-				}
-
-				select {
-				case <-done:
-					return
-				case work <- valueAndIndex[T]{
-					value: x,
-					idx:   i,
-				}:
-				}
-				i++
-			}
-			close(work)
-		}()
-
-		i := 0
-		h := xheap.New(func(a, b valueAndIndex[U]) bool { return a.idx < b.idx }, nil /*initial*/)
-		h.Grow(bufferSize)
-		for {
-			item, ok := <-out
-			if !ok {
-				break
-			}
-			h.Push(item)
-			for h.Len() > 0 && h.Peek().idx == i {
-				if !yield(h.Pop().value) {
-					return
-				}
-				<-sem
-				i++
-			}
-		}
-	}
-}
-
-// MapSeqMutex uses parallelism goroutines to call f once for each element yielded by in. The
-// returned iterator returns these results in the same order that in yielded them in.
-//
-// If parallelism <= 0, uses GOMAXPROCS instead.
-//
-// bufferSize is the size of the work buffer. A larger buffer uses more memory but gives better
-// throughput in the face of larger variance in the processing time for f.
-func mapSeqMutex[T any, U any](
 	in iter.Seq[T],
 	parallelism int,
 	bufferSize int,
