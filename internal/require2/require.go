@@ -152,6 +152,30 @@ func ElementsMatch[T comparable](t *testing.T, a []T, b []T) {
 	}
 }
 
+func ElementsEqual[T comparable](t *testing.T, a []T, b []T) {
+	aSet := make(map[T]int, len(a))
+	for _, ai := range a {
+		aSet[ai] += 1
+	}
+	bSet := make(map[T]int, len(b))
+	for _, bi := range b {
+		bSet[bi] += 1
+	}
+
+	for elem, aCount := range aSet {
+		bCount, _ := bSet[elem]
+		if aCount != bCount {
+			fatalf(t, "%#v appears %d times in a and %d times in b", elem, aCount, bCount)
+		}
+	}
+	for elem, bCount := range bSet {
+		aCount, _ := aSet[elem]
+		if bCount != aCount {
+			fatalf(t, "%#v appears %d times in b and %d times in a", elem, bCount, aCount)
+		}
+	}
+}
+
 func fatalf(t *testing.T, s string, fmtArgs ...any) {
 	var buf [64]uintptr
 	var ptrs []uintptr
