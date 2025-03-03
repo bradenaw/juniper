@@ -186,7 +186,7 @@ func One[V any](seq iter.Seq[V]) (V, bool) {
 
 func Repeat[V any](v V, n int) iter.Seq[V] {
 	return func(yield func(V) bool) {
-		for _ = range n {
+		for range n {
 			if !yield(v) {
 				return
 			}
@@ -226,6 +226,9 @@ func Runs[V any](seq iter.Seq[V], same func(a, b V) bool) iter.Seq[iter.Seq[V]] 
 					if !broken {
 						// We can't actually break here because we still have to find the start of
 						// the next run, but we can stop emitting like they asked.
+						//
+						// XXX: Seems not actually right, need to do this in the outside loop in
+						// case they don't decide to consume the inner seq at all.
 						broken = !yield2(curr)
 					}
 				}
