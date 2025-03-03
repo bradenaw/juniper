@@ -6,22 +6,30 @@ import (
 	"iter"
 )
 
-func (d *Deque[T]) All() iter.Seq[T] {
-	return func(yield func(T) bool) {
-		for i := 0; i < d.Len(); i++ {
-			idx := (d.front + i) % len(d.a)
-			if !yield(d.a[idx]) {
+func (d *Deque[T]) All() iter.Seq2[int, T] {
+	return func(yield func(int, T) bool) {
+		for i := range d.Len() {
+			if !yield(i, d.Item(i)) {
 				return
 			}
 		}
 	}
 }
 
-func (d *Deque[T]) Backward() iter.Seq[T] {
-	return func(yield func(T) bool) {
+func (d *Deque[T]) Backward() iter.Seq2[int, T] {
+	return func(yield func(int, T) bool) {
 		for i := d.Len() - 1; i >= 0; i-- {
-			idx := (d.front + i) % len(d.a)
-			if !yield(d.a[idx]) {
+			if !yield(i, d.Item(i)) {
+				return
+			}
+		}
+	}
+}
+
+func (d *Deque[T]) Values() iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for i := range d.Len() {
+			if !yield(d.Item(i)) {
 				return
 			}
 		}

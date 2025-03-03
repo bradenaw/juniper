@@ -9,13 +9,13 @@ import (
 	"github.com/bradenaw/juniper/internal/require2"
 )
 
-func TestAll(t *testing.T) {
+func TestValues(t *testing.T) {
 	var deque Deque[string]
 
 	require2.SeqsEqual(
 		t,
 		slices.Values([]string{}),
-		deque.All(),
+		deque.Values(),
 	)
 
 	deque.PushFront("c")
@@ -28,7 +28,7 @@ func TestAll(t *testing.T) {
 	require2.SeqsEqual(
 		t,
 		slices.Values([]string{"a", "b", "c", "d", "e", "f"}),
-		deque.All(),
+		deque.Values(),
 	)
 
 	deque.PopFront()
@@ -36,7 +36,7 @@ func TestAll(t *testing.T) {
 	require2.SeqsEqual(
 		t,
 		slices.Values([]string{"b", "c", "d", "e", "f"}),
-		deque.All(),
+		deque.Values(),
 	)
 
 	deque.PopBack()
@@ -44,6 +44,6 @@ func TestAll(t *testing.T) {
 	require2.SeqsEqual(
 		t,
 		slices.Values([]string{"b", "c", "d", "e"}),
-		deque.All(),
+		deque.Values(),
 	)
 }
