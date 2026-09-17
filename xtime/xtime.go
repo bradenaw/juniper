@@ -35,7 +35,7 @@ func SleepContext(ctx context.Context, d time.Duration) error {
 	deadline, ok := ctx.Deadline()
 	if ok {
 		remaining := time.Until(deadline)
-		if remaining > d {
+		if remaining < d {
 			return DeadlineTooSoonError{remaining: remaining, d: d}
 		}
 	}

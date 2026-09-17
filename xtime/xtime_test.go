@@ -1,9 +1,56 @@
 package xtime
 
 import (
+	"context"
+	"errors"
 	"testing"
 	"time"
 )
+
+func TestSleepContext(t *testing.T) {
+	t.Run("sufficient deadline", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+
+		if err := SleepContext(ctx, time.Millisecond); err != nil {
+			t.Fatalf("SleepContext() = %v, want nil", err)
+		}
+	})
+
+	t.Run("insufficient deadline", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+
+		err := SleepContext(ctx, 2*time.Second)
+		var deadlineErr DeadlineTooSoonError
+		if !errors.As(err, &deadlineErr) {
+			t.Fatalf("SleepContext() = %v, want DeadlineTooSoonError", err)
+		}
+		if err := ctx.Err(); err != nil {
+			t.Fatalf("context expired before SleepContext returned: %v", err)
+		}
+	})
+
+	t.Run("canceled", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		if err := SleepContext(ctx, time.Hour); !errors.Is(err, context.Canceled) {
+			t.Fatalf("SleepContext() = %v, want context.Canceled", err)
+		}
+	})
+
+	for _, d := range []time.Duration{0, -time.Nanosecond} {
+		t.Run(d.String(), func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			cancel()
+
+			if err := SleepContext(ctx, d); err != nil {
+				t.Fatalf("SleepContext() = %v, want nil", err)
+			}
+		})
+	}
+}
 
 func TestJitterTicker(t *testing.T) {
 	d := 5 * time.Millisecond
